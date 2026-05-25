@@ -11,7 +11,7 @@
 3. Activate the environment: `source venv/bin/activate`
 4. Install dependencies: `pip install -r requirements.txt`
 5. Install Playwright browsers: `playwright install chromium`
-6. Create a `.env` file with `OPENAI_API_KEY=your_key_here`.
+6. Create a `.env` file based on `MANUAL.md` (OpenAI, SMTP, Proxy settings).
 7. Initialize the database: (Automatically handled by `DatabaseManager`)
 
 ## Running the Pipeline
@@ -25,3 +25,13 @@ The repository includes an automated synchronization protocol that runs daily vi
 
 To run the sync manually:
 `python scripts/sync_repo.py`
+
+## CI/CD Pipeline (GitHub Actions)
+The synchronization protocol is fully integrated into GitHub Actions. For the pipeline to function correctly, the following **GitHub Secrets** must be configured in the repository settings:
+
+- `OPENAI_API_KEY`: Required for vibe-checking, pitch generation, and AI conflict resolution.
+- `PROXY_LIST`: Comma-separated list of proxies (e.g., `http://user:pass@host:port`).
+- `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: Credentials for the booking email.
+- `SENDER_EMAIL`: The outbound email address (e.g., `booking@yourdomain.com`).
+
+The pipeline triggers on every push to `main`, on a daily schedule, and can be triggered manually via `workflow_dispatch`.
