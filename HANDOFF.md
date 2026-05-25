@@ -1,31 +1,30 @@
-# SESSION HANDOFF - v1.0.4
+# SESSION HANDOFF - v1.0.5
 
 ## OVERVIEW
-This session reached the **v1.0.4 milestone**, focusing on **Scaling Resilience** and **Quality Assurance**. The agent is now capable of processing a large backlog of cities while retaining its progress across interruptions.
+This session reached the **v1.0.5 milestone**, introducing a **Staging Environment** and a dedicated **Release Validation Workflow**. The system now follows a professional tiered deployment strategy.
 
 ## STRUCTURAL SHIFTS
-- **Resume Capability:**
-    - Added `city_processing_log` table to the database.
-    - `main.py` now checks if a city has been successfully completed before starting work.
-    - `DatabaseManager` handles status updates for geographic targets.
-- **Permanent Smoke Testing:**
-    - Added `tests/test_smoke.py` as a top-level integration test.
-    - This test covers the entire life-cycle of a lead: Discovery -> AI Qualification -> Outreach -> Follow-up.
-- **CI/CD Alignment:** All 14 core tests are now part of the gated CI pipeline.
+- **Staging Protocol:**
+    - Created `scripts/deploy_staging.sh` to automate environment setup and validation in isolation from production data.
+    - Staging utilizes `database/staging_outreach.db` for integration tests.
+- **CI/CD Staging Workflow (`.github/workflows/staging.yml`):**
+    - Triggers on pushes to the `staging` branch.
+    - Executes the full E2E suite (`test_smoke.py` and `test_protocol_e2e.py`) as a release gate.
+- **Documentation:**
+    - Expanded `DEPLOY.md` with tiered environment instructions (Local, Staging, CI/CD).
 
 ## FINDINGS & OBSERVATIONS
-- **Resilient Scaling:** Resume logic is essential for processing the large geographic targets identified in the vision. It ensures that API costs and time are not wasted on redundant discovery.
-- **Smoke Testing:** The unified smoke test identified a minor parameter mismatch in the `ConfigManager.get()` mock, which was resolved by hardening the method's call signature in `src/outreach_engine.py` and `src/follow_up_engine.py`.
+- **Validation Gates:** Using `test_smoke.py` as part of the staging script ensures that the AI/Outreach/DB integration is functional in a clean environment before it hits production `main`.
+- **Environment Isolation:** The `DB_PATH` override in the staging script successfully prevents tests from polluting the production database.
 
 ## NEXT STEPS / ROADMAP
-1. **Sentiment Analysis (Phase 8):** Implement rejection detection to automatically stop follow-up cycles when a human response is detected.
-2. **Sequential City Expansion:** Task the agent with a large, multi-continental city list.
-3. **EPK V2:** Enhance the personalization of pitches using more specific traits (e.g., sound system details, lighting) scraped from venue "About" pages.
+1. **Sentiment Analysis (Phase 8):** Implement rejection detection to automatically stop follow-up cycles.
+2. **Production Release:** Promote the staging branch to `main` once multi-city scaling has been manually verified in the staging environment.
 
 ## VERSION STATUS
-- **Current Version:** 1.0.4
-- **Status:** Resilient / Production Scale.
-- **CI/CD:** Passing with 14 tests.
+- **Current Version:** 1.0.5 (Staging Ready)
+- **Status:** Release Candidate.
+- **CI/CD:** Both `sync.yml` and `staging.yml` are operational.
 
 ---
 *End of Handoff*

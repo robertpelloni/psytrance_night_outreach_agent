@@ -35,3 +35,12 @@ The synchronization protocol is fully integrated into GitHub Actions. For the pi
 - `SENDER_EMAIL`: The outbound email address (e.g., `booking@yourdomain.com`).
 
 The pipeline triggers on every push to **any** branch (`**`), ensuring continuous synchronization across the entire repository. Note that the full outreach pipeline (`main.py`) only executes on the `main` branch or scheduled runs to optimize API usage.
+
+## Staging Environment
+A dedicated staging workflow is configured in `.github/workflows/staging.yml`.
+- **Trigger**: Push to the `staging` branch.
+- **Actions**: Sets up a clean environment, initializes `database/staging_outreach.db`, and executes the full end-to-end integration suite (`tests/test_smoke.py` and `tests/test_protocol_e2e.py`).
+- **Purpose**: To verify that upcoming releases are functionally sound before merging into `main`.
+
+To manually validate a staging deployment:
+`./scripts/deploy_staging.sh`

@@ -31,3 +31,4 @@
 - [x] Implement Follow-up Engine (v1.0.3)
 - [x] Implement Multi-City Resume Logic (v1.0.4)
 - [x] Add Comprehensive Smoke Test (v1.0.4)
+- [x] Deploy Staging Environment and CI Workflow
