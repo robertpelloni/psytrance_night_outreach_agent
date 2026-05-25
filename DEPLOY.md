@@ -34,4 +34,4 @@ The synchronization protocol is fully integrated into GitHub Actions. For the pi
 - `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: Credentials for the booking email.
 - `SENDER_EMAIL`: The outbound email address (e.g., `booking@yourdomain.com`).
 
-The pipeline triggers on every push to `main`, on a daily schedule, and can be triggered manually via `workflow_dispatch`.
+The pipeline triggers on every push to **any** branch (`**`), ensuring continuous synchronization across the entire repository. Note that the full outreach pipeline (`main.py`) only executes on the `main` branch or scheduled runs to optimize API usage.

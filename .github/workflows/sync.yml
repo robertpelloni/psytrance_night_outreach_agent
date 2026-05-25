@@ -3,7 +3,7 @@ name: Repository Sync
 on:
   push:
     branches:
-      - main
+      - '**' # Trigger on every branch to ensure continuous synchronization
   schedule:
     - cron: '0 0 * * *' # Run daily at midnight
   workflow_dispatch: # Allow manual trigger
@@ -48,7 +48,15 @@ jobs:
         run: cd scripts && python test_sync_repo.py
 
       - name: Run Sync Script (Start Protocol)
-        run: ./scripts/start.sh
+        run: |
+          # If on a feature branch, run sync and tests, but skip the full outreach pipeline to save tokens
+          if [[ "${{ github.ref }}" != "refs/heads/main" && "${{ github.event_name }}" != "schedule" ]]; then
+            echo "Feature branch detected. Running sync and tests only."
+            python3 scripts/sync_repo.py
+          else
+            echo "Main branch or Schedule detected. Running full protocol."
+            ./scripts/start.sh
+          fi
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PROXY_LIST: ${{ secrets.PROXY_LIST }}

@@ -37,7 +37,7 @@
 ## Phase 6: Robustness & Scaling (v1.0.2)
 - [x] Advanced Bot Detection Bypassing (Proxy Rotation)
 - [x] Automated Outreach Engine (Auto-Approval & Dispatch)
-- [x] Full CI/CD Integration of Sync Protocol
+- [x] Full CI/CD Integration of Sync Protocol (Multi-Branch Support)
 
 ## Phase 7: Persistence & Follow-ups (v1.0.3)
 - [x] Automated Follow-up Engine
