@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.5.1] - 2024-05-24
+### Added
+- Created `scripts/setup.sh` and `scripts/start.sh` for unified execution.
+- Added `tests/test_protocol_e2e.py` for end-to-end protocol verification.
+
 ## [0.5.0] - 2024-05-24
 ### Added
 - **AI Scraper Generation**: Integrated `src/scraper_generator.py` for real-time creation of scrapers via OpenAI.
