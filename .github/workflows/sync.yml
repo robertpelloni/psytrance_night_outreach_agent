@@ -31,5 +31,8 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
+      - name: Run Sync Tests
+        run: cd scripts && python test_sync_repo.py
+
       - name: Run Sync Script
         run: python scripts/sync_repo.py

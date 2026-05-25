@@ -1,0 +1,96 @@
+import unittest
+import os
+import shutil
+import subprocess
+import tempfile
+from sync_repo import run_command
+
+class TestSyncRepo(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory for our git test environment
+        self.test_dir = tempfile.mkdtemp()
+        self.remote_dir = os.path.join(self.test_dir, "remote")
+        self.local_dir = os.path.join(self.test_dir, "local")
+
+        # Initialize remote repo
+        os.makedirs(self.remote_dir)
+        run_command(["git", "init", "--bare"], cwd=self.remote_dir)
+
+        # Initialize local repo and push initial commit to remote
+        os.makedirs(self.local_dir)
+        run_command(["git", "init"], cwd=self.local_dir)
+        run_command(["git", "remote", "add", "origin", self.remote_dir], cwd=self.local_dir)
+
+        with open(os.path.join(self.local_dir, "README.md"), "w") as f:
+            f.write("# Initial Commit")
+
+        run_command(["git", "add", "README.md"], cwd=self.local_dir)
+        run_command(["git", "config", "user.name", "Test User"], cwd=self.local_dir)
+        run_command(["git", "config", "user.email", "test@example.com"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Initial commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "master:main"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "main"], cwd=self.local_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_run_command(self):
+        result = run_command(["echo", "hello"], cwd=self.local_dir)
+        self.assertEqual(result.stdout.strip(), "hello")
+        self.assertEqual(result.returncode, 0)
+
+    def test_sync_logic_forward_merge(self):
+        # Create a feature branch with a unique commit
+        run_command(["git", "checkout", "-b", "feature-1"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "feature.txt"), "w") as f:
+            f.write("Feature work")
+        run_command(["git", "add", "feature.txt"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Feature commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "feature-1"], cwd=self.local_dir)
+
+        # Go back to main
+        run_command(["git", "checkout", "main"], cwd=self.local_dir)
+
+        # Import sync and run it in the local dir context
+        import sync_repo
+        # We need to monkeypatch or ensure it uses our local_dir
+        # Since sync() uses os.getcwd(), we'll change dir
+        old_cwd = os.getcwd()
+        os.chdir(self.local_dir)
+        try:
+            sync_repo.sync()
+        finally:
+            os.chdir(old_cwd)
+
+        # Verify main has the feature commit
+        res = run_command(["git", "log", "main", "--format=%s"], cwd=self.local_dir)
+        self.assertIn("Feature commit", res.stdout)
+
+    def test_sync_logic_reverse_merge(self):
+        # Create a feature branch
+        run_command(["git", "checkout", "-b", "feature-2"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "feature-2"], cwd=self.local_dir)
+
+        # Add a commit to main
+        run_command(["git", "checkout", "main"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "main_update.txt"), "w") as f:
+            f.write("Main update")
+        run_command(["git", "add", "main_update.txt"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Main update commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "main"], cwd=self.local_dir)
+
+        # Run sync
+        import sync_repo
+        old_cwd = os.getcwd()
+        os.chdir(self.local_dir)
+        try:
+            sync_repo.sync()
+        finally:
+            os.chdir(old_cwd)
+
+        # Verify feature-2 has the main update commit
+        res = run_command(["git", "log", "feature-2", "--format=%s"], cwd=self.local_dir)
+        self.assertIn("Main update commit", res.stdout)
+
+if __name__ == "__main__":
+    unittest.main()

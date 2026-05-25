@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.4.1] - 2024-05-24
+### Added
+- Automated test suite for the repository synchronization protocol (`scripts/test_sync_repo.py`).
+- Integrated synchronization tests into the CI pipeline.
+
 ## [0.4.0] - 2024-05-24
 ### Changed
 - Refined database schema with UNIQUE constraints for venues and leads.
