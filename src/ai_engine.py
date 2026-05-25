@@ -35,15 +35,24 @@ class AIEngine:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_pitch(self, venue_name, justification):
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None):
         if not self.client:
             return "Hey, we would love to play at your venue!"
+
+        links_context = ""
+        if epk_link:
+            links_context += f"- Link to our Electronic Press Kit (EPK): {epk_link}\n"
+        if mix_link:
+            links_context += f"- Our showcase mix: {mix_link}\n"
 
         prompt = f"""
         Write a professional cold email to the booking manager of {venue_name}.
         The reason we like them is: {justification}
         We are a collective of psytrance selectors looking to start a recurring night.
         The tone should be professional and value-driven.
+
+        Please include these links in the pitch:
+        {links_context}
         """
         try:
             response = self.client.chat.completions.create(

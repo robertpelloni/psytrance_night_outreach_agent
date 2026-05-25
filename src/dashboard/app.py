@@ -9,6 +9,8 @@ from src.db_manager import DatabaseManager
 from src.ai_engine import AIEngine
 from src.mailer import Mailer
 from src.scraper_generator import ScraperGenerator
+from src.analytics import AnalyticsEngine
+from src.config_manager import ConfigManager
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -17,6 +19,8 @@ db = DatabaseManager(db_path=db_path)
 ai = AIEngine()
 mailer = Mailer()
 generator = ScraperGenerator()
+analytics = AnalyticsEngine(db_path=db_path)
+config_mgr = ConfigManager()
 
 @app.route('/')
 def index():
@@ -33,6 +37,28 @@ def sources():
     scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
     files = [f for f in os.listdir(scrapers_dir) if f.endswith('.py') and f not in ['__init__.py', 'base_scraper.py']]
     return render_template('sources.html', files=files)
+
+@app.route('/analytics')
+def show_analytics():
+    stats = analytics.get_summary_stats()
+    approval_rate = analytics.get_approval_rate()
+    return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if request.method == 'POST':
+        new_config = {
+            "cities": [c.strip() for f in request.form.getlist('cities') for c in f.split(',')],
+            "target_genres": [g.strip() for f in request.form.getlist('genres') for g in f.split(',')],
+            "epk_link": request.form.get('epk_link'),
+            "mix_link": request.form.get('mix_link'),
+            "vibe_threshold": int(request.form.get('vibe_threshold', 7))
+        }
+        config_mgr.save_config(new_config)
+        return redirect(url_for('settings'))
+
+    current_config = config_mgr.load_config()
+    return render_template('settings.html', config=current_config)
 
 @app.route('/add_source', methods=['POST'])
 def add_source():
@@ -70,7 +96,13 @@ def regenerate(lead_id):
     if not lead: return jsonify({"error": "Lead not found"}), 404
     venue = db.get_venue(lead['venue_id'])
     if not venue: return jsonify({"error": "Venue not found"}), 404
-    new_pitch = ai.generate_pitch(venue['name'], lead['qualification_justification'])
+
+    new_pitch = ai.generate_pitch(
+        venue['name'],
+        lead['qualification_justification'],
+        epk_link=config_mgr.get("epk_link"),
+        mix_link=config_mgr.get("mix_link")
+    )
     return jsonify({"pitch": new_pitch})
 
 if __name__ == '__main__':

@@ -4,6 +4,19 @@
     <title>Psytrance Outreach Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script>
+        function copyToClipboard(text, leadId) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById(`copy-btn-${leadId}`);
+                const originalText = btn.innerText;
+                btn.innerText = 'Copied!';
+                btn.classList.replace('btn-outline-warning', 'btn-success');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.replace('btn-success', 'btn-outline-warning');
+                }, 2000);
+            });
+        }
+
         async function regeneratePitch(leadId) {
             const btn = document.getElementById(`regen-btn-${leadId}`);
             const textarea = document.getElementById(`pitch-${leadId}`);
@@ -33,7 +46,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Psytrance Outreach: {% if view == 'history' %}History{% else %}Pending Leads{% endif %}</h1>
         <div>
+            <a href="/analytics" class="btn btn-outline-info">Analytics</a>
             <a href="/sources" class="btn btn-outline-success">Manage Sources</a>
+            <a href="/settings" class="btn btn-outline-warning">Settings</a>
             <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending</a>
             <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">History</a>
         </div>
@@ -60,6 +75,17 @@
                     {% if view == 'pending' %}
                     <form action="{{ url_for('approve', lead_id=lead.id) }}" method="post">
                         <div class="mb-3">
+                            {% if lead.instagram %}
+                            <div class="alert alert-warning bg-dark text-warning border-warning d-flex justify-content-between align-items-center py-2">
+                                <span>No email? Try Instagram: <strong>{{ lead.instagram }}</strong></span>
+                                <button type="button" id="copy-btn-{{ lead.id }}"
+                                        onclick="copyToClipboard(document.getElementById('pitch-{{ lead.id }}').value, {{ lead.id }})"
+                                        class="btn btn-sm btn-outline-warning">
+                                    Copy Pitch for DM
+                                </button>
+                            </div>
+                            {% endif %}
+
                             <div class="d-flex justify-content-between align-items-end mb-2">
                                 <label class="form-label mb-0"><strong>Customized Pitch:</strong></label>
                                 <button type="button" id="regen-btn-{{ lead.id }}"

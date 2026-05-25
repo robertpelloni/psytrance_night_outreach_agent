@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics - Psytrance Outreach</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .stat-card { border-radius: 15px; border-left: 5px solid #0d6efd; }
+        .bg-dark-accent { background-color: #1a1d20; }
+    </style>
+</head>
+<body class="container mt-5 text-bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1>Outreach Analytics</h1>
+        <a href="/" class="btn btn-outline-primary">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-bg-secondary stat-card h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-info">Total Venues</h6>
+                    <h2 class="card-title">{{ stats.total_venues }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-secondary stat-card h-100" style="border-left-color: #198754;">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-success">Approval Rate</h6>
+                    <h2 class="card-title">{{ approval_rate }}%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-secondary stat-card h-100" style="border-left-color: #ffc107;">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-warning">Avg Vibe Score</h6>
+                    <h2 class="card-title">{{ stats.avg_vibe_score }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-secondary stat-card h-100" style="border-left-color: #0dcaf0;">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-info">Sent Emails</h6>
+                    <h2 class="card-title">{{ stats.status_breakdown.get('SENT', 0) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card text-bg-secondary h-100">
+                <div class="card-header bg-dark text-white"><h5>Status Breakdown</h5></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for status, count in stats.status_breakdown.items() %}
+                        <li class="list-group-item text-bg-secondary d-flex justify-content-between align-items-center border-secondary">
+                            {{ status }}
+                            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card text-bg-secondary h-100">
+                <div class="card-header bg-dark text-white"><h5>City Distribution</h5></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for city, count in stats.city_distribution.items() %}
+                        <li class="list-group-item text-bg-secondary d-flex justify-content-between align-items-center border-secondary">
+                            {{ city }}
+                            <span class="badge bg-info rounded-pill">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -84,10 +84,26 @@ Access it at: `http://localhost:5000`
 - **Regenerate AI Pitch**: Click "Regenerate" to have the AI try a different angle for that specific venue.
 - **Approve & Send**: Marks the lead as approved and attempts to send the email via SMTP.
 - **Reject**: Archives the lead so it doesn't appear in the pending list.
+- **Instagram DM Helper**: If a venue has an Instagram handle but no email, use the "Copy Pitch for DM" button to manually outreach via social media.
+
+### Outreach Analytics
+Access the **Analytics** tab to view your performance:
+- **Total Venues**: Number of venues discovered across all cities.
+- **Approval Rate**: Percentage of qualified leads that you have approved.
+- **Status Breakdown**: Current state of all venues in the pipeline.
+- **City Distribution**: Geographic distribution of your scouting efforts.
 
 ---
 
-## 5. Advanced Configuration
+## 5. Project Settings & Branding
+
+Use the **Settings** page to personalize the agent for your project:
+- **Target Cities**: Manage which cities the agent scouts for venues.
+- **Target Genres**: Define the music genres to refine scraper searches and AI qualification.
+- **EPK & Mix Links**: Add your Electronic Press Kit and SoundCloud links. These are automatically integrated into every AI-generated pitch for a professional first impression.
+- **Vibe Threshold**: Adjust how strict the AI filter is for "suitability."
+
+## 6. Advanced Configuration
 
 ### Adding Target Cities
 Modify the `cities` list in `main.py`:

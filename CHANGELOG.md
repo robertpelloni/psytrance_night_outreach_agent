@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [0.8.0] - 2024-05-24
+### Added
+- **Centralized Configuration**: Implemented `ConfigManager` to handle target cities, genres, and project links.
+- **Settings Dashboard**: New page to manage project configurations and branding links dynamically.
+- **EPK Integration**: AI-generated pitches now include EPK and showcase mix links for increased professionalism.
+
+## [0.7.0] - 2024-05-24
+### Added
+- **Outreach Analytics**: New dashboard view for tracking approval rates, status breakdowns, and city distributions.
+- **Social Media Helper**: Added Instagram handle display and "Copy for DM" clipboard functionality to pending leads.
+- **Enhanced Data Retrieval**: Improved SQL queries to fetch contact info directly with pending leads.
+
 ## [0.6.0] - 2024-05-24
 ### Added
 - **AI Conflict Resolution**: Integrated OpenAI into the synchronization script to automatically resolve git merge conflicts.

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from src.db_manager import DatabaseManager
 from src.scrapers.base_scraper import ContactExtractor
 from src.ai_engine import AIEngine
+from src.config_manager import ConfigManager
 
 def load_scrapers():
     scrapers = []
@@ -35,11 +36,13 @@ def main():
     load_dotenv()
     db = DatabaseManager()
     ai = AIEngine()
+    config = ConfigManager()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
 
-    cities = ["Detroit", "Berlin", "London", "Tokyo", "Lisbon"]
+    cities = config.get("cities")
+    vibe_threshold = config.get("vibe_threshold")
 
     for city in cities:
         print(f"\n--- Processing {city} ---")
@@ -75,8 +78,13 @@ def main():
             vibe_result = ai.vibe_check(v_data['name'], enriched_text)
 
             pitch = ""
-            if vibe_result['vibe_score'] >= 7:
-                pitch = ai.generate_pitch(v_data['name'], vibe_result['justification'])
+            if vibe_result['vibe_score'] >= vibe_threshold:
+                pitch = ai.generate_pitch(
+                    v_data['name'],
+                    vibe_result['justification'],
+                    epk_link=config.get("epk_link"),
+                    mix_link=config.get("mix_link")
+                )
                 status = 'PENDING_REVIEW'
             else:
                 status = 'PENDING_QUALIFICATION'

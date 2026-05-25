@@ -83,7 +83,9 @@ class DatabaseManager:
 
     def get_pending_leads(self):
         query = """
-        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status
+        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status,
+               (SELECT email FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as email,
+               (SELECT instagram_handle FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as instagram
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
         WHERE l.pipeline_status = 'PENDING_REVIEW'
