@@ -117,6 +117,21 @@ class DatabaseManager:
             row = cursor.fetchone()
             return dict(row) if row else None
 
+    def get_leads_by_status(self, status):
+        query = "SELECT * FROM outreach_leads WHERE pipeline_status = ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (status,))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_lead_by_venue_id(self, venue_id):
+        query = "SELECT * FROM outreach_leads WHERE venue_id = ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (venue_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
     def get_lead(self, lead_id):
         query = "SELECT * FROM outreach_leads WHERE id = ?"
         with self._get_connection() as conn:

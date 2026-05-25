@@ -6,6 +6,7 @@ from src.db_manager import DatabaseManager
 from src.scrapers.base_scraper import ContactExtractor
 from src.ai_engine import AIEngine
 from src.config_manager import ConfigManager
+from src.outreach_engine import OutreachEngine
 
 def load_scrapers():
     scrapers = []
@@ -37,6 +38,7 @@ def main():
     db = DatabaseManager()
     ai = AIEngine()
     config = ConfigManager()
+    outreach = OutreachEngine()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
@@ -104,6 +106,9 @@ def main():
                 'pipeline_status': status
             }
             db.add_lead(lead_data)
+
+    print("\nScraping and qualification complete. Running outreach cycle...")
+    outreach.run_outreach_cycle()
 
     print("\nPipeline run complete.")
 

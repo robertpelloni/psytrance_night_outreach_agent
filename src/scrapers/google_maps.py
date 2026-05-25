@@ -1,4 +1,4 @@
-from .base_scraper import GoogleMapsScraper, UserAgentRotator
+from .base_scraper import GoogleMapsScraper, UserAgentRotator, ProxyRotator
 import uuid
 from playwright.sync_api import sync_playwright
 import time
@@ -13,7 +13,8 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
         print(f"Scraping Google Maps for: {full_query}")
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            proxy = ProxyRotator.get_playwright_proxy()
+            browser = p.chromium.launch(headless=True, proxy=proxy)
             context = browser.new_context(user_agent=UserAgentRotator.get_random())
             page = context.new_page()
 

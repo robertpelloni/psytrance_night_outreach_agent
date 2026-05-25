@@ -2,6 +2,40 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import random
+import os
+
+class ProxyRotator:
+    """Manages a pool of proxies sourced from the PROXY_LIST environment variable."""
+    @classmethod
+    def get_proxy_config(cls):
+        proxy_list = os.getenv("PROXY_LIST")
+        if not proxy_list:
+            return None
+
+        proxies = [p.strip() for p in proxy_list.split(",") if p.strip()]
+        if not proxies:
+            return None
+
+        proxy = random.choice(proxies)
+        # Format: http://user:pass@host:port or http://host:port
+        return {
+            "http": proxy,
+            "https": proxy
+        }
+
+    @classmethod
+    def get_playwright_proxy(cls):
+        """Returns proxy config in the format expected by Playwright."""
+        proxy_list = os.getenv("PROXY_LIST")
+        if not proxy_list:
+            return None
+
+        proxies = [p.strip() for p in proxy_list.split(",") if p.strip()]
+        if not proxies:
+            return None
+
+        proxy_url = random.choice(proxies)
+        return {"server": proxy_url}
 
 class UserAgentRotator:
     USER_AGENTS = [
@@ -32,8 +66,10 @@ class ContactExtractor:
             return {}
 
         headers = {'User-Agent': UserAgentRotator.get_random()}
+        proxies = ProxyRotator.get_proxy_config()
+
         try:
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, proxies=proxies, timeout=10)
             soup = BeautifulSoup(response.text, 'html.parser')
 
             emails = ContactExtractor.extract_emails(response.text)

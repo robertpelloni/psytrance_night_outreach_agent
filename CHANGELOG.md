@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.0.2] - 2024-05-24
+### Added
+- **Proxy Rotation**: Implemented `ProxyRotator` in `base_scraper.py` and integrated it into all scrapers for bypassing anti-bot measures.
+- **Outreach Engine**: Created `src/outreach_engine.py` for autonomous auto-approval and email dispatching.
+- **System Integration**: Integrated the outreach cycle into the main pipeline and `start.sh`.
+
 ## [1.0.1] - 2024-05-24
 ### Added
 - **Consistency Verification**: New step in `sync_repo.py` to verify that local and remote branches are perfectly synchronized after a push.

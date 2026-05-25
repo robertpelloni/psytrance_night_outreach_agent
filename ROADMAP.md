@@ -33,3 +33,8 @@
 - [x] Centralized Project Configuration (Cities, Genres)
 - [x] Branding Integration (EPK, Mix Links)
 - [x] Web UI for Settings Management
+
+## Phase 6: Robustness & Scaling (v1.0.2)
+- [x] Advanced Bot Detection Bypassing (Proxy Rotation)
+- [x] Automated Outreach Engine (Auto-Approval & Dispatch)
+- [ ] Multi-City Sequential Scaling

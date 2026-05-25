@@ -43,4 +43,7 @@ fi
 echo "Step 4: Launching Outreach Pipeline..."
 python3 main.py
 
+# 6. Optional: Start Outreach Engine in background if not already running
+# pgrep -f "src/outreach_engine.py" > /dev/null || python3 src/outreach_engine.py > outreach.log 2>&1 &
+
 echo "=== Protocol Session Finalized: $(date) ==="

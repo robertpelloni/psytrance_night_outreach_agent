@@ -48,6 +48,10 @@ The agent follows a five-stage pipeline:
     SMTP_PORT=587
     SMTP_USER=your_email@example.com
     SMTP_PASSWORD=your_password
+
+    # Proxy Settings (Optional for bypassing blocks)
+    # Comma-separated list of proxies: http://user:pass@host:port
+    PROXY_LIST=http://proxy1.com:8080,http://proxy2.com:8080
     SENDER_EMAIL=booking@yourdomain.com
     ```
 

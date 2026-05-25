@@ -1,4 +1,4 @@
-from .base_scraper import ResidentAdvisorScraper, UserAgentRotator
+from .base_scraper import ResidentAdvisorScraper, UserAgentRotator, ProxyRotator
 import uuid
 from playwright.sync_api import sync_playwright
 
@@ -16,7 +16,8 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
         print(f"Scraping Resident Advisor venues in {city} via Playwright at {url}...")
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            proxy = ProxyRotator.get_playwright_proxy()
+            browser = p.chromium.launch(headless=True, proxy=proxy)
             context = browser.new_context(
                 user_agent=UserAgentRotator.get_random()
             )

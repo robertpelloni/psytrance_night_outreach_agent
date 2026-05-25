@@ -25,3 +25,5 @@
 - [x] Add Branding (EPK/Mix) Integration to AI
 - [x] Create Settings Dashboard
 - [x] Final Production Integration (v1.0.0)
+- [x] Implement Proxy Rotation (v1.0.2)
+- [x] Implement Outreach Engine for automated dispatch (v1.0.2)
