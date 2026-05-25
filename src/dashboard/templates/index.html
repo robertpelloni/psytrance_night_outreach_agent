@@ -71,6 +71,7 @@
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success px-4">Approve & Send Email</button>
+                        </div>
                     </form>
                     <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post">
                         <button type="submit" class="btn btn-outline-danger">Reject</button>
@@ -81,7 +82,6 @@
                             <pre class="bg-dark text-white p-3 rounded" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
                         </div>
                     {% endif %}
-                    </div>
                 </div>
             </div>
         </div>

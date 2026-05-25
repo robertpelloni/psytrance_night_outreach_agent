@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.4.2] - 2024-05-24
+### Added
+- Comprehensive application tests (`tests/test_db_manager.py`, `tests/test_ai_engine.py`).
+- Integrated application tests into the CI pipeline.
+
 ## [0.4.1] - 2024-05-24
 ### Added
 - Automated test suite for the repository synchronization protocol (`scripts/test_sync_repo.py`).

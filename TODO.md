@@ -14,3 +14,5 @@
 - [x] Create User Manual (MANUAL.md)
 - [x] Implement Proxy/UA Rotation
 - [x] Add Dashboard History View
+- [x] Add Database Tests
+- [x] Add AI Engine Tests
