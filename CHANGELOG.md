@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.4.0] - 2024-05-24
+### Changed
+- Refined database schema with UNIQUE constraints for venues and leads.
+- Improved pipeline orchestration to perform enrichment before vibe checks.
+- Refactored synchronization script for more robust branch discovery.
+
 ## [0.3.1] - 2024-05-24
 ### Changed
 - Configured repository synchronization workflow to trigger on pushes to `main`.

@@ -1,27 +1,24 @@
 # HANDOFF
 
 ## Session Summary
-In this session, I completed the core implementation and CI integration for the **Psytrance Night Outreach Agent**. The system is now fully capable of autonomous execution, discovery, and synchronization.
+In this session, I implemented major improvements to data integrity, pipeline orchestration, and synchronization robustness, bringing the project to **v0.4.0**.
 
 ## Completed Tasks
-- **CI/CD Synchronization**: Enhanced `.github/workflows/sync.yml` to trigger on pushes to `main`, ensuring real-time branch reconciliation.
-- **Protocol Implementation**: Finalized `scripts/sync_repo.py` with support for remote branch tracking and pushing, enabling it to run reliably in GitHub Actions.
-- **Version Milestone**: Reached **v0.3.1**.
-- **Documentation Refinement**: All core documentation (VISION, MEMORY, DEPLOY, etc.) and the User Manual (MANUAL.md) are fully initialized and updated.
-- **Core Features**:
-    - Modular scrapers for Google Maps and Resident Advisor.
-    - AI-powered vibe qualification and pitch generation.
-    - Dark-themed HITL dashboard with Pending and History views.
-    - SMTP mailer integration for approved outreach.
+- **Data Integrity**: Refined the SQLite schema with `UNIQUE` constraints and updated `DatabaseManager` and `main.py` to handle duplicates gracefully. The system now avoids redundant processing of venues across scraping runs.
+- **Pipeline Orchestration**: Reordered the pipeline in `main.py` to prioritize website enrichment. This allows the AI engine to perform "vibe checks" using higher-quality, full-site text rather than just raw search metadata.
+- **Sync Script Refactor**: Refactored `scripts/sync_repo.py` to use `git branch --format` for more robust branch discovery, ensuring reliable operation in CI/CD environments.
+- **Documentation**:
+    - Updated `VERSION.md` (v0.4.0).
+    - Updated `CHANGELOG.md`, `ROADMAP.md`, and `TODO.md`.
 
 ## Key Structural Shifts
-- The repository now has a **self-maintaining synchronization protocol** integrated into its CI pipeline.
-- All pipeline components are modular and stateful, using SQLite to ensure idempotency.
+- **Enrichment-First Workflow**: Qualification now benefits from the most detailed information available, significantly improving AI suitability assessments.
+- **Graceful Idempotency**: The system is now resilient to repeated executions, protecting against duplicate leads and redundant API costs.
 
 ## Future Work / Next Steps
-- **Advanced Scraping**: Integrate proxy services to handle heavier scraping loads if volume increases.
-- **Enhanced Qualification**: Expand the AI engine to search for and analyze venue Instagram Stories or recent event visual recordings.
-- **Follow-up Agent**: Implement a sub-agent to handle initial responses and scheduling from venue bookers.
+- **Proxy List Integration**: Add support for a managed proxy list to further bypass scraping blocks.
+- **Visuals Scraper**: Specifically target venue visual/lighting descriptions or gallery pages for the outreach pitch.
+- **Lead Follow-up System**: Implement a secondary agent or dashboard view to manage venue responses.
 
 ## Deployment Note
-Ensure all environment variables are correctly configured in the CI/CD secrets for the sync workflow to successfully push changes.
+The new unique constraints may require a fresh database initialization (`rm database/outreach.db`) if pre-existing duplicate data causes migration issues.

@@ -5,6 +5,7 @@
 - [x] Google Maps Scraping & Enrichment
 - [x] Basic Contact Mining (Web & Socials)
 - [x] CI/CD Repository Synchronization Protocol
+- [x] Data Integrity & Unique Constraints
 
 ## Phase 2: AI Qualification & Personalization
 - [x] LLM Vibe Check (Suitability Scoring)

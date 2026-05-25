@@ -23,6 +23,8 @@ class DatabaseManager:
         INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """
+        # Ensure we don't insert NULL for website if we want UNIQUE constraint to be effective
+        # Note: SQLite treats multiple NULLs as unique, but we want to avoid duplicate names in the same city too.
         with self._get_connection() as conn:
             conn.execute(query, (
                 venue_data['id'], venue_data['name'], venue_data['city'],
@@ -30,9 +32,16 @@ class DatabaseManager:
                 venue_data.get('tags'), venue_data.get('raw_about_text')
             ))
 
+    def venue_exists_by_name(self, name, city):
+        query = "SELECT id FROM venues WHERE name = ? AND city = ?"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (name, city))
+            row = cursor.fetchone()
+            return row[0] if row else None
+
     def add_contact(self, contact_data):
         query = """
-        INSERT INTO venue_contacts (venue_id, email, phone, instagram_handle, booking_page_url)
+        INSERT OR IGNORE INTO venue_contacts (venue_id, email, phone, instagram_handle, booking_page_url)
         VALUES (?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
@@ -49,10 +58,8 @@ class DatabaseManager:
             return cursor.fetchone() is not None
 
     def add_lead(self, lead_data):
-        if self.lead_exists(lead_data['venue_id']):
-            return
         query = """
-        INSERT INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status)
+        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status)
         VALUES (?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
