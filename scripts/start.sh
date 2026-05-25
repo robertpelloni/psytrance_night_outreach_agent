@@ -29,8 +29,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. Run Main Outreach Pipeline
-echo "Step 3: Launching Outreach Pipeline..."
+# 4. Handle Generator Mode (Optional)
+if [ "$1" == "--generate" ] && [ -n "$2" ] && [ -n "$3" ]; then
+    echo "Step 3: Launching Autonomous Scraper Generator..."
+    # Usage: ./start.sh --generate "URL" "Source Name"
+    python3 -c "from src.scraper_generator import ScraperGenerator; ScraperGenerator().generate_scraper('$2', '$3')"
+    # After generation, we re-run sync to integrate the new code
+    echo "Integrating new code..."
+    python3 scripts/sync_repo.py
+fi
+
+# 5. Run Main Outreach Pipeline
+echo "Step 4: Launching Outreach Pipeline..."
 python3 main.py
 
 echo "=== Protocol Session Finalized: $(date) ==="

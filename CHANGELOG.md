@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.9.0] - 2024-05-24
+### Added
+- **Autonomous Dev Workflow**: Integrated scraper generation into the unified execution script (`start.sh --generate`).
+- **Dev Cycle E2E Test**: New `tests/test_autonomous_dev_e2e.py` verifying the full code-gen-to-sync cycle.
+- **Unified CI Gating**: System now validates autonomous development logic before deployment.
+
 ## [0.8.0] - 2024-05-24
 ### Added
 - **Centralized Configuration**: Implemented `ConfigManager` to handle target cities, genres, and project links.
