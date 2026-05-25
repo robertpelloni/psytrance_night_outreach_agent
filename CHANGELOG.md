@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [0.3.1] - 2024-05-24
+### Changed
+- Configured repository synchronization workflow to trigger on pushes to `main`.
+
 ## [0.3.0] - 2024-05-24
 ### Added
 - Created a comprehensive User Manual (`MANUAL.md`).
