@@ -89,6 +89,7 @@ Access it at: `http://localhost:5000`
 - **Approve & Send**: Marks the lead as approved and attempts to send the email via SMTP.
 - **Reject**: Archives the lead so it doesn't appear in the pending list.
 - **Instagram DM Helper**: If a venue has an Instagram handle but no email, use the "Copy Pitch for DM" button to manually outreach via social media.
+- **System Control**: Use the "System" tab to monitor repository versioning and manually trigger the repository synchronization protocol (merges/conflict resolution) directly from the dashboard.
 
 ### Outreach Analytics
 Access the **Analytics** tab to view your performance:

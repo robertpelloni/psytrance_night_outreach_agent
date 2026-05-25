@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import sys
 import os
+import subprocess
 
 # Add the parent directory to sys.path to allow absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -43,6 +44,34 @@ def show_analytics():
     stats = analytics.get_summary_stats()
     approval_rate = analytics.get_approval_rate()
     return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
+
+@app.route('/system')
+def system_status():
+    stats = analytics.get_summary_stats()
+    version = "unknown"
+    if os.path.exists('../../VERSION.md'):
+        with open('../../VERSION.md', 'r') as f:
+            version = f.read().strip()
+
+    git_info = {
+        "branch": subprocess.getoutput("git rev-parse --abbrev-ref HEAD"),
+        "commit": subprocess.getoutput("git rev-parse --short HEAD")
+    }
+
+    return render_template('system.html', stats=stats, version=version, git_info=git_info)
+
+@app.route('/run_sync', methods=['POST'])
+def run_sync():
+    # Trigger the sync protocol
+    # Note: Using absolute path to scripts/sync_repo.py
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scripts/sync_repo.py'))
+    result = subprocess.run([sys.executable, script_path], capture_output=True, text=True)
+
+    status = 'success' if result.returncode == 0 else 'error'
+    return jsonify({
+        "status": status,
+        "output": result.stdout + result.stderr
+    })
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():

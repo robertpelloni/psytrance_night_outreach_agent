@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.0.6] - 2024-05-24
+### Added
+- **Dashboard System UI**: New "System" page to monitor git status, branch info, and trigger repository synchronization via the web UI.
+- **Integrated Sync Protocol**: Wired the backend sync logic to a Flask endpoint for manual human-in-the-loop control.
+- **Dashboard Tests**: Added `tests/test_dashboard_sync.py` to verify UI-triggered protocols.
+
+## [1.0.5] - 2024-05-24
+### Added
+- **Staging Environment**: Created `scripts/deploy_staging.sh` for isolated staging setup and testing.
+- **CI Release Gates**: Implemented `.github/workflows/staging.yml` for automated staging validation on push.
+
 ## [1.0.4] - 2024-05-24
 ### Added
 - **Multi-City Resume Logic**: Implemented `city_processing_log` to allow the pipeline to resume from where it left off.
