@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.0.3] - 2024-05-24
+### Added
+- **Follow-up Engine**: Implemented `src/follow_up_engine.py` for automated "nudge" outreach to non-responsive leads.
+- **Persistence Tracking**: Added `last_outreach_at` and `follow_up_count` to the database schema.
+- **AI Follow-up Generation**: New AIEngine method to generate concise, polite follow-up pitches.
+
 ## [1.0.2] - 2024-05-24
 ### Added
 - **Proxy Rotation**: Implemented `ProxyRotator` in `base_scraper.py` and integrated it into all scrapers for bypassing anti-bot measures.

@@ -35,6 +35,30 @@ class AIEngine:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
+    def generate_follow_up(self, venue_name, original_pitch):
+        if not self.client:
+            return "Just following up on our previous email regarding a psytrance night!"
+
+        prompt = f"""
+        Write a short, polite follow-up email to a booking manager at {venue_name}.
+        We previously sent them a pitch for a psytrance residency.
+
+        Original Pitch context:
+        {original_pitch[:500]}...
+
+        The follow-up should be brief, friendly, and just checking if they had a chance to see our proposal.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are a professional booking agent."},
+                          {"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Error: {e}")
+            return "Just checking back on my previous email!"
+
     def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None):
         if not self.client:
             return "Hey, we would love to play at your venue!"

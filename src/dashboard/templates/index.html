@@ -67,6 +67,11 @@
                         <span class="badge {% if lead.vibe_score >= 8 %}bg-success{% else %}bg-primary{% endif %}">
                             Vibe Score: {{ lead.vibe_score }}/10
                         </span>
+                        {% if lead.follow_up_count and lead.follow_up_count > 0 %}
+                        <span class="badge bg-warning text-dark">
+                            Follow-ups: {{ lead.follow_up_count }}
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-body">

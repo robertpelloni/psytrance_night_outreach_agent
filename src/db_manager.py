@@ -71,7 +71,13 @@ class DatabaseManager:
             ))
 
     def update_lead_status(self, lead_id, status, pitch=None):
-        if pitch:
+        if status == 'SENT':
+            query = "UPDATE outreach_leads SET pipeline_status = ?, last_outreach_at = CURRENT_TIMESTAMP WHERE id = ?"
+            params = (status, lead_id)
+            if pitch:
+                query = "UPDATE outreach_leads SET pipeline_status = ?, generated_pitch = ?, last_outreach_at = CURRENT_TIMESTAMP WHERE id = ?"
+                params = (status, pitch, lead_id)
+        elif pitch:
             query = "UPDATE outreach_leads SET pipeline_status = ?, generated_pitch = ? WHERE id = ?"
             params = (status, pitch, lead_id)
         else:
@@ -98,7 +104,7 @@ class DatabaseManager:
 
     def get_lead_history(self):
         query = """
-        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status
+        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
         WHERE l.pipeline_status IN ('SENT', 'REJECTED')
@@ -139,3 +145,26 @@ class DatabaseManager:
             cursor = conn.execute(query, (lead_id,))
             row = cursor.fetchone()
             return dict(row) if row else None
+
+    def get_leads_eligible_for_follow_up(self, days_wait, max_follow_ups):
+        # last_outreach_at is compared against CURRENT_TIMESTAMP - days_wait
+        query = """
+        SELECT * FROM outreach_leads
+        WHERE pipeline_status = 'SENT'
+        AND follow_up_count < ?
+        AND last_outreach_at < datetime('now', '-' || ? || ' days')
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (max_follow_ups, days_wait))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def record_follow_up(self, lead_id):
+        query = """
+        UPDATE outreach_leads
+        SET follow_up_count = follow_up_count + 1,
+            last_outreach_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (lead_id,))

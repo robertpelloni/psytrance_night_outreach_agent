@@ -1,30 +1,31 @@
-# SESSION HANDOFF - CI/CD Integration Finalization
+# SESSION HANDOFF - v1.0.3
 
 ## OVERVIEW
-This session finalized the **CI/CD Pipeline Integration**, ensuring the autonomous development and repository synchronization protocol is fully operational in a cloud environment.
+This session reached the **v1.0.3 milestone**, implementing **Persistence Tracking** and an **Automated Follow-up Engine**. The system now maintains a persistent relationship with venues, automatically "nudging" them if they don't respond to the initial pitch.
 
 ## STRUCTURAL SHIFTS
-- **GitHub Actions Integration (`.github/workflows/sync.yml`):**
-    - Enabled **Playwright browser installation** within CI.
-    - Expanded the CI test suite to include `tests/test_protocol_e2e.py` and `tests/test_autonomous_dev_e2e.py`.
-    - Configured the workflow to utilize `scripts/start.sh`, ensuring perfect parity between local and remote execution.
-    - Added environment secret mapping for `PROXY_LIST` and full `SMTP` credentials.
-- **Documentation:**
-    - Updated `DEPLOY.md` with explicit instructions for repository secret configuration.
-    - Updated `TODO.md` and `ROADMAP.md` to mark Phase 5/6 milestones as complete.
+- **Database Schema:** Added `last_outreach_at` and `follow_up_count` to the `outreach_leads` table.
+- **Follow-Up Engine (`src/follow_up_engine.py`):**
+    - Identifies non-responsive leads in `SENT` status based on a configurable `follow_up_days` threshold (default: 7).
+    - Dispatches AI-generated, concise follow-up emails.
+    - Limits re-engagement via a `max_follow_ups` threshold (default: 2).
+- **AI Engine Enhancement:** Added `generate_follow_up` for personalized re-engagement pitches.
+- **Pipeline Integration:** `main.py` now executes `Discover -> Qualify -> Outreach -> Follow-up` in a single unified flow.
+- **Dashboard UI:** Added a "Follow-ups" badge to the History view to track persistence metrics.
 
 ## FINDINGS & OBSERVATIONS
-- **CI Parity:** The `start.sh` script is the single source of truth for execution. By calling it from CI, we guarantee that the autonomous logic behaves identically in GitHub Actions as it does on a developer machine.
-- **Secrets Management:** The pipeline now correctly handles the full ecosystem of API keys and outbound connectivity credentials.
+- **Follow-up Timing:** Using SQLite's `datetime('now', '-7 days')` allows for precise, automated targeting of stale leads.
+- **Persistence UI:** Visualizing the follow-up count in the dashboard helps the curator understand which venues are being actively nudged.
 
 ## NEXT STEPS / ROADMAP
-1. **Multi-City Sequential Scaling:** The system is now robust enough to handle high-volume city lists.
-2. **Follow-up Outreach:** Implement logic to track responses and send automated follow-up pitches.
+1. **Multi-City Sequential Scaling:** The system is prepared for high-volume execution across many cities.
+2. **Sentiment Analysis:** Categorize incoming email responses automatically to stop follow-ups if a rejection or inquiry is detected.
+3. **EPK V2:** Update the pitch generator to utilize more specific venue traits discovered during scraping.
 
 ## VERSION STATUS
-- **Current Version:** 1.0.2
-- **Status:** Integrated / CI-Verified.
-- **CI/CD:** Active and configured for daily autonomous runs.
+- **Current Version:** 1.0.3
+- **Status:** Stable / Persistent.
+- **CI/CD:** Passing.
 
 ---
 *End of Handoff*
