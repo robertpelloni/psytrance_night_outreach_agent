@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.0] - 2024-05-24
+### Added
+- **Repository Refresh**: Executed a full local/remote repository refresh protocol.
+- **Structure Stabilization**: Reorganized root scripts and validated all pathing for autonomous execution.
+- **Validated Build**: Unified root execution scripts (`start.sh`, `setup.sh`, `deploy_staging.sh`) and updated CI/CD workflows.
+
 ## [1.0.8] - 2024-05-24
 ### Added
 - **Sentiment Analysis**: Integrated `SentimentAnalyzer` to categorize incoming venue replies (INTERESTED, REJECTED, INQUIRY).

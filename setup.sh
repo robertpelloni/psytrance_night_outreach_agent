@@ -13,7 +13,11 @@ if [ ! -d "venv" ]; then
 fi
 
 # 3. Activate venv
-source venv/bin/activate
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    source venv/Scripts/activate
+fi
 
 # 4. Install dependencies
 echo "Installing application dependencies..."

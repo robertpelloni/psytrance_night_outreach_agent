@@ -17,7 +17,7 @@ class TestProtocolE2E(unittest.TestCase):
 
     def test_unified_execution_flow(self):
         # 1. Verify sync script can be imported and has expected functions
-        import scripts.sync_repo as sync_repo
+        import sync_repo as sync_repo
         self.assertTrue(hasattr(sync_repo, 'sync'))
 
         # 2. Verify main pipeline can be imported
@@ -26,8 +26,8 @@ class TestProtocolE2E(unittest.TestCase):
 
     def test_script_executability(self):
         # Ensure setup and start scripts exist and are executable
-        setup_script = os.path.join(self.project_root, "scripts", "setup.sh")
-        start_script = os.path.join(self.project_root, "scripts", "start.sh")
+        setup_script = os.path.join(self.project_root, "setup.sh")
+        start_script = os.path.join(self.project_root, "start.sh")
 
         self.assertTrue(os.path.exists(setup_script))
         self.assertTrue(os.path.exists(start_script))

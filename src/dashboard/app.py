@@ -69,8 +69,8 @@ def system_status():
 @app.route('/run_sync', methods=['POST'])
 def run_sync():
     # Trigger the sync protocol
-    # Note: Using absolute path to scripts/sync_repo.py
-    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scripts/sync_repo.py'))
+    # Note: Using absolute path to sync_repo.py in root
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../sync_repo.py'))
     result = subprocess.run([sys.executable, script_path], capture_output=True, text=True)
 
     status = 'success' if result.returncode == 0 else 'error'

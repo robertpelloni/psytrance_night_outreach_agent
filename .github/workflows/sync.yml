@@ -45,17 +45,17 @@ jobs:
           python tests/test_autonomous_dev_e2e.py
           python tests/test_smoke.py
           python tests/test_dashboard_sync.py
-          cd scripts && python test_sync_repo.py
+          python test_sync_repo.py
 
       - name: Run Sync Script (Start Protocol)
         run: |
           # If on a feature branch, run sync and tests, but skip the full outreach pipeline to save tokens
           if [[ "${{ github.ref }}" != "refs/heads/main" && "${{ github.event_name }}" != "schedule" ]]; then
             echo "Feature branch detected. Running sync and tests only."
-            python3 scripts/sync_repo.py
+            python3 sync_repo.py
           else
             echo "Main branch or Schedule detected. Running full protocol."
-            ./scripts/start.sh
+            ./start.sh
           fi
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -5,7 +5,7 @@ import tempfile
 import subprocess
 from unittest.mock import patch, MagicMock
 from src.scraper_generator import ScraperGenerator
-from scripts.sync_repo import sync
+from sync_repo import sync
 
 class TestAutonomousDevE2E(unittest.TestCase):
     """
@@ -63,7 +63,7 @@ class TestAutonomousDevE2E(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "Add generated scraper"], capture_output=True)
 
         # 3. Trigger Synchronization Protocol (Mocking the remote push)
-        with patch('scripts.sync_repo.run_command') as mock_run:
+        with patch('sync_repo.run_command') as mock_run:
             # Mock success for git commands in sync
             mock_run.return_value = MagicMock(returncode=0, stdout="main")
 

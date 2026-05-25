@@ -8,7 +8,11 @@ echo "Step 1: Setting up environment..."
 if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
-source venv/bin/activate
+if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    source venv/Scripts/activate
+fi
 pip install -r requirements.txt
 playwright install chromium
 

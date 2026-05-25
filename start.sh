@@ -4,7 +4,7 @@
 echo "=== Protocol Triggered: $(date) ==="
 
 # Ensure we are in the project root
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")"
 
 # 1. Activate environment
 if [ -f "venv/bin/activate" ]; then
@@ -13,7 +13,7 @@ fi
 
 # 2. Run Repository Synchronization
 echo "Step 1: Running Repository Synchronization..."
-python3 scripts/sync_repo.py
+python3 sync_repo.py
 if [ $? -ne 0 ]; then
     echo "CRITICAL: Synchronization failed. Check logs."
     exit 1
@@ -36,7 +36,7 @@ if [ "$1" == "--generate" ] && [ -n "$2" ] && [ -n "$3" ]; then
     python3 -c "from src.scraper_generator import ScraperGenerator; ScraperGenerator().generate_scraper('$2', '$3')"
     # After generation, we re-run sync to integrate the new code
     echo "Integrating new code..."
-    python3 scripts/sync_repo.py
+    python3 sync_repo.py
 fi
 
 # 5. Run Main Outreach Pipeline
