@@ -45,3 +45,5 @@ jobs:
 
       - name: Run Sync Script
         run: python scripts/sync_repo.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -55,3 +55,28 @@ class AIEngine:
         except Exception as e:
             print(f"AI Error: {e}")
             return "Error generating pitch."
+
+    def resolve_merge_conflict(self, file_content_with_conflicts):
+        if not self.client:
+            return None
+
+        prompt = f"""
+        Resolve the following git merge conflict.
+        The content includes standard git conflict markers (<<<<<<<, =======, >>>>>>>).
+        Intelligently merge the changes from both sides to create a functional and correct version of the file.
+
+        Conflict content:
+        {file_content_with_conflicts}
+
+        Output ONLY the resolved file content. Do not include any explanation or markdown code blocks.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are a expert software engineer specialized in git and conflict resolution."},
+                          {"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"AI Conflict Resolution Error: {e}")
+            return None

@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tempfile
 from sync_repo import run_command
+from unittest.mock import patch, MagicMock
 
 class TestSyncRepo(unittest.TestCase):
     def setUp(self):
@@ -92,14 +93,14 @@ class TestSyncRepo(unittest.TestCase):
         res = run_command(["git", "log", "feature-2", "--format=%s"], cwd=self.local_dir)
         self.assertIn("Main update commit", res.stdout)
 
-    def test_sync_logic_conflict_handling(self):
+    def test_sync_logic_conflict_handling_no_ai(self):
         # 1. Create a feature branch and modify README
-        run_command(["git", "checkout", "-b", "conflict-branch"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "conflict-branch-no-ai"], cwd=self.local_dir)
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
             f.write("# Conflict work")
         run_command(["git", "add", "README.md"], cwd=self.local_dir)
         run_command(["git", "commit", "-m", "Feature conflict commit"], cwd=self.local_dir)
-        run_command(["git", "push", "origin", "conflict-branch"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "conflict-branch-no-ai"], cwd=self.local_dir)
 
         # 2. Go back to main and modify README differently
         run_command(["git", "checkout", "main"], cwd=self.local_dir)
@@ -109,7 +110,44 @@ class TestSyncRepo(unittest.TestCase):
         run_command(["git", "commit", "-m", "Main conflict commit"], cwd=self.local_dir)
         run_command(["git", "push", "origin", "main"], cwd=self.local_dir)
 
-        # 3. Run sync
+        # 3. Run sync with AI disabled (mock client to None)
+        import sync_repo
+        with patch('sync_repo.ai.client', None):
+            old_cwd = os.getcwd()
+            os.chdir(self.local_dir)
+            try:
+                sync_repo.sync()
+            finally:
+                os.chdir(old_cwd)
+
+        # 4. Verify that main's content is still 'Main conflict work' (since merge aborted)
+        curr_branch = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=self.local_dir).stdout.strip()
+        self.assertEqual(curr_branch, "main")
+
+        with open(os.path.join(self.local_dir, "README.md"), "r") as f:
+            content = f.read().strip()
+        self.assertEqual(content, "# Main conflict work")
+
+    @patch('sync_repo.ai.resolve_merge_conflict')
+    def test_sync_logic_ai_conflict_resolution(self, mock_resolve):
+        # Mock AI resolution
+        mock_resolve.return_value = "# Resolved Content"
+
+        # 1. Create conflict
+        run_command(["git", "checkout", "-b", "conflict-branch-ai"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "README.md"), "w") as f:
+            f.write("# Feature work")
+        run_command(["git", "add", "README.md"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Feature commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "conflict-branch-ai"], cwd=self.local_dir)
+
+        run_command(["git", "checkout", "main"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "README.md"), "w") as f:
+            f.write("# Main work")
+        run_command(["git", "add", "README.md"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Main commit"], cwd=self.local_dir)
+
+        # 2. Run sync
         import sync_repo
         old_cwd = os.getcwd()
         os.chdir(self.local_dir)
@@ -118,18 +156,14 @@ class TestSyncRepo(unittest.TestCase):
         finally:
             os.chdir(old_cwd)
 
-        # 4. Verify that main's content is still 'Main conflict work' (since merge aborted)
-        # and we are back on main
-        curr_branch = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=self.local_dir).stdout.strip()
-        self.assertEqual(curr_branch, "main")
-
+        # 3. Verify resolution
         with open(os.path.join(self.local_dir, "README.md"), "r") as f:
             content = f.read().strip()
-        self.assertEqual(content, "# Main conflict work")
+        self.assertEqual(content, "# Resolved Content")
 
-        # Verify no merge is in progress
-        status = run_command(["git", "status"], cwd=self.local_dir).stdout
-        self.assertNotIn("You have unmerged paths", status)
+        # Verify it's committed
+        res = run_command(["git", "log", "-1", "--format=%s"], cwd=self.local_dir)
+        self.assertEqual(res.stdout.strip(), "Resolve merge conflicts via AI")
 
 if __name__ == "__main__":
     unittest.main()

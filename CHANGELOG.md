@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.6.0] - 2024-05-24
+### Added
+- **AI Conflict Resolution**: Integrated OpenAI into the synchronization script to automatically resolve git merge conflicts.
+- **Improved Sync Tests**: Added test cases for AI-powered conflict resolution and refined branch discovery logic.
+
 ## [0.5.1] - 2024-05-24
 ### Added
 - Created `scripts/setup.sh` and `scripts/start.sh` for unified execution.

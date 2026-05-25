@@ -2,12 +2,52 @@ import subprocess
 import os
 import sys
 
+# Add project root to sys.path to allow imports from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.ai_engine import AIEngine
+
+ai = AIEngine()
+
 def run_command(command, cwd=None):
     print(f"  [EXEC] {' '.join(command)}")
     result = subprocess.run(command, capture_output=True, text=True, cwd=cwd)
     if result.returncode != 0:
         print(f"  [ERROR] {result.stderr.strip()}")
     return result
+
+def attempt_ai_resolution(cwd=None):
+    # Find conflicted files
+    status = run_command(["git", "status", "--porcelain"], cwd=cwd).stdout
+    conflicted_files = []
+    for line in status.splitlines():
+        if line.startswith("UU"):
+            conflicted_files.append(line[3:])
+
+    if not conflicted_files:
+        return False
+
+    for filepath in conflicted_files:
+        full_path = os.path.join(cwd or os.getcwd(), filepath)
+        with open(full_path, "r") as f:
+            content = f.read()
+
+        resolved = ai.resolve_merge_conflict(content)
+        if resolved:
+            # Strip markdown if any
+            if resolved.startswith("```"):
+                lines = resolved.splitlines()
+                if lines[0].startswith("```"):
+                    resolved = "\n".join(lines[1:-1])
+
+            with open(full_path, "w") as f:
+                f.write(resolved)
+            run_command(["git", "add", filepath], cwd=cwd)
+        else:
+            return False
+
+    # Try to commit the resolution
+    res = run_command(["git", "commit", "-m", "Resolve merge conflicts via AI"], cwd=cwd)
+    return res.returncode == 0
 
 def sync():
     print("=== Starting Repository Sync Protocol ===")
@@ -43,7 +83,7 @@ def sync():
     local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
     for branch in local_branches:
         branch = branch.strip()
-        if branch != "main" and branch != "" and "HEAD" not in branch:
+        if branch not in ["main", "master", ""] and "HEAD" not in branch:
             print(f"Interrogating branch: {branch}")
             # Check if it has unique commits
             diff = run_command(["git", "rev-list", f"main..{branch}"]).stdout.strip()
@@ -52,8 +92,12 @@ def sync():
                 run_command(["git", "checkout", "main"])
                 merge_res = run_command(["git", "merge", branch])
                 if merge_res.returncode != 0:
-                    print(f"Conflict merging {branch}. Aborting merge.")
-                    run_command(["git", "merge", "--abort"])
+                    print(f"Conflict merging {branch}. Attempting AI resolution...")
+                    if not attempt_ai_resolution(cwd=os.getcwd()):
+                        print(f"AI resolution failed for {branch}. Aborting merge.")
+                        run_command(["git", "merge", "--abort"])
+                    else:
+                        print(f"Successfully resolved conflict for {branch} via AI.")
                 else:
                     print(f"Successfully merged {branch} into main.")
 
@@ -61,13 +105,19 @@ def sync():
     print("\n[5/6] Syncing main back to feature branches (Reverse Merge)...")
     for branch in local_branches:
         branch = branch.strip()
-        if branch != "main" and branch != "" and "HEAD" not in branch:
+        if branch not in ["main", "master", ""] and "HEAD" not in branch:
             print(f"  Syncing main -> {branch}")
             run_command(["git", "checkout", branch])
             merge_res = run_command(["git", "merge", "main"])
             if merge_res.returncode != 0:
-                print(f"Conflict syncing main into {branch}. Aborting merge.")
-                run_command(["git", "merge", "--abort"])
+                print(f"Conflict syncing main into {branch}. Attempting AI resolution...")
+                if not attempt_ai_resolution(cwd=os.getcwd()):
+                    print(f"AI resolution failed for {branch}. Aborting merge.")
+                    run_command(["git", "merge", "--abort"])
+                    run_command(["git", "checkout", "main"])
+                else:
+                    print(f"Successfully synced main into {branch} (AI resolved).")
+                    run_command(["git", "push", "origin", branch])
             else:
                 print(f"Successfully synced main into {branch}.")
                 run_command(["git", "push", "origin", branch])
