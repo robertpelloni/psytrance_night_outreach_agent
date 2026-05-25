@@ -19,3 +19,9 @@
 
 ## Running the Dashboard
 `python src/dashboard/app.py`
+
+## Repository Synchronization
+The repository includes an automated synchronization protocol that runs daily via GitHub Actions (`.github/workflows/sync.yml`). This ensures that feature branches are merged into `main` if they contain unique progress, and `main` is synced back into active feature branches.
+
+To run the sync manually:
+`python scripts/sync_repo.py`
