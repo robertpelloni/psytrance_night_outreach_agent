@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.0.1] - 2024-05-24
+### Added
+- **Consistency Verification**: New step in `sync_repo.py` to verify that local and remote branches are perfectly synchronized after a push.
+- **Enhanced Sync Tests**: Added test case for the new consistency verification logic.
+
 ## [1.0.0] - 2024-05-24
 ### Added
 - **Production Milestone**: Full integration of autonomous development and synchronization protocol.

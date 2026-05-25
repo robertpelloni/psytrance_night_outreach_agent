@@ -165,5 +165,26 @@ class TestSyncRepo(unittest.TestCase):
         res = run_command(["git", "log", "-1", "--format=%s"], cwd=self.local_dir)
         self.assertEqual(res.stdout.strip(), "Resolve merge conflicts via AI")
 
+    def test_sync_logic_consistency_verification(self):
+        # 1. Add unique commit to local main
+        with open(os.path.join(self.local_dir, "consistency.txt"), "w") as f:
+            f.write("Consistency check")
+        run_command(["git", "add", "consistency.txt"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Local main update"], cwd=self.local_dir)
+
+        # 2. Run sync
+        import sync_repo
+        old_cwd = os.getcwd()
+        os.chdir(self.local_dir)
+        try:
+            sync_repo.sync()
+        finally:
+            os.chdir(old_cwd)
+
+        # 3. Verify local hash matches remote hash
+        local_hash = run_command(["git", "rev-parse", "main"], cwd=self.local_dir).stdout.strip()
+        remote_hash = run_command(["git", "rev-parse", "origin/main"], cwd=self.local_dir).stdout.strip()
+        self.assertEqual(local_hash, remote_hash)
+
 if __name__ == "__main__":
     unittest.main()

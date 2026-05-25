@@ -2,6 +2,7 @@ import unittest
 import os
 import shutil
 import tempfile
+import subprocess
 from unittest.mock import patch, MagicMock
 from src.scraper_generator import ScraperGenerator
 from scripts.sync_repo import sync
@@ -76,6 +77,5 @@ class TestAutonomousDevE2E(unittest.TestCase):
         # (In a real run, main would now have the new_file)
         self.assertTrue(os.path.exists(new_file))
 
-import subprocess
 if __name__ == "__main__":
     unittest.main()

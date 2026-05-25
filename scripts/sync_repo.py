@@ -58,12 +58,16 @@ def sync():
 
     # Robust branch discovery using --format
     raw_remote_branches = run_command(["git", "branch", "-r", "--format=%(refname:short)"]).stdout.splitlines()
+    local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
+    local_branches = [b.strip() for b in local_branches]
+
     for rb in raw_remote_branches:
         rb = rb.strip()
         if rb.startswith("origin/") and "HEAD" not in rb:
             local_name = rb.replace("origin/", "")
             # Only track if not already existing locally
-            run_command(["git", "branch", "--track", local_name, rb])
+            if local_name not in local_branches:
+                run_command(["git", "branch", "--track", local_name, rb])
 
     # 2. Identify Upstream
     print("\n[2/6] Syncing with upstream (if exists)...")
@@ -127,6 +131,18 @@ def sync():
     run_command(["git", "checkout", "main"])
     run_command(["git", "push", "origin", "main"])
     run_command(["git", "submodule", "foreach", "git push origin main || true"])
+
+    # 7. Consistency Verification
+    print("\n[7/7] Verifying repository consistency...")
+    run_command(["git", "fetch", "origin"])
+    local_hash = run_command(["git", "rev-parse", "main"]).stdout.strip()
+    remote_hash = run_command(["git", "rev-parse", "origin/main"]).stdout.strip()
+
+    if local_hash == remote_hash:
+        print(f"  [SUCCESS] Local and remote are synchronized at {local_hash[:7]}.")
+    else:
+        print(f"  [WARNING] Consistency check failed! Local: {local_hash[:7]}, Remote: {remote_hash[:7]}")
+        sys.exit(1)
 
     print("\n=== Repository Sync Protocol Complete ===")
 

@@ -55,9 +55,15 @@ def main():
                 print(f"Error running scraper {scraper.__class__.__name__}: {e}")
 
         for v_data in raw_venues:
+            # OPTIMIZATION: Check if venue and lead already exist before burning AI tokens
             existing_id = db.venue_exists_by_name(v_data['name'], v_data['city'])
             if existing_id:
                 v_id = existing_id
+                # Check if we already have a lead for this venue to avoid re-qualifying
+                existing_lead = db.get_lead_by_venue_id(v_id)
+                if existing_lead:
+                    print(f"Skipping {v_data['name']} - Lead already exists.")
+                    continue
             else:
                 v_id = v_data['id']
                 db.add_venue(v_data)
@@ -75,6 +81,7 @@ def main():
                         'instagram_handle': ", ".join(contact_info.get('instagrams', []))
                     })
 
+            # Only perform AI vibe check if it's a new lead
             vibe_result = ai.vibe_check(v_data['name'], enriched_text)
 
             pitch = ""
