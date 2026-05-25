@@ -39,7 +39,7 @@ def main():
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
 
-    cities = ["Detroit"] # Limit for test
+    cities = ["Detroit", "Berlin", "London", "Tokyo", "Lisbon"]
 
     for city in cities:
         print(f"\n--- Processing {city} ---")
