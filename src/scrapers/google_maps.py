@@ -1,4 +1,4 @@
-from .base_scraper import GoogleMapsScraper
+from .base_scraper import GoogleMapsScraper, UserAgentRotator
 import uuid
 from playwright.sync_api import sync_playwright
 import time
@@ -14,7 +14,8 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
+            context = browser.new_context(user_agent=UserAgentRotator.get_random())
+            page = context.new_page()
 
             # Go to Google Maps
             page.goto(f"https://www.google.com/maps/search/{full_query.replace(' ', '+')}")

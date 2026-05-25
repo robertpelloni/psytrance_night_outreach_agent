@@ -1,4 +1,4 @@
-from .base_scraper import ResidentAdvisorScraper
+from .base_scraper import ResidentAdvisorScraper, UserAgentRotator
 import uuid
 from playwright.sync_api import sync_playwright
 
@@ -18,7 +18,7 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             context = browser.new_context(
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+                user_agent=UserAgentRotator.get_random()
             )
             page = context.new_page()
 

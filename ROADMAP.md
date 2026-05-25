@@ -13,8 +13,9 @@
 
 ## Phase 3: HITL Dashboard
 - [x] Web UI for Lead Review
-- [ ] Approval Workflow (In Progress)
-- [ ] Edit & Regenerate Pitch Functionality
+- [x] Approval Workflow
+- [x] Edit & Regenerate Pitch Functionality
+- [x] Lead History View
 
 ## Phase 4: Outreach Execution
 - [ ] Email Dispatch Integration (SMTP)

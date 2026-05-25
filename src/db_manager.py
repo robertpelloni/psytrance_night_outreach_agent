@@ -87,6 +87,19 @@ class DatabaseManager:
             cursor = conn.execute(query)
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_lead_history(self):
+        query = """
+        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status
+        FROM outreach_leads l
+        JOIN venues v ON l.venue_id = v.id
+        WHERE l.pipeline_status IN ('SENT', 'REJECTED')
+        ORDER BY l.id DESC
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            return [dict(row) for row in cursor.fetchall()]
+
     def get_venue(self, venue_id):
         query = "SELECT * FROM venues WHERE id = ?"
         with self._get_connection() as conn:

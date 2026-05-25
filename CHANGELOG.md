@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.3.0] - 2024-05-24
+### Added
+- Created a comprehensive User Manual (`MANUAL.md`).
+- Implemented User-Agent rotation to help avoid rate limiting and detection.
+- Added a "History" view to the dashboard for sent and rejected leads.
+
 ## [0.2.2] - 2024-05-24
 ### Added
 - Integrated repository synchronization protocol into CI via GitHub Actions.

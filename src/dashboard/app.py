@@ -19,7 +19,12 @@ mailer = Mailer()
 @app.route('/')
 def index():
     leads = db.get_pending_leads()
-    return render_template('index.html', leads=leads)
+    return render_template('index.html', leads=leads, view='pending')
+
+@app.route('/history')
+def history():
+    leads = db.get_lead_history()
+    return render_template('index.html', leads=leads, view='history')
 
 @app.route('/approve/<int:lead_id>', methods=['POST'])
 def approve(lead_id):
