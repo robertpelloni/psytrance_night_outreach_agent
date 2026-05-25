@@ -36,16 +36,16 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      - name: Run Application Tests
+      - name: Run Application & Sync Tests
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           python tests/test_db_manager.py
           python tests/test_ai_engine.py
           python tests/test_protocol_e2e.py
           python tests/test_autonomous_dev_e2e.py
-
-      - name: Run Sync Tests
-        run: cd scripts && python test_sync_repo.py
+          python tests/test_smoke.py
+          python tests/test_dashboard_sync.py
+          cd scripts && python test_sync_repo.py
 
       - name: Run Sync Script (Start Protocol)
         run: |

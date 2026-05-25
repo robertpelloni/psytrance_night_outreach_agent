@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.0.7] - 2024-05-24
+### Added
+- **Validated Push Protocol**: The synchronization script now executes critical integrity tests (`test_db_manager.py`, `test_ai_engine.py`, `test_smoke.py`) before pushing to the remote repository.
+- **Hardened CI Pipeline**: Consolidated CI testing steps and integrated with the new validated push logic to protect branch integrity.
+
 ## [1.0.6] - 2024-05-24
 ### Added
 - **Dashboard System UI**: New "System" page to monitor git status, branch info, and trigger repository synchronization via the web UI.

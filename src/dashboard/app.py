@@ -49,8 +49,9 @@ def show_analytics():
 def system_status():
     stats = analytics.get_summary_stats()
     version = "unknown"
-    if os.path.exists('../../VERSION.md'):
-        with open('../../VERSION.md', 'r') as f:
+    version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../VERSION.md'))
+    if os.path.exists(version_path):
+        with open(version_path, 'r') as f:
             version = f.read().strip()
 
     git_info = {

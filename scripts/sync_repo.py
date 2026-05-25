@@ -129,8 +129,14 @@ def sync():
     # 6. Final Push for main and submodules
     print("\n[6/6] Finalizing and pushing changes...")
     run_command(["git", "checkout", "main"])
-    run_command(["git", "push", "origin", "main"])
-    run_command(["git", "submodule", "foreach", "git push origin main || true"])
+
+    # HARDENING: Only push if the merged state passes critical integrity tests
+    if validate_system():
+        run_command(["git", "push", "origin", "main"])
+        run_command(["git", "submodule", "foreach", "git push origin main || true"])
+    else:
+        print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
+        sys.exit(1)
 
     # 7. Consistency Verification
     print("\n[7/7] Verifying repository consistency...")
@@ -145,6 +151,27 @@ def sync():
         sys.exit(1)
 
     print("\n=== Repository Sync Protocol Complete ===")
+
+def validate_system():
+    print("\n[VALIDATION] Running integrity checks before finalization...")
+    # Add PYTHONPATH to environment
+    env = os.environ.copy()
+    env["PYTHONPATH"] = f"{os.getcwd()}:{env.get('PYTHONPATH', '')}"
+
+    tests = [
+        "tests/test_db_manager.py",
+        "tests/test_ai_engine.py",
+        "tests/test_smoke.py"
+    ]
+
+    for test in tests:
+        print(f"  Running {test}...")
+        res = subprocess.run([sys.executable, test], env=env, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"  [CRITICAL] Validation failed for {test}:")
+            print(res.stderr)
+            return False
+    return True
 
 if __name__ == "__main__":
     sync()
