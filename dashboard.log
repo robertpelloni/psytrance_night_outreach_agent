@@ -6,35 +6,5 @@
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 631-326-424
-127.0.0.1 - - [25/May/2026 13:29:37] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [25/May/2026 13:29:37] "GET /history HTTP/1.1" 200 -
-127.0.0.1 - - [25/May/2026 13:29:54] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [25/May/2026 13:29:54] "GET /history HTTP/1.1" 200 -
- * Detected change in '/app/src/db_manager.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/main.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/scripts/sync_repo.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/src/db_manager.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/main.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/scripts/test_sync_repo.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
- * Detected change in '/app/scripts/sync_repo.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 631-326-424
+127.0.0.1 - - [25/May/2026 14:55:36] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [25/May/2026 14:55:37] "GET /sources HTTP/1.1" 200 -

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.5.0] - 2024-05-24
+### Added
+- **AI Scraper Generation**: Integrated `src/scraper_generator.py` for real-time creation of scrapers via OpenAI.
+- **Dynamic Scraper Loading**: Orchestrator now automatically discovers and runs all scrapers in `src/scrapers/`.
+- **Source Management UI**: Added a new dashboard page to manage and generate new scraping sources.
+
 ## [0.4.3] - 2024-05-24
 ### Changed
 - Enhanced synchronization script with detailed logging and improved error reporting.
