@@ -59,6 +59,37 @@ class AIEngine:
             print(f"AI Error: {e}")
             return "Just checking back on my previous email!"
 
+    def analyze_sentiment(self, reply_content):
+        if not self.client:
+            return "UNKNOWN"
+
+        prompt = f"""
+        Analyze the sentiment of this venue's response to our booking pitch.
+        Categorize it into exactly one of these tags:
+        - INTERESTED (wants more info, says yes, asks for dates)
+        - REJECTED (says no, not interested, stop emailing)
+        - INQUIRY (asks a specific question but haven't committed)
+        - OOO (Out of Office)
+        - UNKNOWN (Undetermined)
+
+        Reply Content:
+        {reply_content}
+
+        Output ONLY the tag name.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are a sentiment analysis specialist."},
+                          {"role": "user", "content": prompt}]
+            )
+            tag = response.choices[0].message.content.strip().upper()
+            valid_tags = ['INTERESTED', 'REJECTED', 'INQUIRY', 'OOO', 'UNKNOWN']
+            return tag if tag in valid_tags else "UNKNOWN"
+        except Exception as e:
+            print(f"AI Sentiment Analysis Error: {e}")
+            return "UNKNOWN"
+
     def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None):
         if not self.client:
             return "Hey, we would love to play at your venue!"

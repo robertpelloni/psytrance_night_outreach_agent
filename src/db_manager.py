@@ -148,11 +148,13 @@ class DatabaseManager:
 
     def get_leads_eligible_for_follow_up(self, days_wait, max_follow_ups):
         # last_outreach_at is compared against CURRENT_TIMESTAMP - days_wait
+        # EXCLUSION: Skip leads that have received a human reply (any reply in lead_replies)
         query = """
         SELECT * FROM outreach_leads
         WHERE pipeline_status = 'SENT'
         AND follow_up_count < ?
         AND last_outreach_at < datetime('now', '-' || ? || ' days')
+        AND id NOT IN (SELECT DISTINCT lead_id FROM lead_replies)
         """
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
@@ -180,3 +182,22 @@ class DatabaseManager:
             cursor = conn.execute(query, (city,))
             row = cursor.fetchone()
             return row is not None and row[0] == 'COMPLETED'
+
+    def add_reply(self, lead_id, content, sentiment='UNKNOWN'):
+        query = "INSERT INTO lead_replies (lead_id, content, sentiment) VALUES (?, ?, ?)"
+        with self._get_connection() as conn:
+            conn.execute(query, (lead_id, content, sentiment))
+
+    def get_lead_replies(self, lead_id):
+        query = "SELECT * FROM lead_replies WHERE lead_id = ? ORDER BY received_at DESC"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (lead_id,))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def has_blocking_reply(self, lead_id):
+        """Checks if a lead has received a reply that should pause automation."""
+        query = "SELECT count(*) FROM lead_replies WHERE lead_id = ? AND sentiment IN ('INTERESTED', 'REJECTED')"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (lead_id,))
+            return cursor.fetchone()[0] > 0

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.0.8] - 2024-05-24
+### Added
+- **Sentiment Analysis**: Integrated `SentimentAnalyzer` to categorize incoming venue replies (INTERESTED, REJECTED, INQUIRY).
+- **Automation Pausing**: Updated `FollowUpEngine` to automatically stop follow-up cycles for leads that have received any human response.
+- **Reply Dashboard**: Added a new section to the history view to display analyzed replies and their sentiment.
+
 ## [1.0.7] - 2024-05-24
 ### Added
 - **Validated Push Protocol**: The synchronization script now executes critical integrity tests (`test_db_manager.py`, `test_ai_engine.py`, `test_smoke.py`) before pushing to the remote repository.

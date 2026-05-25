@@ -11,6 +11,7 @@ from src.ai_engine import AIEngine
 from src.mailer import Mailer
 from src.scraper_generator import ScraperGenerator
 from src.analytics import AnalyticsEngine
+from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
 
 app = Flask(__name__)
@@ -21,6 +22,7 @@ ai = AIEngine()
 mailer = Mailer()
 generator = ScraperGenerator()
 analytics = AnalyticsEngine(db_path=db_path)
+sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
 
 @app.route('/')
@@ -31,6 +33,9 @@ def index():
 @app.route('/history')
 def history():
     leads = db.get_lead_history()
+    # Attach replies to each lead for the history view
+    for lead in leads:
+        lead['replies'] = db.get_lead_replies(lead['id'])
     return render_template('index.html', leads=leads, view='history')
 
 @app.route('/sources')
@@ -73,6 +78,14 @@ def run_sync():
         "status": status,
         "output": result.stdout + result.stderr
     })
+
+@app.route('/simulate_reply/<int:lead_id>', methods=['POST'])
+def simulate_reply(lead_id):
+    content = request.form.get('content')
+    if content:
+        sentiment = sentiment_analyzer.process_new_reply(lead_id, content)
+        return redirect(url_for('history'))
+    return "Missing content", 400
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():

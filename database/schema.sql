@@ -36,3 +36,12 @@ CREATE TABLE IF NOT EXISTS city_processing_log (
     last_processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status TEXT -- COMPLETED, FAILED
 );
+
+CREATE TABLE IF NOT EXISTS lead_replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER,
+    content TEXT NOT NULL,
+    sentiment TEXT, -- INTERESTED, REJECTED, INQUIRY, OOO, UNKNOWN
+    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
+);
