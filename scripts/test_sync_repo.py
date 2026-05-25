@@ -92,5 +92,44 @@ class TestSyncRepo(unittest.TestCase):
         res = run_command(["git", "log", "feature-2", "--format=%s"], cwd=self.local_dir)
         self.assertIn("Main update commit", res.stdout)
 
+    def test_sync_logic_conflict_handling(self):
+        # 1. Create a feature branch and modify README
+        run_command(["git", "checkout", "-b", "conflict-branch"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "README.md"), "w") as f:
+            f.write("# Conflict work")
+        run_command(["git", "add", "README.md"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Feature conflict commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "conflict-branch"], cwd=self.local_dir)
+
+        # 2. Go back to main and modify README differently
+        run_command(["git", "checkout", "main"], cwd=self.local_dir)
+        with open(os.path.join(self.local_dir, "README.md"), "w") as f:
+            f.write("# Main conflict work")
+        run_command(["git", "add", "README.md"], cwd=self.local_dir)
+        run_command(["git", "commit", "-m", "Main conflict commit"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "main"], cwd=self.local_dir)
+
+        # 3. Run sync
+        import sync_repo
+        old_cwd = os.getcwd()
+        os.chdir(self.local_dir)
+        try:
+            sync_repo.sync()
+        finally:
+            os.chdir(old_cwd)
+
+        # 4. Verify that main's content is still 'Main conflict work' (since merge aborted)
+        # and we are back on main
+        curr_branch = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=self.local_dir).stdout.strip()
+        self.assertEqual(curr_branch, "main")
+
+        with open(os.path.join(self.local_dir, "README.md"), "r") as f:
+            content = f.read().strip()
+        self.assertEqual(content, "# Main conflict work")
+
+        # Verify no merge is in progress
+        status = run_command(["git", "status"], cwd=self.local_dir).stdout
+        self.assertNotIn("You have unmerged paths", status)
+
 if __name__ == "__main__":
     unittest.main()

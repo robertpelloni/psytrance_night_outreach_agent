@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.4.3] - 2024-05-24
+### Changed
+- Enhanced synchronization script with detailed logging and improved error reporting.
+- Added conflict handling test cases to the synchronization test suite.
+
 ## [0.4.2] - 2024-05-24
 ### Added
 - Comprehensive application tests (`tests/test_db_manager.py`, `tests/test_ai_engine.py`).
