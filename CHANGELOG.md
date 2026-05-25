@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.0.4] - 2024-05-24
+### Added
+- **Multi-City Resume Logic**: Implemented `city_processing_log` to allow the pipeline to resume from where it left off.
+- **Permanent Smoke Test**: Added `tests/test_smoke.py` for full end-to-end integration testing.
+- **Robustness**: Improved `ConfigManager` error handling and added `is_city_processed` check to `main.py`.
+
 ## [1.0.3] - 2024-05-24
 ### Added
 - **Follow-up Engine**: Implemented `src/follow_up_engine.py` for automated "nudge" outreach to non-responsive leads.

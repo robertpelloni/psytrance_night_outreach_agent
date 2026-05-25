@@ -30,3 +30,9 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(venue_id) REFERENCES venues(id)
 );
+
+CREATE TABLE IF NOT EXISTS city_processing_log (
+    city TEXT PRIMARY KEY,
+    last_processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status TEXT -- COMPLETED, FAILED
+);

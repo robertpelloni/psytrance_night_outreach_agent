@@ -48,7 +48,7 @@ class OutreachEngine:
 
     def run_outreach_cycle(self):
         """One-stop shop for running a full outreach cycle."""
-        auto_threshold = self.config.get("auto_approve_threshold", 9)
+        auto_threshold = self.config.get("auto_approve_threshold") or 9
         self.auto_approve_high_vibe_leads(threshold=auto_threshold)
         self.process_approved_leads()
 

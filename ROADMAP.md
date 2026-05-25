@@ -43,4 +43,8 @@
 - [x] Automated Follow-up Engine
 - [x] Outreach Persistence Tracking (Timestamps & Counts)
 - [x] Dashboard Follow-up Metrics
-- [ ] Multi-City Sequential Scaling
+
+## Phase 8: Scaling & Resilience (v1.0.4)
+- [x] Multi-City Sequential Scaling (Resume Capability)
+- [x] Comprehensive Smoke Testing
+- [ ] Sentiment Analysis for Rejection Detection

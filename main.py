@@ -49,6 +49,10 @@ def main():
     vibe_threshold = config.get("vibe_threshold")
 
     for city in cities:
+        if db.is_city_processed(city):
+            print(f"Skipping {city} - Already processed in this cycle.")
+            continue
+
         print(f"\n--- Processing {city} ---")
 
         raw_venues = []
@@ -108,6 +112,8 @@ def main():
                 'pipeline_status': status
             }
             db.add_lead(lead_data)
+
+        db.mark_city_processed(city)
 
     print("\nScraping and qualification complete. Running outreach and follow-up cycles...")
     outreach.run_outreach_cycle()

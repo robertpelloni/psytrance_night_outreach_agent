@@ -14,15 +14,17 @@ class FollowUpEngine:
 
     def process_follow_ups(self):
         """Identifies leads eligible for a follow-up and dispatches them."""
-        days_wait = self.config.get("follow_up_days", 7)
-        max_follow_ups = self.config.get("max_follow_ups", 2)
+        days_wait = self.config.get("follow_up_days") or 7
+        max_follow_ups = self.config.get("max_follow_ups") or 2
 
-        print(f"FollowUpEngine: Checking for leads to follow up (after {days_wait} days)...")
+        print(f"FollowUpEngine: Checking for leads to follow up (after {days_wait} days, max_follow_ups={max_follow_ups})...")
 
         # We look for 'SENT' leads that haven't been followed up in X days
         leads = self.db.get_leads_eligible_for_follow_up(days_wait, max_follow_ups)
+        print(f"FollowUpEngine: Found {len(leads)} leads eligible for follow-up.")
 
         for lead in leads:
+            print(f"Processing follow-up for lead_id {lead['id']}...")
             venue = self.db.get_venue(lead['venue_id'])
             # Fetch contact email
             query = "SELECT email FROM venue_contacts WHERE venue_id = ?"

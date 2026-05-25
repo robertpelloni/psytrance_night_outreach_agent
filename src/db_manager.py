@@ -168,3 +168,15 @@ class DatabaseManager:
         """
         with self._get_connection() as conn:
             conn.execute(query, (lead_id,))
+
+    def mark_city_processed(self, city, status='COMPLETED'):
+        query = "INSERT OR REPLACE INTO city_processing_log (city, status, last_processed_at) VALUES (?, ?, CURRENT_TIMESTAMP)"
+        with self._get_connection() as conn:
+            conn.execute(query, (city, status))
+
+    def is_city_processed(self, city):
+        query = "SELECT status FROM city_processing_log WHERE city = ?"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (city,))
+            row = cursor.fetchone()
+            return row is not None and row[0] == 'COMPLETED'

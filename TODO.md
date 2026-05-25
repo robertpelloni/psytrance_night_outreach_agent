@@ -29,3 +29,5 @@
 - [x] Implement Outreach Engine for automated dispatch (v1.0.2)
 - [x] Integrate Synchronization Protocol into CI Pipeline (Multi-Branch)
 - [x] Implement Follow-up Engine (v1.0.3)
+- [x] Implement Multi-City Resume Logic (v1.0.4)
+- [x] Add Comprehensive Smoke Test (v1.0.4)
