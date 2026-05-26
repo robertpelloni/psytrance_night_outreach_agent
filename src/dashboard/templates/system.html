@@ -49,12 +49,25 @@
                 </div>
             </div>
 
-            <div class="card text-bg-secondary shadow">
+            <div class="card text-bg-secondary mb-4 shadow">
                 <div class="card-header bg-dark">Database Status</div>
                 <div class="card-body">
                     <p><strong>Total Venues:</strong> {{ stats.total_venues }}</p>
                     <p><strong>Pending Leads:</strong> {{ stats.status_breakdown.get('PENDING_REVIEW', 0) }}</p>
                     <p><strong>Sent Pitches:</strong> {{ stats.status_breakdown.get('SENT', 0) }}</p>
+                </div>
+            </div>
+
+            <div class="card text-bg-secondary shadow">
+                <div class="card-header bg-dark">Sync Reliability (7d)</div>
+                <div class="card-body">
+                    <h2 class="text-center {% if sync_stats.success_rate >= 90 %}text-success{% else %}text-warning{% endif %}">
+                        {{ sync_stats.success_rate }}%
+                    </h2>
+                    <p class="text-center text-white-50"><small>Success Rate</small></p>
+                    <hr class="border-secondary">
+                    <p><strong>Total Syncs:</strong> {{ sync_stats.total_syncs }}</p>
+                    <p><strong>Failures:</strong> <span class="text-danger">{{ sync_stats.failures }}</span></p>
                 </div>
             </div>
         </div>
@@ -81,8 +94,13 @@
                         </thead>
                         <tbody>
                             {% for branch in git_info.branches %}
-                            <tr>
-                                <td><code>{{ branch }}</code></td>
+                            <tr {% if branch in stale_branches|map(attribute='name') %}class="table-warning text-dark"{% endif %}>
+                                <td>
+                                    <code>{{ branch }}</code>
+                                    {% if branch in stale_branches|map(attribute='name') %}
+                                        <span class="badge bg-warning text-dark ms-2">STALE</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% set found = false %}
                                     {% for log in sync_logs %}

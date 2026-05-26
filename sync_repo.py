@@ -1,6 +1,8 @@
 import subprocess
 import os
 import sys
+import time
+from datetime import datetime
 
 # Add project root to sys.path to allow imports from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -58,8 +60,9 @@ def sync():
         return
     os.environ["GIT_SYNC_RUNNING"] = "1"
 
+    start_time = time.time()
     try:
-        print("=== Starting Repository Sync Protocol ===")
+        print(f"=== Starting Repository Sync Protocol: {datetime.now()} ===")
 
         # 1. Fetch All and ensure all remote branches are tracked locally
         print("\n[1/6] Fetching remotes and tracking branches...")
@@ -169,7 +172,16 @@ def sync():
             print(f"  [WARNING] Consistency check failed! Local: {local_hash[:7]}, Remote: {remote_hash[:7]}")
             sys.exit(1)
 
-        print("\n=== Repository Sync Protocol Complete ===")
+        # 8. Repository Hygiene: Prune merged branches
+        print("\n[8/8] Performing repository hygiene...")
+        run_command(["git", "remote", "prune", "origin"])
+
+        duration = round(time.time() - start_time, 2)
+        print(f"\n=== Repository Sync Protocol Complete (Duration: {duration}s) ===")
+        db.log_system_event("SYNC", "SUCCESS", f"Protocol completed successfully in {duration}s")
+    except Exception as e:
+        db.log_system_event("SYNC", "FAILURE", f"Protocol failed: {str(e)}")
+        raise e
     finally:
         if "GIT_SYNC_RUNNING" in os.environ:
             del os.environ["GIT_SYNC_RUNNING"]

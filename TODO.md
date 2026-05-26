@@ -46,3 +46,5 @@
 - [x] Integrate full Master Integrity Suite into .github/workflows/sync.yml (v1.1.7)
 - [x] Implement Multi-Branch Stress Test and reporting (v1.1.8)
 - [x] Visualize branch health matrix in Dashboard (v1.1.8)
+- [x] Implement ReliabilityMonitor and Dashboard KPIs (v1.1.9)
+- [x] Add automated branch pruning to sync protocol (v1.1.9)

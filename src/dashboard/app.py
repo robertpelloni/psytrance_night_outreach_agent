@@ -13,6 +13,7 @@ from src.scraper_generator import ScraperGenerator
 from src.analytics import AnalyticsEngine
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
+from src.reliability_monitor import ReliabilityMonitor
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -24,6 +25,7 @@ generator = ScraperGenerator()
 analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
+reliability = ReliabilityMonitor(db_path=db_path)
 
 @app.route('/')
 def index():
@@ -68,7 +70,10 @@ def system_status():
     # Fetch last 10 sync logs
     sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs)
+    sync_stats = reliability.get_sync_health_stats()
+    stale_branches = reliability.get_stale_branches()
+
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches)
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():

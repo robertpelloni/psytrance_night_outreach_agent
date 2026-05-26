@@ -30,7 +30,7 @@ class TestMultiBranchStress(unittest.TestCase):
 
         # 3. Initialize DB within test_dir to prevent system_logs errors
         from src.db_manager import DatabaseManager
-        db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
+        self.test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
 
         subprocess.run(["git", "add", "."], capture_output=True)
         subprocess.run(["git", "commit", "-m", "Initial Stress Setup"], capture_output=True)
@@ -68,7 +68,8 @@ class TestMultiBranchStress(unittest.TestCase):
             mock_run.side_effect = side_effect
 
             with patch('sync_repo.validate_system', return_value=True):
-                sync()
+                with patch('sync_repo.db', self.test_db):
+                    sync()
 
         # 3. Verify main has integrated all unique files
         subprocess.run(["git", "checkout", "main"], capture_output=True)

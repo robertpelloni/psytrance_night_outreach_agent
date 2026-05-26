@@ -69,6 +69,9 @@ class TestCrossBranchConsistency(unittest.TestCase):
         subprocess.run(["git", "checkout", "main"], capture_output=True)
 
         # 3. Run Sync Protocol (Mocking the remote/upstream parts)
+        from src.db_manager import DatabaseManager
+        test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
+
         from unittest.mock import patch, MagicMock
         with patch('sync_repo.run_command') as mock_run:
             # We allow real git commands for local operations but intercept push/remote
@@ -87,7 +90,8 @@ class TestCrossBranchConsistency(unittest.TestCase):
             # Since sync() discovers local branches, it should find both features
             # and merge them into main.
             with patch('sync_repo.validate_system', return_value=True):
-                sync()
+                with patch('sync_repo.db', test_db):
+                    sync()
 
         # 4. Verify main has integrated both changes
         subprocess.run(["git", "checkout", "main"], capture_output=True)

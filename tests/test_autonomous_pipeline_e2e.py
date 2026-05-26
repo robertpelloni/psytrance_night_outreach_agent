@@ -28,9 +28,14 @@ class TestAutonomousPipelineE2E(unittest.TestCase):
 
         with open("VERSION.md", "w") as f: f.write("1.1.0")
         with open("database/schema.sql", "w") as f:
-            # We need the actual schema content or a subset
-            # Let's just create a blank file since DatabaseManager might need it
-            pass
+            f.write("""
+CREATE TABLE IF NOT EXISTS venues (id TEXT PRIMARY KEY, name TEXT NOT NULL, city TEXT NOT NULL, website TEXT UNIQUE, google_rating REAL, tags TEXT, raw_about_text TEXT);
+CREATE TABLE IF NOT EXISTS venue_contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, venue_id TEXT, email TEXT UNIQUE, phone TEXT, instagram_handle TEXT UNIQUE, booking_page_url TEXT, FOREIGN KEY(venue_id) REFERENCES venues(id));
+CREATE TABLE IF NOT EXISTS outreach_leads (id INTEGER PRIMARY KEY AUTOINCREMENT, venue_id TEXT UNIQUE, vibe_score INTEGER, qualification_justification TEXT, generated_pitch TEXT, pipeline_status TEXT DEFAULT 'PENDING_QUALIFICATION', last_outreach_at TIMESTAMP, follow_up_count INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(venue_id) REFERENCES venues(id));
+CREATE TABLE IF NOT EXISTS city_processing_log (city TEXT PRIMARY KEY, last_processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, status TEXT);
+CREATE TABLE IF NOT EXISTS lead_replies (id INTEGER PRIMARY KEY AUTOINCREMENT, lead_id INTEGER, content TEXT NOT NULL, sentiment TEXT, received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(lead_id) REFERENCES outreach_leads(id));
+CREATE TABLE IF NOT EXISTS system_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, component TEXT NOT NULL, status TEXT NOT NULL, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+            """)
 
         subprocess.run(["git", "add", "."], capture_output=True)
         subprocess.run(["git", "commit", "-m", "Initial"], capture_output=True)
@@ -79,10 +84,15 @@ class E2EScraper:
 
         # 3. Simulate code being "integrated" via Sync
         # We'll mock sync because we don't have a real remote
+        from src.db_manager import DatabaseManager
+        db_path_sync = os.path.join(self.test_dir, "database", "sync.db")
+        db_sync = DatabaseManager(db_path=db_path_sync)
+
         with patch('sync_repo.run_command') as mock_sync_run:
             mock_sync_run.return_value = MagicMock(returncode=0, stdout="main")
             with patch('sync_repo.validate_system', return_value=True):
-                sync()
+                with patch('sync_repo.db', db_sync):
+                    sync()
 
         # 4. Run Main Pipeline (Simulated)
         # Mock AI vibe check for the venue found by our "generated" scraper

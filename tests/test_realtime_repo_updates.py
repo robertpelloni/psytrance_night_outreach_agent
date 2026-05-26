@@ -75,6 +75,9 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         subprocess.run(["git", "checkout", "main"], capture_output=True)
 
         # 3. Run Sync Protocol
+        from src.db_manager import DatabaseManager
+        test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
+
         # We need to ensure skip validation for the temp dir
         with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1"}):
             # Intercept consistency check to use our local 'origin'
@@ -83,7 +86,8 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
             from sync_repo import run_command
             # Ensure we are on main before sync
             subprocess.run(["git", "checkout", "main"], capture_output=True)
-            sync()
+            with patch('sync_repo.db', test_db):
+                sync()
 
         # 4. Verifications
         self.assertTrue(os.path.exists("remote_update.txt"), "Remote update was not pulled!")

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.9] - 2024-05-26
+### Added
+- **Sync Reliability Monitoring**: New `ReliabilityMonitor` class analyzes synchronization history and calculates health KPIs.
+- **Reliability Dashboard**: System page now displays 7-day sync success rate and failure metrics.
+- **Repository Hygiene**: Automated `git remote prune origin` integration to keep the environment clean.
+- **Staleness Detection**: Visual highlighting of branches that have not been reconciled for over 72 hours.
+- **Performance Tracking**: Protocol now logs duration and timestamp for every synchronization event.
+
 ## [1.1.8] - 2024-05-24
 ### Added
 - **Multi-Branch Health Reporting**: Synchronization protocol now logs granular branch-level status to the database.
