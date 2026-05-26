@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.7] - 2024-05-24
+### Added
+- **Master Integrity Suite Integration**: Integrated 22 tests into the CI/CD pipeline and sync protocol.
+- **Global Hub Expansion**: Backlog expanded to 15 cities with per-city analytics.
+- **Scaling Resilience**: Verified multi-city resume logic and health tracking.
+
 ## [1.1.5] - 2024-05-24
 ### Added
 - **Real-time Remote Synchronization**: Updated `sync_repo.py` to explicitly merge `origin/main` before local reconciliation, ensuring the agent always operates on the absolute latest remote state.

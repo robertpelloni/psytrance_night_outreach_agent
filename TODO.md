@@ -42,3 +42,5 @@
 - [x] Implement Tiered Production Deployment Workflow (v1.1.3)
 - [x] Implement Cross-Branch Consistency Integration Test (v1.1.4)
 - [x] Implement Real-time Remote Update Integration Test (v1.1.5)
+- [x] Expand target city backlog to 15 global hubs (v1.1.7)
+- [x] Integrate full Master Integrity Suite into .github/workflows/sync.yml (v1.1.7)

@@ -88,4 +88,6 @@
 ## Phase 17: Real-time Remote Sync (v1.1.5)
 - [x] Explicit Remote Tracking & Merging
 - [x] Concurrent Update Protocol Verification
-- [ ] Multi-City Sequential Expansion
+- [x] Multi-City Sequential Expansion (v1.1.7)
+- [x] Integrated Master Integrity Suite into CI (v1.1.7)
+- [ ] Phase 18: Advanced Personalization (Trait Extraction)
