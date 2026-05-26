@@ -47,6 +47,8 @@ jobs:
           python tests/test_cross_branch_consistency.py
           python tests/test_smoke.py
           python tests/test_dashboard_sync.py
+          python tests/test_realtime_repo_updates.py
+          python tests/test_scaling.py
           python test_sync_repo.py
 
       - name: Run Sync Script (Start Protocol)

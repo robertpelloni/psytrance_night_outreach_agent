@@ -31,8 +31,9 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         with open("database/schema.sql", "w") as f: f.write("CREATE TABLE test (id TEXT);")
         subprocess.run(["git", "add", "."], capture_output=True)
         subprocess.run(["git", "commit", "-m", "Initial"], capture_output=True)
-        subprocess.run(["git", "push", "origin", "master:main"], capture_output=True)
-        subprocess.run(["git", "checkout", "-b", "main"], capture_output=True)
+        # Use main as the default branch name
+        subprocess.run(["git", "branch", "-M", "main"], capture_output=True)
+        subprocess.run(["git", "push", "-u", "origin", "main"], capture_output=True)
 
     def tearDown(self):
         # Return to project root
@@ -50,12 +51,19 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         """
         # 1. Simulate Remote Update
         temp_remote_clone = tempfile.mkdtemp()
-        subprocess.run(["git", "clone", self.remote_dir, temp_remote_clone], capture_output=True)
+        # Clone explicitly specifying main
+        subprocess.run(["git", "clone", "-b", "main", self.remote_dir, temp_remote_clone], check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=temp_remote_clone, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=temp_remote_clone, check=True)
+
         with open(os.path.join(temp_remote_clone, "remote_update.txt"), "w") as f:
             f.write("Remote Change")
-        subprocess.run(["git", "add", "."], cwd=temp_remote_clone, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Remote Update"], cwd=temp_remote_clone, capture_output=True)
-        subprocess.run(["git", "push", "origin", "main"], cwd=temp_remote_clone, capture_output=True)
+        subprocess.run(["git", "add", "."], cwd=temp_remote_clone, check=True)
+        subprocess.run(["git", "commit", "-m", "Remote Update"], cwd=temp_remote_clone, check=True)
+        # Push to the remote repo's main branch
+        res = subprocess.run(["git", "push", "origin", "main"], cwd=temp_remote_clone, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"Push to remote failed: {res.stderr}")
         shutil.rmtree(temp_remote_clone)
 
         # 2. Local Feature Update

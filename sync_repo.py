@@ -168,7 +168,10 @@ def validate_system():
     tests = [
         "tests/test_db_manager.py",
         "tests/test_ai_engine.py",
-        "tests/test_smoke.py"
+        "tests/test_smoke.py",
+        "tests/test_realtime_repo_updates.py",
+        "tests/test_scaling.py",
+        "tests/test_protocol_e2e.py"
     ]
 
     for test in tests:

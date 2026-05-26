@@ -4,12 +4,25 @@
         "Berlin",
         "London",
         "Tokyo",
-        "Lisbon"
+        "Lisbon",
+        "Goa",
+        "Melbourne",
+        "Zurich",
+        "Sao Paulo",
+        "Tel Aviv",
+        "Amsterdam",
+        "Montreal",
+        "Cape Town",
+        "Koh Phangan",
+        "San Francisco"
     ],
     "target_genres": [
         "psytrance",
         "underground techno",
-        "progressive psy"
+        "progressive psy",
+        "forest psy",
+        "hi-tech",
+        "psycore"
     ],
     "epk_link": "https://your-epk-link.com",
     "mix_link": "https://soundcloud.com/your-mix-link",
