@@ -36,14 +36,25 @@ The synchronization protocol is fully integrated into GitHub Actions. For the pi
 
 The pipeline triggers on every push to **any** branch (`**`), ensuring continuous synchronization across the entire repository. Note that the full outreach pipeline (`main.py`) only executes on the `main` branch or scheduled runs to optimize API usage.
 
-## Staging Environment
+## Tiered Deployment Architecture
+
+### 1. Feature Environment (Local / CI Sync)
+- **Trigger**: Every push to any branch.
+- **Actions**: Continuous repository synchronization and unit testing via `.github/workflows/sync.yml`.
+- **Purpose**: To keep all branches up-to-date and ensure local development doesn't drift.
+
+### 2. Staging Environment (Release Candidate)
 A dedicated staging workflow is configured in `.github/workflows/staging.yml`.
 - **Trigger**: Push to the `staging` branch.
 - **Actions**: Sets up a clean environment, initializes `database/staging_outreach.db`, and executes the full end-to-end integration suite (`tests/test_smoke.py` and `tests/test_protocol_e2e.py`).
 - **Purpose**: To verify that upcoming releases are functionally sound before merging into `main`.
+- **Manual Command**: `./deploy_staging.sh`
 
-To manually validate a staging deployment:
-`./deploy_staging.sh`
+### 3. Production Environment (Live Deployment)
+- **Trigger**: Push to the `main` branch.
+- **Workflow**: `.github/workflows/production.yml`.
+- **Actions**: Refreshes production environment, executes the **Master Integrity Suite** (all 20+ tests), and logs the deployment event to the dashboard.
+- **Manual Command**: `./deploy_production.sh`
 
 ## Live Pilot Validation
 Before moving to full 24/7 autonomous operation, execute a live pilot run to verify connectivity and external service limits:

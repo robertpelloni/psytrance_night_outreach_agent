@@ -10,13 +10,19 @@ class DatabaseManager:
         return sqlite3.connect(self.db_path)
 
     def _init_db(self):
-        schema_path = 'database/schema.sql'
-        if not os.path.exists('database'):
-            os.makedirs('database')
+        # Find schema path relative to project root
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        schema_path = os.path.join(base_dir, 'database', 'schema.sql')
+
+        if not os.path.exists(os.path.dirname(self.db_path)):
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
         with self._get_connection() as conn:
-            with open(schema_path, 'r') as f:
-                conn.executescript(f.read())
+            if os.path.exists(schema_path):
+                with open(schema_path, 'r') as f:
+                    conn.executescript(f.read())
+            else:
+                print(f"Warning: schema.sql not found at {schema_path}")
 
     def add_venue(self, venue_data):
         query = """

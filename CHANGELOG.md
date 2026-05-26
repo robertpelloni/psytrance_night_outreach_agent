@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.3] - 2024-05-24
+### Added
+- **Tiered Deployment Architecture**: Established Feature, Staging, and Production environments with dedicated GitHub Actions workflows.
+- **Production Release Protocol**: Implemented `deploy_production.sh` which executes a **Master Integrity Suite** of 20+ tests before finalizing any release.
+- **Automated Health Logging**: Deployment events are now automatically logged to the system health monitor.
+
 ## [1.1.2] - 2024-05-24
 ### Added
 - **Live Connectivity Suite**: Implemented `tests/test_live_connectivity.py` to diagnose OpenAI, Proxy, and SMTP connectivity in production environments.

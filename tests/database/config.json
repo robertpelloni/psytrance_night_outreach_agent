@@ -1,0 +1,17 @@
+{
+    "cities": [
+        "Detroit",
+        "Berlin",
+        "London",
+        "Tokyo",
+        "Lisbon"
+    ],
+    "target_genres": [
+        "psytrance",
+        "underground techno",
+        "progressive psy"
+    ],
+    "epk_link": "https://your-epk-link.com",
+    "mix_link": "https://soundcloud.com/your-mix-link",
+    "vibe_threshold": 7
+}
