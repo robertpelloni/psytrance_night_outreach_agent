@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.2] - 2024-05-24
+### Added
+- **Live Connectivity Suite**: Implemented `tests/test_live_connectivity.py` to diagnose OpenAI, Proxy, and SMTP connectivity in production environments.
+- **Pilot Execution Script**: Created `pilot_run.sh` for a safe, single-city autonomous validation cycle before full 24/7 deployment.
+
 ## [1.1.1] - 2024-05-24
 ### Added
 - **Autonomous Pipeline E2E Test**: Implemented `tests/test_autonomous_pipeline_e2e.py` to verify the full cycle of code generation, repository synchronization, and pipeline execution.

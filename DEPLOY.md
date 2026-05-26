@@ -43,4 +43,9 @@ A dedicated staging workflow is configured in `.github/workflows/staging.yml`.
 - **Purpose**: To verify that upcoming releases are functionally sound before merging into `main`.
 
 To manually validate a staging deployment:
-`./scripts/deploy_staging.sh`
+`./deploy_staging.sh`
+
+## Live Pilot Validation
+Before moving to full 24/7 autonomous operation, execute a live pilot run to verify connectivity and external service limits:
+`./pilot_run.sh`
+This script runs connectivity diagnostics, performs a single-city discovery cycle, and synchronizes the results.
