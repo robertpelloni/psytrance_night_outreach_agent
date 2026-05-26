@@ -20,6 +20,10 @@
 - **End-to-End Logic Validation**: Propagation tests ensure that the core "Autonomous Execution" mechanism (main <-> feature sync) remains unblocked by complex merge logic.
 - **Manual Verification Verified**: Bidirectional synchronization has been manually verified with live feature branches, confirming propagation and dashboard log reporting are fully functional.
 
+## v1.1.16 - Standardized Local Execution
+- **Unified Start Script**: `start.sh` is now the definitive local entry point, managing sync, tests, and reporting in a single atomic flow.
+- **Cross-Environment Consistency**: By using `pytest` in both CI and `start.sh`, we ensure that local validation mirrors production gating exactly.
+
 ## System Memories for Successor
 - **Absolute Paths**: Always use absolute path resolution for `database/schema.sql` and `database/outreach.db` to maintain stability across different execution contexts (CI vs. Dashboard).
 - **Staging Hygiene**: Ensure `staging_outreach.db` is purged or initialized correctly in the staging workflow.

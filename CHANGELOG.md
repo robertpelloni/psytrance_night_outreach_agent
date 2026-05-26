@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.16] - 2024-05-26
+### Added
+- **Unified Local Entry Point**: Refactored `start.sh` to use the Master Integrity Suite (Pytest) for all local system validations.
+- **Protocol Observability**: Integrated local synchronization and testing events with `PipelineMonitor` for real-time dashboard reporting.
+### Changed
+- **Execution Standards**: Aligned local development execution flows with hardened CI/CD pipeline standards.
+
 ## [1.1.15] - 2024-05-26
 ### Added
 - **CI Pipeline Monitoring**: Introduced `src/pipeline_monitor.py` for logging granular CI/CD execution data to the dashboard.
