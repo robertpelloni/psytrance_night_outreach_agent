@@ -39,21 +39,7 @@ jobs:
       - name: Run Master Integrity Suite (Pytest)
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-<<<<<<< HEAD
           python3 -m pytest
-=======
-          python tests/test_db_manager.py
-          python tests/test_ai_engine.py
-          python tests/test_protocol_e2e.py
-          python tests/test_autonomous_dev_e2e.py
-          python tests/test_autonomous_pipeline_e2e.py
-          python tests/test_cross_branch_consistency.py
-          python tests/test_smoke.py
-          python tests/test_dashboard_sync.py
-          python tests/test_realtime_repo_updates.py
-          python tests/test_scaling.py
-          python test_sync_repo.py
->>>>>>> feature/psytrance-outreach-v0.2.1-8208395549152616561
 
       - name: Run Sync Script (Start Protocol)
         run: |

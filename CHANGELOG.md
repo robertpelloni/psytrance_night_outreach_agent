@@ -1,6 +1,10 @@
 # CHANGELOG
 
-<<<<<<< HEAD
+## [1.1.14] - 2024-05-26
+### Added
+- **Unified Protocol Synchronization**: Successfully reconciled all independent development streams into a single high-integrity production branch.
+- **Master Versioning**: Established a unified global version string (v1.1.14) across all repository components.
+
 ## [1.1.13] - 2024-05-26
 ### Added
 - **CI/CD Hardening**: Refactored `.github/workflows/sync.yml` to use Pytest for a more robust Master Integrity Suite execution.
@@ -42,8 +46,6 @@
 - **Automated Integrity Auditing**: New GitHub Action for daily repository-wide unification audits.
 - **Multi-Branch Stress Test**: Verified protocol stability with 5+ concurrent feature streams.
 
-=======
->>>>>>> feature/psytrance-outreach-v0.2.1-8208395549152616561
 ## [1.1.7] - 2024-05-24
 ### Added
 - **Master Integrity Suite Integration**: Integrated 22 tests into the CI/CD pipeline and sync protocol.
