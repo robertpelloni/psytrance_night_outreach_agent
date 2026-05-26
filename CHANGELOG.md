@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.11] - 2024-05-26
+### Added
+- **Distributed Reconciliation**: Enhanced the sync protocol to support `--allow-unrelated-histories`, enabling reconciliation between independent autonomous agents.
+- **Push Retry Logic**: Implemented "Retry-after-Rebase" loop in `sync_repo.py` to handle race conditions in distributed environments.
+- **Multi-Agent Simulation**: New `tests/test_distributed_sync.py` validates concurrent modification handling.
+
 ## [1.1.10] - 2024-05-26
 ### Added
 - **Staging Validation Suite**: New `tests/test_staging_readiness.py` verifies environment configuration, file permissions, and database connectivity.

@@ -88,7 +88,8 @@ def sync():
         # Always merge origin/main to get latest remote changes
         print("  Merging changes from origin/main...")
         # Use --no-edit to avoid hanging on commit message prompt
-        run_command(["git", "merge", "origin/main", "--no-edit"])
+        # Use --allow-unrelated-histories to handle complex reconciliations
+        run_command(["git", "merge", "origin/main", "--no-edit", "--allow-unrelated-histories"])
 
         remotes = run_command(["git", "remote"]).stdout.split()
         if "upstream" in remotes:
@@ -113,7 +114,7 @@ def sync():
                 if diff:
                     print(f"Merging unique progress from {branch} into main...")
                     run_command(["git", "checkout", "main"])
-                    merge_res = run_command(["git", "merge", branch])
+                    merge_res = run_command(["git", "merge", branch, "--allow-unrelated-histories"])
                     if merge_res.returncode != 0:
                         print(f"Conflict merging {branch}. Attempting AI resolution...")
                         if not attempt_ai_resolution(cwd=os.getcwd()):
@@ -134,7 +135,7 @@ def sync():
             if branch not in ["main", "master", ""] and "HEAD" not in branch:
                 print(f"  Syncing main -> {branch}")
                 run_command(["git", "checkout", branch])
-                merge_res = run_command(["git", "merge", "main"])
+                merge_res = run_command(["git", "merge", "main", "--allow-unrelated-histories"])
                 if merge_res.returncode != 0:
                     print(f"Conflict syncing main into {branch}. Attempting AI resolution...")
                     if not attempt_ai_resolution(cwd=os.getcwd()):
@@ -154,7 +155,21 @@ def sync():
 
         # HARDENING: Only push if the merged state passes critical integrity tests
         if os.getenv("SKIP_SYNC_VALIDATION") == "1" or validate_system():
-            run_command(["git", "push", "origin", "main"])
+            # Implementation of Retry-after-Rebase to handle distributed race conditions
+            max_retries = 3
+            for attempt in range(max_retries):
+                push_res = run_command(["git", "push", "origin", "main"])
+                if push_res.returncode == 0:
+                    print(f"  [SUCCESS] Pushed main to origin on attempt {attempt+1}.")
+                    break
+                elif attempt < max_retries - 1:
+                    print(f"  [RETRY] Push failed (remote moved). Rebasing and retrying...")
+                    run_command(["git", "fetch", "origin"])
+                    run_command(["git", "rebase", "origin/main"])
+                else:
+                    print(f"  [ERROR] Push failed after {max_retries} attempts.")
+                    sys.exit(1)
+
             run_command(["git", "submodule", "foreach", "git push origin main || true"])
         else:
             print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
@@ -199,7 +214,8 @@ def validate_system():
         "tests/test_realtime_repo_updates.py",
         "tests/test_scaling.py",
         "tests/test_protocol_e2e.py",
-        "tests/test_multi_branch_stress.py"
+        "tests/test_multi_branch_stress.py",
+        "tests/test_distributed_sync.py"
     ]
 
     for test in tests:
