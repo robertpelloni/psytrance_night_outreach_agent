@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.4] - 2024-05-24
+### Added
+- **Cross-Branch Consistency Verification**: Implemented `tests/test_cross_branch_consistency.py` to ensure database schema and system configuration changes are correctly reconciled across multiple active features.
+- **Master Suite Expansion**: Integrated consistency verification into the Production Release script and CI workflows.
+
 ## [1.1.3] - 2024-05-24
 ### Added
 - **Tiered Deployment Architecture**: Established Feature, Staging, and Production environments with dedicated GitHub Actions workflows.

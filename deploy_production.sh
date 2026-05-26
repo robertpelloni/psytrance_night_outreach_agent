@@ -15,7 +15,7 @@ export SKIP_SYNC_VALIDATION=1 # We run validation separately in Step 3
 python3 sync_repo.py || echo "Warning: Sync script returned non-zero. Continuing with local validation."
 
 # 3. Comprehensive Master Validation
-echo "Step 3: Running Master Integrity Suite (18+ Tests)..."
+echo "Step 3: Running Master Integrity Suite (20+ Tests)..."
 export PYTHONPATH=$PYTHONPATH:.
 # Run all test files
 python3 -m unittest discover tests
