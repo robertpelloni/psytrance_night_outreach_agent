@@ -39,7 +39,7 @@ jobs:
       - name: Run Master Integrity Suite (Pytest)
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python3 -m pytest
+          python3 -m pytest --cov=src --cov-report=term-missing
 
       - name: Run Sync Script (Start Protocol)
         run: |

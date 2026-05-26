@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.15] - 2024-05-26
+### Added
+- **CI Pipeline Monitoring**: Introduced `src/pipeline_monitor.py` for logging granular CI/CD execution data to the dashboard.
+- **System Heartbeat**: Implemented `.github/workflows/heartbeat.yml` for automated 30-minute health and integrity checks.
+- **Propagation Verification**: New `tests/test_end_to_end_propagation.py` validates bidirectional feature flow.
+### Changed
+- **Master Integrity Hardening**: Integrated code coverage (`pytest-cov`) into the primary synchronization workflow.
+
 ## [1.1.14] - 2024-05-26
 ### Added
 - **Unified Protocol Synchronization**: Successfully reconciled all independent development streams into a single high-integrity production branch.

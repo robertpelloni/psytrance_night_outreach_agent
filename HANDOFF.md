@@ -14,6 +14,11 @@
 - **Pytest Integration**: Standardized on Pytest for all CI/CD workflows, improving parallel execution potential and reporting.
 - **Formal Verification**: Trait extraction is now formally verified via unit tests, ensuring prompt stability for technical parsing.
 
+## v1.1.15 - CI Observability & Heartbeat
+- **Real-time Pipeline Monitoring**: CI runs now log status and coverage directly to `system_logs`, allowing the HITL dashboard to monitor automated development health.
+- **Heartbeat Stability**: The 30-minute heartbeat ensures that the database and environment remain functional between active development bursts.
+- **End-to-End Logic Validation**: Propagation tests ensure that the core "Autonomous Execution" mechanism (main <-> feature sync) remains unblocked by complex merge logic.
+
 ## System Memories for Successor
 - **Absolute Paths**: Always use absolute path resolution for `database/schema.sql` and `database/outreach.db` to maintain stability across different execution contexts (CI vs. Dashboard).
 - **Staging Hygiene**: Ensure `staging_outreach.db` is purged or initialized correctly in the staging workflow.
