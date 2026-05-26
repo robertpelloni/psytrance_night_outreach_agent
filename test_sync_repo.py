@@ -22,6 +22,11 @@ class TestSyncRepo(unittest.TestCase):
         run_command(["git", "init"], cwd=self.local_dir)
         run_command(["git", "remote", "add", "origin", self.remote_dir], cwd=self.local_dir)
 
+        # Initialize database in local_dir to satisfy sync_repo's db logging
+        os.makedirs(os.path.join(self.local_dir, "database"), exist_ok=True)
+        from src.db_manager import DatabaseManager
+        db = DatabaseManager(db_path=os.path.join(self.local_dir, "database/outreach.db"))
+
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
             f.write("# Initial Commit")
 

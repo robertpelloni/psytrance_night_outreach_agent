@@ -90,4 +90,6 @@
 - [x] Concurrent Update Protocol Verification
 - [x] Multi-City Sequential Expansion (v1.1.7)
 - [x] Integrated Master Integrity Suite into CI (v1.1.7)
+- [x] Multi-Branch Health Reporting & UI visualization (v1.1.8)
+- [x] Repository Integrity Auditing Pipeline (v1.1.8)
 - [ ] Phase 18: Advanced Personalization (Trait Extraction)

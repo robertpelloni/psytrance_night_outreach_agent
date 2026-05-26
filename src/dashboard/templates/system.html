@@ -60,10 +60,65 @@
         </div>
 
         <div class="col-md-8">
-            <div class="card text-bg-dark border-secondary shadow" style="height: 100%;">
+            <div class="card text-bg-dark border-secondary shadow mb-4">
                 <div class="card-header bg-secondary text-white">Sync Protocol Output</div>
                 <div class="card-body">
-                    <pre id="sync-output" class="text-white-50 p-3 bg-black rounded" style="height: 400px; overflow-y: auto; font-size: 0.85rem;">Ready to sync...</pre>
+                    <pre id="sync-output" class="text-white-50 p-3 bg-black rounded" style="height: 300px; overflow-y: auto; font-size: 0.85rem;">Ready to sync...</pre>
+                </div>
+            </div>
+
+            <div class="card text-bg-dark border-secondary shadow">
+                <div class="card-header bg-dark text-white">Feature Branch Health</div>
+                <div class="card-body">
+                    <table class="table table-dark table-sm table-hover border-secondary">
+                        <thead>
+                            <tr>
+                                <th>Branch Name</th>
+                                <th>Status</th>
+                                <th>Last Message</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for branch in git_info.branches %}
+                            <tr>
+                                <td><code>{{ branch }}</code></td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <span class="badge {% if log.status == 'SUCCESS' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ log.status }}
+                                            </span>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not found %}
+                                        <span class="badge bg-secondary">UNKNOWN</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <small class="text-white-50">{{ log.message }}</small>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <small class="text-white-50">{{ log.created_at }}</small>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

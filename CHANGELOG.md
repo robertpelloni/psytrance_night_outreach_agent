@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.8] - 2024-05-24
+### Added
+- **Multi-Branch Health Reporting**: Synchronization protocol now logs granular branch-level status to the database.
+- **Sync Integrity Dashboard**: Added a real-time branch health matrix to the System page.
+- **Automated Integrity Auditing**: New GitHub Action for daily repository-wide unification audits.
+- **Multi-Branch Stress Test**: Verified protocol stability with 5+ concurrent feature streams.
+
 ## [1.1.7] - 2024-05-24
 ### Added
 - **Master Integrity Suite Integration**: Integrated 22 tests into the CI/CD pipeline and sync protocol.

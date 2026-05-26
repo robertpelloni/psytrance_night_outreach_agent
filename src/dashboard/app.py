@@ -61,10 +61,14 @@ def system_status():
 
     git_info = {
         "branch": subprocess.getoutput("git rev-parse --abbrev-ref HEAD"),
-        "commit": subprocess.getoutput("git rev-parse --short HEAD")
+        "commit": subprocess.getoutput("git rev-parse --short HEAD"),
+        "branches": subprocess.getoutput("git branch --format='%(refname:short)'").splitlines()
     }
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info)
+    # Fetch last 10 sync logs
+    sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
+
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs)
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():

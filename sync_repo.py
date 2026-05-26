@@ -5,8 +5,10 @@ import sys
 # Add project root to sys.path to allow imports from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.ai_engine import AIEngine
+from src.db_manager import DatabaseManager
 
 ai = AIEngine()
+db = DatabaseManager()
 
 def run_command(command, cwd=None):
     print(f"  [EXEC] {' '.join(command)}")
@@ -113,11 +115,14 @@ def sync():
                         print(f"Conflict merging {branch}. Attempting AI resolution...")
                         if not attempt_ai_resolution(cwd=os.getcwd()):
                             print(f"AI resolution failed for {branch}. Aborting merge.")
+                            db.log_system_event("SYNC", "FAILURE", f"Conflict merging {branch} (AI resolution failed)")
                             run_command(["git", "merge", "--abort"])
                         else:
                             print(f"Successfully resolved conflict for {branch} via AI.")
+                            db.log_system_event("SYNC", "SUCCESS", f"Merged {branch} into main (AI resolved)")
                     else:
                         print(f"Successfully merged {branch} into main.")
+                        db.log_system_event("SYNC", "SUCCESS", f"Merged {branch} into main")
 
         # 5. Reverse Merge (Main back to Features) and push updates
         print("\n[5/6] Syncing main back to feature branches (Reverse Merge)...")
@@ -181,7 +186,8 @@ def validate_system():
         "tests/test_smoke.py",
         "tests/test_realtime_repo_updates.py",
         "tests/test_scaling.py",
-        "tests/test_protocol_e2e.py"
+        "tests/test_protocol_e2e.py",
+        "tests/test_multi_branch_stress.py"
     ]
 
     for test in tests:
