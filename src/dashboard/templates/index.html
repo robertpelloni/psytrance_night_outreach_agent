@@ -78,6 +78,25 @@
                 <div class="card-body">
                     <p class="card-text"><strong>Why:</strong> {{ lead.qualification_justification }}</p>
 
+                    {% if lead.traits_dict %}
+                    <div class="mb-3">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if lead.traits_dict.sound_system %}
+                            <span class="badge border border-info text-info">🔊 {{ lead.traits_dict.sound_system }}</span>
+                            {% endif %}
+                            {% if lead.traits_dict.lighting %}
+                            <span class="badge border border-warning text-warning">💡 {{ lead.traits_dict.lighting }}</span>
+                            {% endif %}
+                            {% if lead.traits_dict.atmosphere %}
+                            <span class="badge border border-success text-success">✨ {{ lead.traits_dict.atmosphere }}</span>
+                            {% endif %}
+                            {% if lead.traits_dict.music_policy %}
+                            <span class="badge border border-primary text-primary">🎵 {{ lead.traits_dict.music_policy }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if view == 'pending' %}
                     <form action="{{ url_for('approve', lead_id=lead.id) }}" method="post">
                         <div class="mb-3">

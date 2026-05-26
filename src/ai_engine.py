@@ -59,6 +59,33 @@ class AIEngine:
             print(f"AI Error: {e}")
             return "Just checking back on my previous email!"
 
+    def extract_venue_traits(self, raw_text):
+        """Parses venue description for technical and atmospheric traits."""
+        if not self.client or not raw_text: return "{}"
+
+        prompt = f"""
+        Analyze the following text about a music venue and extract key traits in JSON format.
+        Focus on:
+        1. sound_system: Mentioned brands or quality (e.g., 'Funktion-One', 'Void').
+        2. lighting: Notable features (e.g., 'projection mapping', 'lasers').
+        3. atmosphere: Keywords (e.g., 'intimate', 'industrial', 'outdoor').
+        4. music_policy: Primary genres mentioned.
+
+        Text: "{raw_text[:2000]}"
+
+        Return ONLY valid JSON.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error extracting traits: {e}")
+            return "{}"
+
     def analyze_sentiment(self, reply_content):
         if not self.client:
             return "UNKNOWN"
@@ -90,7 +117,7 @@ class AIEngine:
             print(f"AI Sentiment Analysis Error: {e}")
             return "UNKNOWN"
 
-    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None):
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None):
         if not self.client:
             return "Hey, we would love to play at your venue!"
 
@@ -100,6 +127,10 @@ class AIEngine:
         if mix_link:
             links_context += f"- Our showcase mix: {mix_link}\n"
 
+        traits_context = ""
+        if traits:
+            traits_context = f"Additional Context about the venue: {traits}\nUse this to reference their specific setup (e.g., their sound system or unique lighting) to show we've done our homework."
+
         prompt = f"""
         Write a professional cold email to the booking manager of {venue_name}.
         The reason we like them is: {justification}
@@ -108,6 +139,8 @@ class AIEngine:
 
         Please include these links in the pitch:
         {links_context}
+
+        {traits_context}
         """
         try:
             response = self.client.chat.completions.create(

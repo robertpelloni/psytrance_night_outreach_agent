@@ -92,13 +92,18 @@ def main():
             # Only perform AI vibe check if it's a new lead
             vibe_result = ai.vibe_check(v_data['name'], enriched_text)
 
+            # NEW: Extract technical and atmospheric traits for personalization
+            traits = ai.extract_venue_traits(enriched_text)
+            db.update_venue_traits(v_id, traits)
+
             pitch = ""
             if vibe_result['vibe_score'] >= vibe_threshold:
                 pitch = ai.generate_pitch(
                     v_data['name'],
                     vibe_result['justification'],
                     epk_link=config.get("epk_link"),
-                    mix_link=config.get("mix_link")
+                    mix_link=config.get("mix_link"),
+                    traits=traits
                 )
                 status = 'PENDING_REVIEW'
             else:

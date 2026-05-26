@@ -27,9 +27,17 @@ sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
 
+import json
+
 @app.route('/')
 def index():
     leads = db.get_pending_leads()
+    for lead in leads:
+        if lead.get('extracted_traits'):
+            try:
+                lead['traits_dict'] = json.loads(lead['extracted_traits'])
+            except:
+                lead['traits_dict'] = {}
     return render_template('index.html', leads=leads, view='pending')
 
 @app.route('/history')
@@ -153,7 +161,8 @@ def regenerate(lead_id):
         venue['name'],
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
-        mix_link=config_mgr.get("mix_link")
+        mix_link=config_mgr.get("mix_link"),
+        traits=venue.get('extracted_traits')
     )
     return jsonify({"pitch": new_pitch})
 
