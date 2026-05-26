@@ -22,18 +22,18 @@ export DB_PATH="database/staging_outreach.db"
 # DatabaseManager will automatically create it based on schema.sql
 python3 -c "from src.db_manager import DatabaseManager; DatabaseManager(db_path='$DB_PATH')"
 
-# 3. Run End-to-End Integration Tests
-echo "Step 3: Running End-to-End Integration Tests..."
+# 3. Run Master Integrity Suite (v1.1.7)
+echo "Step 3: Running Master Integrity Suite..."
 export PYTHONPATH=$PYTHONPATH:.
-python3 tests/test_smoke.py
+python3 -m unittest discover tests
 if [ $? -ne 0 ]; then
-    echo "ERROR: Staging smoke tests failed! Aborting."
+    echo "ERROR: Master Integrity Suite failed in staging! Aborting."
     exit 1
 fi
 
-python3 tests/test_protocol_e2e.py
+python3 test_sync_repo.py
 if [ $? -ne 0 ]; then
-    echo "ERROR: Staging protocol tests failed! Aborting."
+    echo "ERROR: Sync protocol verification failed in staging! Aborting."
     exit 1
 fi
 
