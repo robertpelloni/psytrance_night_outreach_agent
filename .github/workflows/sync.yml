@@ -43,6 +43,7 @@ jobs:
           python tests/test_ai_engine.py
           python tests/test_protocol_e2e.py
           python tests/test_autonomous_dev_e2e.py
+          python tests/test_autonomous_pipeline_e2e.py
           python tests/test_smoke.py
           python tests/test_dashboard_sync.py
           python test_sync_repo.py

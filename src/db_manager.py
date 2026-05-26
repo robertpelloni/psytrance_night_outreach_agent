@@ -2,8 +2,8 @@ import sqlite3
 import os
 
 class DatabaseManager:
-    def __init__(self, db_path='database/outreach.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or 'database/outreach.db'
         self._init_db()
 
     def _get_connection(self):
@@ -201,3 +201,15 @@ class DatabaseManager:
         with self._get_connection() as conn:
             cursor = conn.execute(query, (lead_id,))
             return cursor.fetchone()[0] > 0
+
+    def log_system_event(self, component, status, message=None):
+        query = "INSERT INTO system_logs (component, status, message) VALUES (?, ?, ?)"
+        with self._get_connection() as conn:
+            conn.execute(query, (component, status, message))
+
+    def get_latest_system_logs(self, limit=5):
+        query = "SELECT * FROM system_logs ORDER BY created_at DESC LIMIT ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (limit,))
+            return [dict(row) for row in cursor.fetchall()]

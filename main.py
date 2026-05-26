@@ -120,6 +120,7 @@ def main():
     follow_up.run_follow_up_cycle()
 
     print("\nPipeline run complete.")
+    db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")
 
 if __name__ == "__main__":
     main()

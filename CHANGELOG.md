@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.1] - 2024-05-24
+### Added
+- **Autonomous Pipeline E2E Test**: Implemented `tests/test_autonomous_pipeline_e2e.py` to verify the full cycle of code generation, repository synchronization, and pipeline execution.
+- **Pipeline Health Integration**: Integrated `system_logs` reporting into the main pipeline execution for real-time dashboard monitoring.
+
 ## [1.1.0] - 2024-05-24
 ### Added
 - **Repository Refresh**: Executed a full local/remote repository refresh protocol.
