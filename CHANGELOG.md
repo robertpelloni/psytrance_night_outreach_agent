@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.10] - 2024-05-26
+### Added
+- **Staging Validation Suite**: New `tests/test_staging_readiness.py` verifies environment configuration, file permissions, and database connectivity.
+- **Enhanced Staging Deployment**: `deploy_staging.sh` now logs automated health reporting events for release tracking.
+- **Protocol Hardening**: Integrated staging release history into the autonomous audit cycle.
+
 ## [1.1.9] - 2024-05-26
 ### Added
 - **Sync Reliability Monitoring**: New `ReliabilityMonitor` class analyzes synchronization history and calculates health KPIs.

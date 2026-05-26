@@ -37,6 +37,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. Final Validation Summary
+# 4. Health Reporting
+echo "Step 4: Logging staging deployment event..."
+python3 -c "from src.db_manager import DatabaseManager; db = DatabaseManager(db_path='$DB_PATH'); db.log_system_event('STAGING_DEPLOY', 'SUCCESS', 'Staging release v\$(cat VERSION.md) verified')"
+
+# 5. Final Validation Summary
 echo "=== STAGING DEPLOYMENT SUCCESSFUL: $(date) ==="
 echo "System is verified for staging at $DB_PATH."
