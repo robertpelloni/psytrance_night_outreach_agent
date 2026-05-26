@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.5] - 2024-05-24
+### Added
+- **Real-time Remote Synchronization**: Updated `sync_repo.py` to explicitly merge `origin/main` before local reconciliation, ensuring the agent always operates on the absolute latest remote state.
+- **Concurrent Update Verification**: Implemented `tests/test_realtime_repo_updates.py` to validate protocol stability during simultaneous remote and local modifications.
+- **Non-Interactive Git Operations**: Added `--no-edit` flags to all merge commands to prevent autonomous stalling in automated environments.
+
 ## [1.1.4] - 2024-05-24
 ### Added
 - **Cross-Branch Consistency Verification**: Implemented `tests/test_cross_branch_consistency.py` to ensure database schema and system configuration changes are correctly reconciled across multiple active features.

@@ -84,4 +84,8 @@
 ## Phase 16: Real-time Data Consistency (v1.1.4)
 - [x] Cross-Branch Data Consistency Verification
 - [x] Automated Reconciliation of Schema & Config changes
+
+## Phase 17: Real-time Remote Sync (v1.1.5)
+- [x] Explicit Remote Tracking & Merging
+- [x] Concurrent Update Protocol Verification
 - [ ] Multi-City Sequential Expansion

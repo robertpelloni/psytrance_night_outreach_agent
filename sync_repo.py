@@ -69,14 +69,21 @@ def sync():
             if local_name not in local_branches:
                 run_command(["git", "branch", "--track", local_name, rb])
 
-    # 2. Identify Upstream
-    print("\n[2/6] Syncing with upstream (if exists)...")
+    # 2. Sync with Origin and Upstream
+    print("\n[2/6] Syncing with origin and upstream...")
+    run_command(["git", "checkout", "main"])
+
+    # Always merge origin/main to get latest remote changes
+    print("  Merging changes from origin/main...")
+    # Use --no-edit to avoid hanging on commit message prompt
+    run_command(["git", "merge", "origin/main", "--no-edit"])
+
     remotes = run_command(["git", "remote"]).stdout.split()
     if "upstream" in remotes:
-        run_command(["git", "checkout", "main"])
+        print("  Merging changes from upstream/main...")
         run_command(["git", "merge", "upstream/main"])
     else:
-        print("  No upstream remote found. Skipping.")
+        print("  No upstream remote found. Skipping upstream sync.")
 
     # 3. Recursive Submodule Update
     print("\n[3/6] Updating submodules recursively...")
