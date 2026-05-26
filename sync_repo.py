@@ -50,114 +50,124 @@ def attempt_ai_resolution(cwd=None):
     return res.returncode == 0
 
 def sync():
-    print("=== Starting Repository Sync Protocol ===")
+    # Check if we are in a Git hook environment to avoid infinite loops
+    if os.getenv("GIT_SYNC_RUNNING") == "1":
+        print("  [SKIP] Sync already running (detected via GIT_SYNC_RUNNING)")
+        return
+    os.environ["GIT_SYNC_RUNNING"] = "1"
 
-    # 1. Fetch All and ensure all remote branches are tracked locally
-    print("\n[1/6] Fetching remotes and tracking branches...")
-    run_command(["git", "fetch", "--all", "--tags"])
+    try:
+        print("=== Starting Repository Sync Protocol ===")
 
-    # Robust branch discovery using --format
-    raw_remote_branches = run_command(["git", "branch", "-r", "--format=%(refname:short)"]).stdout.splitlines()
-    local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
-    local_branches = [b.strip() for b in local_branches]
+        # 1. Fetch All and ensure all remote branches are tracked locally
+        print("\n[1/6] Fetching remotes and tracking branches...")
+        run_command(["git", "fetch", "--all", "--tags"])
 
-    for rb in raw_remote_branches:
-        rb = rb.strip()
-        if rb.startswith("origin/") and "HEAD" not in rb:
-            local_name = rb.replace("origin/", "")
-            # Only track if not already existing locally
-            if local_name not in local_branches:
-                run_command(["git", "branch", "--track", local_name, rb])
+        # Robust branch discovery using --format
+        raw_remote_branches = run_command(["git", "branch", "-r", "--format=%(refname:short)"]).stdout.splitlines()
+        local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
+        local_branches = [b.strip() for b in local_branches]
 
-    # 2. Sync with Origin and Upstream
-    print("\n[2/6] Syncing with origin and upstream...")
-    run_command(["git", "checkout", "main"])
+        for rb in raw_remote_branches:
+            rb = rb.strip()
+            if rb.startswith("origin/") and "HEAD" not in rb:
+                local_name = rb.replace("origin/", "")
+                # Only track if not already existing locally
+                if local_name not in local_branches:
+                    run_command(["git", "branch", "--track", local_name, rb])
 
-    # Always merge origin/main to get latest remote changes
-    print("  Merging changes from origin/main...")
-    # Use --no-edit to avoid hanging on commit message prompt
-    run_command(["git", "merge", "origin/main", "--no-edit"])
+        # 2. Sync with Origin and Upstream
+        print("\n[2/6] Syncing with origin and upstream...")
+        run_command(["git", "checkout", "main"])
 
-    remotes = run_command(["git", "remote"]).stdout.split()
-    if "upstream" in remotes:
-        print("  Merging changes from upstream/main...")
-        run_command(["git", "merge", "upstream/main"])
-    else:
-        print("  No upstream remote found. Skipping upstream sync.")
+        # Always merge origin/main to get latest remote changes
+        print("  Merging changes from origin/main...")
+        # Use --no-edit to avoid hanging on commit message prompt
+        run_command(["git", "merge", "origin/main", "--no-edit"])
 
-    # 3. Recursive Submodule Update
-    print("\n[3/6] Updating submodules recursively...")
-    run_command(["git", "submodule", "update", "--init", "--recursive", "--remote"])
+        remotes = run_command(["git", "remote"]).stdout.split()
+        if "upstream" in remotes:
+            print("  Merging changes from upstream/main...")
+            run_command(["git", "merge", "upstream/main"])
+        else:
+            print("  No upstream remote found. Skipping upstream sync.")
 
-    # 4. Forward Merge (Features to Main)
-    print("\n[4/6] Reconciling feature branches (Forward Merge)...")
-    local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
-    for branch in local_branches:
-        branch = branch.strip()
-        if branch not in ["main", "master", ""] and "HEAD" not in branch:
-            print(f"Interrogating branch: {branch}")
-            # Check if it has unique commits
-            diff = run_command(["git", "rev-list", f"main..{branch}"]).stdout.strip()
-            if diff:
-                print(f"Merging unique progress from {branch} into main...")
-                run_command(["git", "checkout", "main"])
-                merge_res = run_command(["git", "merge", branch])
+        # 3. Recursive Submodule Update
+        print("\n[3/6] Updating submodules recursively...")
+        run_command(["git", "submodule", "update", "--init", "--recursive", "--remote"])
+
+        # 4. Forward Merge (Features to Main)
+        print("\n[4/6] Reconciling feature branches (Forward Merge)...")
+        local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
+        for branch in local_branches:
+            branch = branch.strip()
+            if branch not in ["main", "master", ""] and "HEAD" not in branch:
+                print(f"Interrogating branch: {branch}")
+                # Check if it has unique commits
+                diff = run_command(["git", "rev-list", f"main..{branch}"]).stdout.strip()
+                if diff:
+                    print(f"Merging unique progress from {branch} into main...")
+                    run_command(["git", "checkout", "main"])
+                    merge_res = run_command(["git", "merge", branch])
+                    if merge_res.returncode != 0:
+                        print(f"Conflict merging {branch}. Attempting AI resolution...")
+                        if not attempt_ai_resolution(cwd=os.getcwd()):
+                            print(f"AI resolution failed for {branch}. Aborting merge.")
+                            run_command(["git", "merge", "--abort"])
+                        else:
+                            print(f"Successfully resolved conflict for {branch} via AI.")
+                    else:
+                        print(f"Successfully merged {branch} into main.")
+
+        # 5. Reverse Merge (Main back to Features) and push updates
+        print("\n[5/6] Syncing main back to feature branches (Reverse Merge)...")
+        for branch in local_branches:
+            branch = branch.strip()
+            if branch not in ["main", "master", ""] and "HEAD" not in branch:
+                print(f"  Syncing main -> {branch}")
+                run_command(["git", "checkout", branch])
+                merge_res = run_command(["git", "merge", "main"])
                 if merge_res.returncode != 0:
-                    print(f"Conflict merging {branch}. Attempting AI resolution...")
+                    print(f"Conflict syncing main into {branch}. Attempting AI resolution...")
                     if not attempt_ai_resolution(cwd=os.getcwd()):
                         print(f"AI resolution failed for {branch}. Aborting merge.")
                         run_command(["git", "merge", "--abort"])
+                        run_command(["git", "checkout", "main"])
                     else:
-                        print(f"Successfully resolved conflict for {branch} via AI.")
+                        print(f"Successfully synced main into {branch} (AI resolved).")
+                        run_command(["git", "push", "origin", branch])
                 else:
-                    print(f"Successfully merged {branch} into main.")
-
-    # 5. Reverse Merge (Main back to Features) and push updates
-    print("\n[5/6] Syncing main back to feature branches (Reverse Merge)...")
-    for branch in local_branches:
-        branch = branch.strip()
-        if branch not in ["main", "master", ""] and "HEAD" not in branch:
-            print(f"  Syncing main -> {branch}")
-            run_command(["git", "checkout", branch])
-            merge_res = run_command(["git", "merge", "main"])
-            if merge_res.returncode != 0:
-                print(f"Conflict syncing main into {branch}. Attempting AI resolution...")
-                if not attempt_ai_resolution(cwd=os.getcwd()):
-                    print(f"AI resolution failed for {branch}. Aborting merge.")
-                    run_command(["git", "merge", "--abort"])
-                    run_command(["git", "checkout", "main"])
-                else:
-                    print(f"Successfully synced main into {branch} (AI resolved).")
+                    print(f"Successfully synced main into {branch}.")
                     run_command(["git", "push", "origin", branch])
-            else:
-                print(f"Successfully synced main into {branch}.")
-                run_command(["git", "push", "origin", branch])
 
-    # 6. Final Push for main and submodules
-    print("\n[6/6] Finalizing and pushing changes...")
-    run_command(["git", "checkout", "main"])
+        # 6. Final Push for main and submodules
+        print("\n[6/6] Finalizing and pushing changes...")
+        run_command(["git", "checkout", "main"])
 
-    # HARDENING: Only push if the merged state passes critical integrity tests
-    if os.getenv("SKIP_SYNC_VALIDATION") == "1" or validate_system():
-        run_command(["git", "push", "origin", "main"])
-        run_command(["git", "submodule", "foreach", "git push origin main || true"])
-    else:
-        print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
-        sys.exit(1)
+        # HARDENING: Only push if the merged state passes critical integrity tests
+        if os.getenv("SKIP_SYNC_VALIDATION") == "1" or validate_system():
+            run_command(["git", "push", "origin", "main"])
+            run_command(["git", "submodule", "foreach", "git push origin main || true"])
+        else:
+            print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
+            sys.exit(1)
 
-    # 7. Consistency Verification
-    print("\n[7/7] Verifying repository consistency...")
-    run_command(["git", "fetch", "origin"])
-    local_hash = run_command(["git", "rev-parse", "main"]).stdout.strip()
-    remote_hash = run_command(["git", "rev-parse", "origin/main"]).stdout.strip()
+        # 7. Consistency Verification
+        print("\n[7/7] Verifying repository consistency...")
+        run_command(["git", "fetch", "origin"])
+        local_hash = run_command(["git", "rev-parse", "main"]).stdout.strip()
+        remote_hash = run_command(["git", "rev-parse", "origin/main"]).stdout.strip()
 
-    if local_hash == remote_hash:
-        print(f"  [SUCCESS] Local and remote are synchronized at {local_hash[:7]}.")
-    else:
-        print(f"  [WARNING] Consistency check failed! Local: {local_hash[:7]}, Remote: {remote_hash[:7]}")
-        sys.exit(1)
+        if local_hash == remote_hash:
+            print(f"  [SUCCESS] Local and remote are synchronized at {local_hash[:7]}.")
+        else:
+            print(f"  [WARNING] Consistency check failed! Local: {local_hash[:7]}, Remote: {remote_hash[:7]}")
+            sys.exit(1)
 
-    print("\n=== Repository Sync Protocol Complete ===")
+        print("\n=== Repository Sync Protocol Complete ===")
+    finally:
+        if "GIT_SYNC_RUNNING" in os.environ:
+            del os.environ["GIT_SYNC_RUNNING"]
 
 def validate_system():
     print("\n[VALIDATION] Running integrity checks before finalization...")

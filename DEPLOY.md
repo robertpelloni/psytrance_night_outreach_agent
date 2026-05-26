@@ -26,6 +26,10 @@ The repository includes an automated synchronization protocol that runs daily vi
 To run the sync manually:
 `python scripts/sync_repo.py`
 
+### Automated Local Sync (Git Hook)
+For developers working locally, you can automate repository synchronization by installing a `post-commit` hook. This hook triggers the `sync_repo.py` protocol after every local commit:
+`./install_hooks.sh`
+
 ## CI/CD Pipeline (GitHub Actions)
 The synchronization protocol is fully integrated into GitHub Actions. For the pipeline to function correctly, the following **GitHub Secrets** must be configured in the repository settings:
 

@@ -79,6 +79,9 @@ Once the pipeline has run, you can manage your leads through the web dashboard.
 ```bash
 python src/dashboard/app.py
 ```
+
+### Automated Development Synchronization
+The agent supports automated repository synchronization for local development. By running `./install_hooks.sh`, you install a Git `post-commit` hook that automatically triggers the `sync_repo.py` protocol after every commit. This ensures that your local work is continuously merged and reconciled with the remote repository.
 Access it at: `http://localhost:5000`
 
 ### Dashboard Features
