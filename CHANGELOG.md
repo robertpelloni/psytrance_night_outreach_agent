@@ -1,5 +1,20 @@
 # CHANGELOG
 
+<<<<<<< HEAD
+## [1.1.13] - 2024-05-26
+### Added
+- **CI/CD Hardening**: Refactored `.github/workflows/sync.yml` to use Pytest for a more robust Master Integrity Suite execution.
+- **Enhanced Test Coverage**: New `tests/test_trait_extraction.py` validates technical and atmospheric AI parsing.
+### Changed
+- **Dependency Management**: Standardized testing requirements with `pytest` and `pytest-mock` in `requirements.txt`.
+
+## [1.1.12] - 2024-05-26
+### Added
+- **AI-Driven Trait Extraction**: Integrated GPT-4o powered extraction of sound system, lighting, and atmospheric traits from venue descriptions.
+- **Hyper-Personalized Pitching**: Updated the AI engine to utilize extracted traits for bespoke outreach pitches.
+- **Trait Visualization**: Enhanced the HITL Dashboard to display venue technical traits using specialized icons and badges.
+- **Persistence Layer Update**: Added `extracted_traits` column to the `venues` table and updated `DatabaseManager`.
+
 ## [1.1.11] - 2024-05-26
 ### Added
 - **Distributed Reconciliation**: Enhanced the sync protocol to support `--allow-unrelated-histories`, enabling reconciliation between independent autonomous agents.
@@ -27,6 +42,8 @@
 - **Automated Integrity Auditing**: New GitHub Action for daily repository-wide unification audits.
 - **Multi-Branch Stress Test**: Verified protocol stability with 5+ concurrent feature streams.
 
+=======
+>>>>>>> feature/psytrance-outreach-v0.2.1-8208395549152616561
 ## [1.1.7] - 2024-05-24
 ### Added
 - **Master Integrity Suite Integration**: Integrated 22 tests into the CI/CD pipeline and sync protocol.
