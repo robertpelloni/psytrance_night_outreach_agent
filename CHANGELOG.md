@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.21] - 2024-05-27
+### Added
+- **Safety Gate Verification**: Implemented `tests/test_sync_safety_gates.py` to formally verify push-abortion on system validation failure.
+### Changed
+- **Unit Test Isolation**: Hardened `test_sync_repo.py` to use `SKIP_SYNC_VALIDATION` for cleaner execution in simulated environments.
+
 ## [1.1.20] - 2024-05-27
 ### Added
 - **Unified CI/CD Observability**: Integrated `PipelineMonitor` into the core `sync.yml` workflow, providing real-time granular reporting of CI validation and synchronization steps.

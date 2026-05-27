@@ -39,6 +39,7 @@
 ## v1.1.20 - Unified CI/CD Observability
 - **Closed-Loop Monitoring**: The system now reports health from CI/CD back to the dashboard, completing the observability loop for the entire autonomous development lifecycle.
 - **Milestone Reached**: The core autonomous infrastructure and synchronization protocol are now fully hardened, verified, and integrated.
+- **Formal Safety Proof**: The synchronization protocol's safety gates are now formally proven via automated testing, ensuring the integrity of the remote main branch even under autonomous error conditions.
 
 ## System Memories for Successor
 - **Absolute Paths**: Always use absolute path resolution for `database/schema.sql` and `database/outreach.db` to maintain stability across different execution contexts (CI vs. Dashboard).
