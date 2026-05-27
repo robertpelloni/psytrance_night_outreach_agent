@@ -24,6 +24,10 @@
 - **Unified Start Script**: `start.sh` is now the definitive local entry point, managing sync, tests, and reporting in a single atomic flow.
 - **Cross-Environment Consistency**: By using `pytest` in both CI and `start.sh`, we ensure that local validation mirrors production gating exactly.
 
+## v1.1.17 - Hardened Staging & Monitoring
+- **Staging Parity**: The staging environment now utilizes the exact same Pytest-based validation logic as CI and Local, ensuring that release candidates are audited against the latest standards.
+- **Monitoring Coverage**: Staging health is now formally reported to the dashboard, completing the observability loop across all major environments (Local, CI, Staging).
+
 ## System Memories for Successor
 - **Absolute Paths**: Always use absolute path resolution for `database/schema.sql` and `database/outreach.db` to maintain stability across different execution contexts (CI vs. Dashboard).
 - **Staging Hygiene**: Ensure `staging_outreach.db` is purged or initialized correctly in the staging workflow.

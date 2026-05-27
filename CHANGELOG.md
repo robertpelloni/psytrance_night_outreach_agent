@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.17] - 2024-05-27
+### Added
+- **Hardened Staging Environment**: Refactored `deploy_staging.sh` to use Pytest for standardized validation.
+- **Unified Staging Monitoring**: Integrated `PipelineMonitor` into the staging deployment flow for consistent health reporting.
+### Changed
+- **Validation Standards**: Standardized all deployment scripts (staging/production) to utilize the hardened Master Integrity Suite.
+
 ## [1.1.16] - 2024-05-26
 ### Added
 - **Unified Local Entry Point**: Refactored `start.sh` to use the Master Integrity Suite (Pytest) for all local system validations.
