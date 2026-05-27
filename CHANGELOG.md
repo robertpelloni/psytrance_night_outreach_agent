@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.20] - 2024-05-27
+### Added
+- **Unified CI/CD Observability**: Integrated `PipelineMonitor` into the core `sync.yml` workflow, providing real-time granular reporting of CI validation and synchronization steps.
+- **Milestone Finalization**: Completed the integration of the autonomous development and repository synchronization protocol across all tiered environments.
+
 ## [1.1.19] - 2024-05-27
 ### Added
 - **Git Hook Hardening**: Updated `install_hooks.sh` to use dynamic root path resolution for the post-commit synchronization trigger.
