@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.18] - 2024-05-27
+### Added
+- **Master Pipeline Unification**: Unified all major execution and deployment scripts (`start.sh`, `deploy_staging.sh`, `deploy_production.sh`) to use the hardened Master Integrity Suite (Pytest).
+- **Production Observability**: Integrated production deployment monitoring via `PipelineMonitor`.
+### Changed
+- **Audit Hardening**: Refactored the daily integrity audit workflow to utilize Pytest for stress testing.
+
 ## [1.1.17] - 2024-05-27
 ### Added
 - **Hardened Staging Environment**: Refactored `deploy_staging.sh` to use Pytest for standardized validation.
