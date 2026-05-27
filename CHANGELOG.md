@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.19] - 2024-05-27
+### Added
+- **Git Hook Hardening**: Updated `install_hooks.sh` to use dynamic root path resolution for the post-commit synchronization trigger.
+### Changed
+- **Pipeline Audit**: Conducted a final cross-environment stability audit, verifying all 30 tests in the Master Integrity Suite.
+- **Typo Fixes**: Corrected spelling errors in the project changelog.
+
 ## [1.1.18] - 2024-05-27
 ### Added
 - **Master Pipeline Unification**: Unified all major execution and deployment scripts (`start.sh`, `deploy_staging.sh`, `deploy_production.sh`) to use the hardened Master Integrity Suite (Pytest).
