@@ -24,7 +24,7 @@
 The repository includes an automated synchronization protocol that runs daily via GitHub Actions (`.github/workflows/sync.yml`). This ensures that feature branches are merged into `main` if they contain unique progress, and `main` is synced back into active feature branches.
 
 To run the sync manually:
-`python scripts/sync_repo.py`
+`python sync_repo.py`
 
 ### Automated Local Sync (Git Hook)
 For developers working locally, you can automate repository synchronization by installing a `post-commit` hook. This hook triggers the `sync_repo.py` protocol after every local commit:
