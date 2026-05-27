@@ -8,6 +8,7 @@ from src.ai_engine import AIEngine
 from src.config_manager import ConfigManager
 from src.outreach_engine import OutreachEngine
 from src.follow_up_engine import FollowUpEngine
+from src.geocoding import GeocodingUtility
 
 def load_scrapers():
     scrapers = []
@@ -41,6 +42,7 @@ def main():
     config = ConfigManager()
     outreach = OutreachEngine()
     follow_up = FollowUpEngine()
+    geocoder = GeocodingUtility()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
@@ -95,6 +97,11 @@ def main():
             # NEW: Extract technical and atmospheric traits for personalization
             traits = ai.extract_venue_traits(enriched_text)
             db.update_venue_traits(v_id, traits)
+
+            # NEW: Geocode venue for mapping
+            lat, lon = geocoder.geocode_venue(v_data['name'], v_data['city'])
+            if lat and lon:
+                db.update_venue_location(v_id, lat, lon)
 
             pitch = ""
             if vibe_result['vibe_score'] >= vibe_threshold:

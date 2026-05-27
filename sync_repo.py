@@ -207,24 +207,18 @@ def validate_system():
     env = os.environ.copy()
     env["PYTHONPATH"] = f"{os.getcwd()}:{env.get('PYTHONPATH', '')}"
 
-    tests = [
-        "tests/test_db_manager.py",
-        "tests/test_ai_engine.py",
-        "tests/test_smoke.py",
-        "tests/test_realtime_repo_updates.py",
-        "tests/test_scaling.py",
-        "tests/test_protocol_e2e.py",
-        "tests/test_multi_branch_stress.py",
-        "tests/test_distributed_sync.py"
-    ]
+    # Master Integrity Suite: Dynamic Discovery via Pytest
+    # This replaces the hardcoded list to ensure all new tests are automatically included.
+    print("  Executing full Master Integrity Suite (Pytest)...")
+    res = subprocess.run([sys.executable, "-m", "pytest", "tests/"], env=env, capture_output=True, text=True)
 
-    for test in tests:
-        print(f"  Running {test}...")
-        res = subprocess.run([sys.executable, test], env=env, capture_output=True, text=True)
-        if res.returncode != 0:
-            print(f"  [CRITICAL] Validation failed for {test}:")
-            print(res.stderr)
-            return False
+    if res.returncode != 0:
+        print("[CRITICAL] Master Integrity Suite failed!")
+        print(res.stdout)
+        print(res.stderr)
+        return False
+
+    print("  [SUCCESS] All integrity checks passed.")
     return True
 
 if __name__ == "__main__":

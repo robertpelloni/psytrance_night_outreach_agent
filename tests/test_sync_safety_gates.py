@@ -51,8 +51,9 @@ class TestSyncSafetyGates(unittest.TestCase):
         # 3. Run Sync (Expected to exit with 1 due to validation failure)
         import sync_repo
         # We patch sys.exit to avoid stopping the test runner
+        # We also clear SKIP_SYNC_VALIDATION to ensure the gate is active
         with patch('sys.exit') as mock_exit:
-            with patch.dict(os.environ, {"GIT_SYNC_RUNNING": "0"}):
+            with patch.dict(os.environ, {"GIT_SYNC_RUNNING": "0", "SKIP_SYNC_VALIDATION": "0"}):
                 with patch('sync_repo.db', test_db):
                     sync_repo.sync()
                     mock_exit.assert_called_with(1)

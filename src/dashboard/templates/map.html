@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Venue Map - Psytrance Outreach</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 700px; width: 100%; border-radius: 10px; }
+        .vibe-high { color: #198754; font-weight: bold; }
+        .vibe-mid { color: #ffc107; font-weight: bold; }
+        .vibe-low { color: #0d6efd; font-weight: bold; }
+    </style>
+</head>
+<body class="container mt-5 text-bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Venue Geographic Intelligence</h1>
+        <div>
+            <a href="/" class="btn btn-outline-primary">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-secondary shadow">
+        <div class="card-body p-0">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            className: 'map-tiles'
+        }).addTo(map);
+
+        const venues = {{ venues|tojson }};
+        const markers = [];
+
+        venues.forEach(venue => {
+            if (venue.latitude && venue.longitude) {
+                let vibeClass = 'vibe-mid';
+                if (venue.vibe_score >= 8) vibeClass = 'vibe-high';
+                if (venue.vibe_score < 6) vibeClass = 'vibe-low';
+
+                const marker = L.circleMarker([venue.latitude, venue.longitude], {
+                    radius: 8,
+                    fillColor: venue.vibe_score >= 8 ? "#198754" : (venue.vibe_score >= 6 ? "#ffc107" : "#0d6efd"),
+                    color: "#fff",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <div class="text-dark">
+                        <h6 class="mb-1">${venue.name}</h6>
+                        <p class="mb-1 small text-muted">${venue.city}</p>
+                        <div class="${vibeClass}">Vibe Score: ${venue.vibe_score}/10</div>
+                        <hr class="my-1">
+                        <a href="/" class="btn btn-sm btn-primary py-0 px-2 mt-1">Review Lead</a>
+                    </div>
+                `);
+                markers.push(marker);
+            }
+        });
+
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    </script>
+</body>
+</html>

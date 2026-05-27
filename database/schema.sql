@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS venues (
     google_rating REAL,
     tags TEXT, -- JSON string or comma-separated tags
     raw_about_text TEXT,
-    extracted_traits TEXT -- JSON blob of sound/lighting/vibe traits
+    extracted_traits TEXT, -- JSON blob of sound/lighting/vibe traits
+    latitude REAL,
+    longitude REAL
 );
 
 CREATE TABLE IF NOT EXISTS venue_contacts (

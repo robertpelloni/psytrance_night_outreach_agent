@@ -60,6 +60,11 @@ def show_analytics():
     approval_rate = analytics.get_approval_rate()
     return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
 
+@app.route('/map')
+def show_map():
+    venues = db.get_venues_with_location()
+    return render_template('map.html', venues=venues)
+
 @app.route('/system')
 def system_status():
     stats = analytics.get_summary_stats()

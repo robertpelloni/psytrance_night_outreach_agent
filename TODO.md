@@ -55,4 +55,4 @@
 - [x] Implement AI-Driven Trait Extraction (v1.1.12)
 - [x] Integrate Traits into HITL Dashboard (v1.1.12)
 - [x] Persist Traits to Database (v1.1.12)
-- [ ] Implement Geographic Heatmap for Leads
+- [x] Implement Geographic Heatmap for Leads (v1.1.22)

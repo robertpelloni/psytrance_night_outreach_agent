@@ -26,8 +26,8 @@ class DatabaseManager:
 
     def add_venue(self, venue_data):
         query = """
-        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         # Ensure we don't insert NULL for website if we want UNIQUE constraint to be effective
         # Note: SQLite treats multiple NULLs as unique, but we want to avoid duplicate names in the same city too.
@@ -36,13 +36,32 @@ class DatabaseManager:
                 venue_data['id'], venue_data['name'], venue_data['city'],
                 venue_data.get('website'), venue_data.get('google_rating'),
                 venue_data.get('tags'), venue_data.get('raw_about_text'),
-                venue_data.get('extracted_traits')
+                venue_data.get('extracted_traits'),
+                venue_data.get('latitude'),
+                venue_data.get('longitude')
             ))
 
     def update_venue_traits(self, venue_id, traits_json):
         query = "UPDATE venues SET extracted_traits = ? WHERE id = ?"
         with self._get_connection() as conn:
             conn.execute(query, (traits_json, venue_id))
+
+    def update_venue_location(self, venue_id, lat, lon):
+        query = "UPDATE venues SET latitude = ?, longitude = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (lat, lon, venue_id))
+
+    def get_venues_with_location(self):
+        query = """
+        SELECT v.*, l.vibe_score
+        FROM venues v
+        JOIN outreach_leads l ON v.id = l.venue_id
+        WHERE v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            return [dict(row) for row in cursor.fetchall()]
 
     def venue_exists_by_name(self, name, city):
         query = "SELECT id FROM venues WHERE name = ? AND city = ?"

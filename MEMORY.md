@@ -14,3 +14,4 @@
 - High emphasis on "vibe" and professional outreach.
 - Human-In-The-Loop as a critical safety feature.
 - Modular scraper design (base class + specific implementations).
+- Zero-dependency geospatial intelligence using AI for geocoding.

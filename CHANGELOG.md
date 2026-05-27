@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.22] - 2024-05-27
+### Added
+- **Geographic Intelligence**: Implemented `src/geocoding.py` using GPT-4o for zero-dependency venue coordinate resolution.
+- **Interactive Lead Mapping**: Added `/map` view to the HITL Dashboard using Leaflet.js to visualize lead density and vibe-score heatmaps.
+- **Geospatial Schema**: Extended `venues` table with `latitude` and `longitude` for persistent spatial intelligence.
+
 ## [1.1.21] - 2024-05-27
 ### Added
 - **Safety Gate Verification**: Implemented `tests/test_sync_safety_gates.py` to formally verify push-abortion on system validation failure.
