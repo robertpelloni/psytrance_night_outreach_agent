@@ -79,7 +79,7 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
 
         # We need to ensure skip validation for the temp dir
-        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1"}):
+        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
             # Intercept consistency check to use our local 'origin'
             # The real sync script uses origin/main which exists in self.test_dir
             # because we did 'git fetch' (which is inside sync())

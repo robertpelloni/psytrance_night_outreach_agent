@@ -53,12 +53,15 @@ def attempt_ai_resolution(cwd=None):
     res = run_command(["git", "commit", "-m", "Resolve merge conflicts via AI"], cwd=cwd)
     return res.returncode == 0
 
-def sync():
+def sync(dry_run=False):
     # Check if we are in a Git hook environment to avoid infinite loops
     if os.getenv("GIT_SYNC_RUNNING") == "1":
         print("  [SKIP] Sync already running (detected via GIT_SYNC_RUNNING)")
         return
     os.environ["GIT_SYNC_RUNNING"] = "1"
+
+    if dry_run:
+        print("!!! DRY RUN MODE ENABLED: No changes will be pushed to remote !!!")
 
     start_time = time.time()
     try:
@@ -155,22 +158,25 @@ def sync():
 
         # HARDENING: Only push if the merged state passes critical integrity tests
         if os.getenv("SKIP_SYNC_VALIDATION") == "1" or validate_system():
-            # Implementation of Retry-after-Rebase to handle distributed race conditions
-            max_retries = 3
-            for attempt in range(max_retries):
-                push_res = run_command(["git", "push", "origin", "main"])
-                if push_res.returncode == 0:
-                    print(f"  [SUCCESS] Pushed main to origin on attempt {attempt+1}.")
-                    break
-                elif attempt < max_retries - 1:
-                    print(f"  [RETRY] Push failed (remote moved). Rebasing and retrying...")
-                    run_command(["git", "fetch", "origin"])
-                    run_command(["git", "rebase", "origin/main"])
-                else:
-                    print(f"  [ERROR] Push failed after {max_retries} attempts.")
-                    sys.exit(1)
+            if dry_run:
+                print("  [DRY-RUN] Validation passed. Skipping push to origin.")
+            else:
+                # Implementation of Retry-after-Rebase to handle distributed race conditions
+                max_retries = 3
+                for attempt in range(max_retries):
+                    push_res = run_command(["git", "push", "origin", "main"])
+                    if push_res.returncode == 0:
+                        print(f"  [SUCCESS] Pushed main to origin on attempt {attempt+1}.")
+                        break
+                    elif attempt < max_retries - 1:
+                        print(f"  [RETRY] Push failed (remote moved). Rebasing and retrying...")
+                        run_command(["git", "fetch", "origin"])
+                        run_command(["git", "rebase", "origin/main"])
+                    else:
+                        print(f"  [ERROR] Push failed after {max_retries} attempts.")
+                        sys.exit(1)
 
-            run_command(["git", "submodule", "foreach", "git push origin main || true"])
+                run_command(["git", "submodule", "foreach", "git push origin main || true"])
         else:
             print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
             sys.exit(1)
@@ -222,4 +228,9 @@ def validate_system():
     return True
 
 if __name__ == "__main__":
-    sync()
+    import argparse
+    parser = argparse.ArgumentParser(description="Autonomous Repository Synchronization Protocol")
+    parser.add_argument("--dry-run", action="store_true", help="Perform synchronization and validation without pushing to remote.")
+    args = parser.parse_args()
+
+    sync(dry_run=args.dry_run)
