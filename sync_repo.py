@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 # Add project root to sys.path to allow imports from src
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from src.ai_engine import AIEngine
 from src.db_manager import DatabaseManager
 
