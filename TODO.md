@@ -59,3 +59,6 @@
 - [x] Implement Proximity Clustering for Tour Planning (v1.1.23)
 - [x] Add Status and Vibe filters to Map UI (v1.1.23)
 - [x] Create AI Tour Routing Utility (src/tour_planner.py) (v1.1.23)
+- [ ] Expand ConfigManager to support `media_library`
+- [ ] Update AIEngine to perform contextual media matching
+- [ ] Add "Dynamic Pitch Preview" to Dashboard

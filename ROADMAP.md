@@ -103,3 +103,7 @@
 - [x] AI-Driven Multi-City Tour Optimization (v1.1.23)
 - [x] Real-time Map Filtering (Status/Vibe/Date) (v1.1.23)
 - [x] Geographic Proximity Clustering (v1.1.23)
+## Phase 21: Contextual Outreach & Dynamic Media Matching
+- [ ] Implement Media Library in Config (Multi-Mix/Visual support)
+- [ ] AI-Driven Contextual Media Selection for Pitches
+- [ ] Instagram Story Context Extraction (Placeholder/Mock logic)
