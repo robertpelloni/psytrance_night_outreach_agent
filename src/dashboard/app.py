@@ -14,6 +14,7 @@ from src.analytics import AnalyticsEngine
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
 from src.reliability_monitor import ReliabilityMonitor
+from src.tour_planner import TourPlanner
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -26,6 +27,7 @@ analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
+planner = TourPlanner(db_path=db_path)
 
 import json
 
@@ -63,7 +65,13 @@ def show_analytics():
 @app.route('/map')
 def show_map():
     venues = db.get_venues_with_location()
-    return render_template('map.html', venues=venues)
+    clusters = analytics.get_venue_clusters()
+    return render_template('map.html', venues=venues, clusters=clusters)
+
+@app.route('/plan_tour/<int:cluster_index>')
+def plan_tour(cluster_index):
+    recommendation = planner.plan_optimized_tour(cluster_index)
+    return jsonify({"recommendation": recommendation})
 
 @app.route('/system')
 def system_status():

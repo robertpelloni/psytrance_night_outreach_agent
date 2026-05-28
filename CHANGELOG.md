@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.23] - 2024-05-27
+### Added
+- **AI-Driven Tour Routing**: Implemented `src/tour_planner.py` to suggest optimal multi-city tour sequences and strategies based on geographic clusters.
+- **Venue Proximity Clustering**: Enhanced `src/analytics.py` with Haversine-based clustering to identify regional "hotspots" for promoters.
+- **Enhanced Map Dashboard**: Added interactive hotspot visualization and frontend filters for vibe-score and pipeline-status on the Leaflet map.
+
 ## [1.1.22] - 2024-05-27
 ### Added
 - **Geographic Intelligence**: Implemented `src/geocoding.py` using GPT-4o for zero-dependency venue coordinate resolution.

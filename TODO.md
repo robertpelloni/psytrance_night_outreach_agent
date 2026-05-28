@@ -56,3 +56,6 @@
 - [x] Integrate Traits into HITL Dashboard (v1.1.12)
 - [x] Persist Traits to Database (v1.1.12)
 - [x] Implement Geographic Heatmap for Leads (v1.1.22)
+- [x] Implement Proximity Clustering for Tour Planning (v1.1.23)
+- [x] Add Status and Vibe filters to Map UI (v1.1.23)
+- [x] Create AI Tour Routing Utility (src/tour_planner.py) (v1.1.23)
