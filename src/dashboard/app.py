@@ -14,7 +14,6 @@ from src.analytics import AnalyticsEngine
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
 from src.reliability_monitor import ReliabilityMonitor
-from src.tour_planner import TourPlanner
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -27,7 +26,6 @@ analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
-planner = TourPlanner(db_path=db_path)
 
 import json
 
@@ -62,17 +60,6 @@ def show_analytics():
     approval_rate = analytics.get_approval_rate()
     return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
 
-@app.route('/map')
-def show_map():
-    venues = db.get_venues_with_location()
-    clusters = analytics.get_venue_clusters()
-    return render_template('map.html', venues=venues, clusters=clusters)
-
-@app.route('/plan_tour/<int:cluster_index>')
-def plan_tour(cluster_index):
-    recommendation = planner.plan_optimized_tour(cluster_index)
-    return jsonify({"recommendation": recommendation})
-
 @app.route('/system')
 def system_status():
     stats = analytics.get_summary_stats()
@@ -93,9 +80,8 @@ def system_status():
 
     sync_stats = reliability.get_sync_health_stats()
     stale_branches = reliability.get_stale_branches()
-    audit_trail = db.get_version_audit_trail()
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches)
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():
@@ -176,8 +162,7 @@ def regenerate(lead_id):
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
         mix_link=config_mgr.get("mix_link"),
-        traits=venue.get('extracted_traits'),
-        media_library=config_mgr.get("media_library")
+        traits=venue.get('extracted_traits')
     )
     return jsonify({"pitch": new_pitch})
 

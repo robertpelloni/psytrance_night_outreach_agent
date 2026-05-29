@@ -6,8 +6,8 @@ To build an automated venue scouting and outreach pipeline for psytrance night c
 ## Core Foundational Concepts
 - **Automated Discovery**: Using web scraping and APIs to find venues.
 - **AI-Powered Qualification**: Using LLMs to filter venues based on "culture fit" for psytrance.
-- **Personalized Outreach**: Generating bespoke pitches that resonate with venue owners/bookers, enriched by AI-extracted technical and atmospheric traits.
-- **Human-In-The-Loop (HITL)**: Ensuring quality and brand safety by having a human review pitches before they are sent, aided by geographic visualization and AI-driven tour optimization.
+- **Personalized Outreach**: Generating bespoke pitches that resonate with venue owners/bookers.
+- **Human-In-The-Loop (HITL)**: Ensuring quality and brand safety by having a human review pitches before they are sent.
 
 ## User-Satisfaction Design
 - High-quality, personalized communication.

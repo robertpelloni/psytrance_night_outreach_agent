@@ -117,20 +117,15 @@ class AIEngine:
             print(f"AI Sentiment Analysis Error: {e}")
             return "UNKNOWN"
 
-    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None):
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None):
         if not self.client:
             return "Hey, we would love to play at your venue!"
-
-        selected_media = mix_link
-        if media_library and traits:
-            # Use AI to select the best media from the library based on traits
-            selected_media = self.select_contextual_media(traits, media_library) or mix_link
 
         links_context = ""
         if epk_link:
             links_context += f"- Link to our Electronic Press Kit (EPK): {epk_link}\n"
-        if selected_media:
-            links_context += f"- Our showcase mix/visuals: {selected_media}\n"
+        if mix_link:
+            links_context += f"- Our showcase mix: {mix_link}\n"
 
         traits_context = ""
         if traits:
@@ -157,29 +152,6 @@ class AIEngine:
         except Exception as e:
             print(f"AI Error: {e}")
             return "Error generating pitch."
-
-    def select_contextual_media(self, venue_traits, media_library):
-        """Uses AI to pick the most relevant media from the library for a given venue."""
-        if not self.client or not media_library: return None
-
-        prompt = f"""
-        Given the following venue traits:
-        {venue_traits}
-
-        Select the most appropriate media item from this library:
-        {json.dumps(media_library)}
-
-        Return ONLY the 'url' of the best match.
-        """
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Error selecting contextual media: {e}")
-            return None
 
     def resolve_merge_conflict(self, file_content_with_conflicts):
         if not self.client:

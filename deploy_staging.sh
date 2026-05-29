@@ -22,19 +22,24 @@ export DB_PATH="database/staging_outreach.db"
 # DatabaseManager will automatically create it based on schema.sql
 python3 -c "from src.db_manager import DatabaseManager; DatabaseManager(db_path='$DB_PATH')"
 
-# 3. Run Master Integrity Suite (Hardened v1.1.13)
+# 3. Run Master Integrity Suite (v1.1.7)
 echo "Step 3: Running Master Integrity Suite..."
 export PYTHONPATH=$PYTHONPATH:.
-python3 -m pytest
+python3 -m unittest discover tests
 if [ $? -ne 0 ]; then
     echo "ERROR: Master Integrity Suite failed in staging! Aborting."
-    python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_VALIDATION" "FAILURE"
     exit 1
 fi
 
-# 4. Health Reporting (Unified v1.1.15)
+python3 test_sync_repo.py
+if [ $? -ne 0 ]; then
+    echo "ERROR: Sync protocol verification failed in staging! Aborting."
+    exit 1
+fi
+
+# 4. Health Reporting
 echo "Step 4: Logging staging deployment event..."
-python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_DEPLOY" "SUCCESS"
+python3 -c "from src.db_manager import DatabaseManager; db = DatabaseManager(db_path='$DB_PATH'); db.log_system_event('STAGING_DEPLOY', 'SUCCESS', 'Staging release v\$(cat VERSION.md) verified')"
 
 # 5. Final Validation Summary
 echo "=== STAGING DEPLOYMENT SUCCESSFUL: $(date) ==="
