@@ -14,19 +14,26 @@ fi
 # 2. Run Repository Synchronization
 echo "Step 1: Running Repository Synchronization..."
 python3 sync_repo.py
-if [ $? -ne 0 ]; then
+SYNC_RES=$?
+if [ $SYNC_RES -ne 0 ]; then
     echo "CRITICAL: Synchronization failed. Check logs."
+    python3 src/pipeline_monitor.py "local-$(date +%s)" "LOCAL_SYNC" "FAILURE"
     exit 1
+else
+    python3 src/pipeline_monitor.py "local-$(date +%s)" "LOCAL_SYNC" "SUCCESS"
 fi
 
-# 3. Run Application Tests
+# 3. Run Application Tests (Master Integrity Suite)
 echo "Step 2: Validating System Integrity..."
 export PYTHONPATH=$PYTHONPATH:.
-python3 tests/test_db_manager.py
-python3 tests/test_ai_engine.py
-if [ $? -ne 0 ]; then
-    echo "CRITICAL: Application tests failed. Aborting pipeline."
+python3 -m pytest
+TEST_RES=$?
+if [ $TEST_RES -ne 0 ]; then
+    echo "CRITICAL: Master Integrity Suite failed. Aborting pipeline."
+    python3 src/pipeline_monitor.py "local-$(date +%s)" "LOCAL_TEST" "FAILURE"
     exit 1
+else
+    python3 src/pipeline_monitor.py "local-$(date +%s)" "LOCAL_TEST" "SUCCESS"
 fi
 
 # 4. Handle Generator Mode (Optional)

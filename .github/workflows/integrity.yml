@@ -33,15 +33,17 @@ jobs:
           git config --global user.name "GitHub Integrity Auditor"
           git config --global user.email "audit@github.com"
 
-      - name: Run Multi-Branch Stress Test
+      - name: Run Multi-Branch Stress Test (Pytest)
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python tests/test_multi_branch_stress.py
+          python3 -m pytest tests/test_multi_branch_stress.py || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_STRESS" "FAILURE" && exit 1)
+          python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_STRESS" "SUCCESS"
 
       - name: Run Full Sync Logic Audit
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           export SKIP_SYNC_VALIDATION=1
-          python3 sync_repo.py
+          python3 sync_repo.py || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_SYNC" "FAILURE" && exit 1)
+          python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_SYNC_COMPLETE" "SUCCESS"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

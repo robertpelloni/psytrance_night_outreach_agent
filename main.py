@@ -8,6 +8,7 @@ from src.ai_engine import AIEngine
 from src.config_manager import ConfigManager
 from src.outreach_engine import OutreachEngine
 from src.follow_up_engine import FollowUpEngine
+from src.geocoding import GeocodingUtility
 
 def load_scrapers():
     scrapers = []
@@ -41,6 +42,7 @@ def main():
     config = ConfigManager()
     outreach = OutreachEngine()
     follow_up = FollowUpEngine()
+    geocoder = GeocodingUtility()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
@@ -83,11 +85,17 @@ def main():
                     if contact_info.get('about_text'):
                         enriched_text = contact_info['about_text']
 
+                    insta = ", ".join(contact_info.get('instagrams', []))
                     db.add_contact({
                         'venue_id': v_id,
                         'email': ", ".join(contact_info.get('emails', [])),
-                        'instagram_handle': ", ".join(contact_info.get('instagrams', []))
+                        'instagram_handle': insta
                     })
+
+                    # NEW: Get contextual social context to enrich AI prompt
+                    social_context = ContactExtractor.get_social_context(insta)
+                    if social_context:
+                        enriched_text += f"\nSocial Media Context: {social_context}"
 
             # Only perform AI vibe check if it's a new lead
             vibe_result = ai.vibe_check(v_data['name'], enriched_text)
@@ -96,6 +104,11 @@ def main():
             traits = ai.extract_venue_traits(enriched_text)
             db.update_venue_traits(v_id, traits)
 
+            # NEW: Geocode venue for mapping
+            lat, lon = geocoder.geocode_venue(v_data['name'], v_data['city'])
+            if lat and lon:
+                db.update_venue_location(v_id, lat, lon)
+
             pitch = ""
             if vibe_result['vibe_score'] >= vibe_threshold:
                 pitch = ai.generate_pitch(
@@ -103,7 +116,8 @@ def main():
                     vibe_result['justification'],
                     epk_link=config.get("epk_link"),
                     mix_link=config.get("mix_link"),
-                    traits=traits
+                    traits=traits,
+                    media_library=config.get("media_library")
                 )
                 status = 'PENDING_REVIEW'
             else:

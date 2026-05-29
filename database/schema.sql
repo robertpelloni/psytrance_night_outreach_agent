@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS venues (
     google_rating REAL,
     tags TEXT, -- JSON string or comma-separated tags
     raw_about_text TEXT,
-    extracted_traits TEXT -- JSON blob of sound/lighting/vibe traits
+    extracted_traits TEXT, -- JSON blob of sound/lighting/vibe traits
+    latitude REAL,
+    longitude REAL
 );
 
 CREATE TABLE IF NOT EXISTS venue_contacts (
@@ -52,5 +54,15 @@ CREATE TABLE IF NOT EXISTS system_logs (
     component TEXT NOT NULL, -- SYNC, DISCOVERY, OUTREACH
     status TEXT NOT NULL, -- SUCCESS, FAILURE
     message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS version_audit_trail (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commit_hash TEXT NOT NULL,
+    author TEXT,
+    timestamp DATETIME,
+    version_string TEXT,
+    summary TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
