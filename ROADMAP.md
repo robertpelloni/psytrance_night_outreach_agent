@@ -104,6 +104,6 @@
 - [x] Real-time Map Filtering (Status/Vibe/Date) (v1.1.23)
 - [x] Geographic Proximity Clustering (v1.1.23)
 ## Phase 21: Contextual Outreach & Dynamic Media Matching
-- [ ] Implement Media Library in Config (Multi-Mix/Visual support)
-- [ ] AI-Driven Contextual Media Selection for Pitches
-- [ ] Instagram Story Context Extraction (Placeholder/Mock logic)
+- [x] Implement Media Library in Config (Multi-Mix/Visual support) (v1.1.24)
+- [x] AI-Driven Contextual Media Selection for Pitches (v1.1.24)
+- [x] Instagram Story Context Extraction (Placeholder/Mock logic) (v1.1.24)

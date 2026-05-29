@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.24] - 2024-05-29
+### Added
+- **Contextual Media Matching**: Enhanced `AIEngine` to dynamically select the most relevant mix or visual from a new `media_library` based on venue atmosphere and technical specs.
+- **Media Library Infrastructure**: Expanded `ConfigManager` to support a tagged library of promotional media for hyper-personalized outreach.
+- **Social Vibe Enrichment**: Implemented `get_social_context` to incorporate mock Instagram "vibe" signals into the venue qualification process.
+
 ## [1.1.23] - 2024-05-27
 ### Added
 - **AI-Driven Tour Routing**: Implemented `src/tour_planner.py` to suggest optimal multi-city tour sequences and strategies based on geographic clusters.

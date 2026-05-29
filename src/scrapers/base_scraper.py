@@ -61,6 +61,21 @@ class ContactExtractor:
         return re.findall(r'(?:@|(?:www\.)?instagram\.com/)([a-zA-Z0-9_.]+)', text)
 
     @staticmethod
+    def get_social_context(instagram_handle):
+        """
+        Mock implementation for extracting recent vibe/context from Instagram.
+        In a real scenario, this would use a browser to check recent stories/posts.
+        """
+        if not instagram_handle: return None
+        # Mock logic based on handle keywords
+        handle_lower = instagram_handle.lower()
+        if "forest" in handle_lower or "outdoor" in handle_lower:
+            return "recent posts show a strong outdoor/nature vibe with high-quality projection mapping."
+        if "dark" in handle_lower or "underground" in handle_lower:
+            return "recent stories indicate a preference for dark, industrial aesthetics and fast BPMs."
+        return "social media activity suggests a standard high-energy club atmosphere."
+
+    @staticmethod
     def scrape_website(url):
         if not url:
             return {}

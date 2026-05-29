@@ -176,7 +176,8 @@ def regenerate(lead_id):
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
         mix_link=config_mgr.get("mix_link"),
-        traits=venue.get('extracted_traits')
+        traits=venue.get('extracted_traits'),
+        media_library=config_mgr.get("media_library")
     )
     return jsonify({"pitch": new_pitch})
 
