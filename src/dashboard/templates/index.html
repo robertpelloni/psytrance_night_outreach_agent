@@ -46,7 +46,6 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Psytrance Outreach: {% if view == 'history' %}History{% else %}Pending Leads{% endif %}</h1>
         <div>
-            <a href="/map" class="btn btn-outline-light">Venue Map</a>
             <a href="/analytics" class="btn btn-outline-info">Analytics</a>
             <a href="/sources" class="btn btn-outline-success">Manage Sources</a>
             <a href="/settings" class="btn btn-outline-warning">Settings</a>
@@ -121,11 +120,6 @@
                                 </button>
                             </div>
                             <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
-                            <div class="mt-2">
-                                <small class="text-info">
-                                    <i class="bi bi-info-circle"></i> AI Contextual Match: The pitch above includes media selected based on venue traits.
-                                </small>
-                            </div>
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success px-4">Approve & Send Email</button>

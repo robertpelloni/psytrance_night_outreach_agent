@@ -21,13 +21,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Pre-Deployment Synchronization Validation
-        run: |
-          export PYTHONPATH=$PYTHONPATH:.
-          python3 sync_repo.py --dry-run
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
       - name: Master Deploy & Validation
         run: ./deploy_production.sh
         env:

@@ -31,9 +31,14 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         with open("database/schema.sql", "w") as f: f.write("CREATE TABLE test (id TEXT);")
         subprocess.run(["git", "add", "."], capture_output=True)
         subprocess.run(["git", "commit", "-m", "Initial"], capture_output=True)
+<<<<<<< HEAD
         # Use main as the default branch name
         subprocess.run(["git", "branch", "-M", "main"], capture_output=True)
         subprocess.run(["git", "push", "-u", "origin", "main"], capture_output=True)
+=======
+        subprocess.run(["git", "push", "origin", "master:main"], capture_output=True)
+        subprocess.run(["git", "checkout", "-b", "main"], capture_output=True)
+>>>>>>> ce7e217 (v1.1.5: Finalize real-time repo update logic and test suite)
 
     def tearDown(self):
         # Return to project root
@@ -51,6 +56,7 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         """
         # 1. Simulate Remote Update
         temp_remote_clone = tempfile.mkdtemp()
+<<<<<<< HEAD
         # Clone explicitly specifying main
         subprocess.run(["git", "clone", "-b", "main", self.remote_dir, temp_remote_clone], check=True)
         subprocess.run(["git", "config", "user.name", "Test"], cwd=temp_remote_clone, check=True)
@@ -64,6 +70,14 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         res = subprocess.run(["git", "push", "origin", "main"], cwd=temp_remote_clone, capture_output=True, text=True)
         if res.returncode != 0:
             print(f"Push to remote failed: {res.stderr}")
+=======
+        subprocess.run(["git", "clone", self.remote_dir, temp_remote_clone], capture_output=True)
+        with open(os.path.join(temp_remote_clone, "remote_update.txt"), "w") as f:
+            f.write("Remote Change")
+        subprocess.run(["git", "add", "."], cwd=temp_remote_clone, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Remote Update"], cwd=temp_remote_clone, capture_output=True)
+        subprocess.run(["git", "push", "origin", "main"], cwd=temp_remote_clone, capture_output=True)
+>>>>>>> ce7e217 (v1.1.5: Finalize real-time repo update logic and test suite)
         shutil.rmtree(temp_remote_clone)
 
         # 2. Local Feature Update
@@ -75,19 +89,26 @@ class TestRealtimeRepoUpdates(unittest.TestCase):
         subprocess.run(["git", "checkout", "main"], capture_output=True)
 
         # 3. Run Sync Protocol
+<<<<<<< HEAD
         from src.db_manager import DatabaseManager
         test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
 
+=======
+>>>>>>> ce7e217 (v1.1.5: Finalize real-time repo update logic and test suite)
         # We need to ensure skip validation for the temp dir
-        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
+        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1"}):
             # Intercept consistency check to use our local 'origin'
             # The real sync script uses origin/main which exists in self.test_dir
             # because we did 'git fetch' (which is inside sync())
             from sync_repo import run_command
             # Ensure we are on main before sync
             subprocess.run(["git", "checkout", "main"], capture_output=True)
+<<<<<<< HEAD
             with patch('sync_repo.db', test_db):
                 sync()
+=======
+            sync()
+>>>>>>> ce7e217 (v1.1.5: Finalize real-time repo update logic and test suite)
 
         # 4. Verifications
         self.assertTrue(os.path.exists("remote_update.txt"), "Remote update was not pulled!")

@@ -9,12 +9,7 @@ class ConfigManager:
             "target_genres": ["psytrance", "underground techno", "progressive psy"],
             "epk_link": "https://your-epk-link.com",
             "mix_link": "https://soundcloud.com/your-mix-link",
-            "vibe_threshold": 7,
-            "media_library": [
-                {"name": "Dark Psy Mix", "url": "https://soundcloud.com/dark-psy", "tags": ["underground", "dark", "industrial"]},
-                {"name": "Progressive Morning", "url": "https://soundcloud.com/prog-morning", "tags": ["outdoor", "chill", "progressive"]},
-                {"name": "Visual EPK 2024", "url": "https://vimeo.com/epk", "tags": ["visuals", "lasers", "projections"]}
-            ]
+            "vibe_threshold": 7
         }
         self._ensure_config()
 

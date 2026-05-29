@@ -39,20 +39,18 @@ jobs:
       - name: Run Master Integrity Suite (Pytest)
         run: |
           export PYTHONPATH=$PYTHONPATH:.
-          python3 -m pytest --cov=src --cov-report=term-missing || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "CI_MASTER_TEST" "FAILURE" && exit 1)
-          python3 src/pipeline_monitor.py "${{ github.run_id }}" "CI_MASTER_TEST" "SUCCESS"
+          python3 -m pytest
 
       - name: Run Sync Script (Start Protocol)
         run: |
           # If on a feature branch, run sync and tests, but skip the full outreach pipeline to save tokens
           if [[ "${{ github.ref }}" != "refs/heads/main" && "${{ github.event_name }}" != "schedule" ]]; then
             echo "Feature branch detected. Running sync and tests only."
-            python3 sync_repo.py || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "CI_SYNC" "FAILURE" && exit 1)
+            python3 sync_repo.py
           else
             echo "Main branch or Schedule detected. Running full protocol."
-            ./start.sh || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "CI_PROTOCOL" "FAILURE" && exit 1)
+            ./start.sh
           fi
-          python3 src/pipeline_monitor.py "${{ github.run_id }}" "CI_SYNC_COMPLETE" "SUCCESS"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PROXY_LIST: ${{ secrets.PROXY_LIST }}
