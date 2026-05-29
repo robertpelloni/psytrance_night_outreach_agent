@@ -89,10 +89,9 @@ class TestCrossBranchConsistency(unittest.TestCase):
 
             # Since sync() discovers local branches, it should find both features
             # and merge them into main.
-            with patch.dict(os.environ, {"GIT_SYNC_RUNNING": "0"}):
-                with patch('sync_repo.validate_system', return_value=True):
-                    with patch('sync_repo.db', test_db):
-                        sync()
+            with patch('sync_repo.validate_system', return_value=True):
+                with patch('sync_repo.db', test_db):
+                    sync()
 
         # 4. Verify main has integrated both changes
         subprocess.run(["git", "checkout", "main"], capture_output=True)

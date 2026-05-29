@@ -64,8 +64,7 @@ class TestSyncRepo(unittest.TestCase):
         old_cwd = os.getcwd()
         os.chdir(self.local_dir)
         try:
-            with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+            sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -91,8 +90,7 @@ class TestSyncRepo(unittest.TestCase):
         old_cwd = os.getcwd()
         os.chdir(self.local_dir)
         try:
-            with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+            sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -123,8 +121,7 @@ class TestSyncRepo(unittest.TestCase):
             old_cwd = os.getcwd()
             os.chdir(self.local_dir)
             try:
-                with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                    sync_repo.sync()
+                sync_repo.sync()
             finally:
                 os.chdir(old_cwd)
 
@@ -160,8 +157,7 @@ class TestSyncRepo(unittest.TestCase):
         old_cwd = os.getcwd()
         os.chdir(self.local_dir)
         try:
-            with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+            sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -186,8 +182,7 @@ class TestSyncRepo(unittest.TestCase):
         old_cwd = os.getcwd()
         os.chdir(self.local_dir)
         try:
-            with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+            sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 

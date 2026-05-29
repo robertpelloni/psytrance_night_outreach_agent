@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 # Add project root to sys.path to allow imports from src
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.ai_engine import AIEngine
 from src.db_manager import DatabaseManager
 
@@ -53,15 +53,12 @@ def attempt_ai_resolution(cwd=None):
     res = run_command(["git", "commit", "-m", "Resolve merge conflicts via AI"], cwd=cwd)
     return res.returncode == 0
 
-def sync(dry_run=False):
+def sync():
     # Check if we are in a Git hook environment to avoid infinite loops
     if os.getenv("GIT_SYNC_RUNNING") == "1":
         print("  [SKIP] Sync already running (detected via GIT_SYNC_RUNNING)")
         return
     os.environ["GIT_SYNC_RUNNING"] = "1"
-
-    if dry_run:
-        print("!!! DRY RUN MODE ENABLED: No changes will be pushed to remote !!!")
 
     start_time = time.time()
     try:
@@ -76,6 +73,7 @@ def sync(dry_run=False):
         local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
         local_branches = [b.strip() for b in local_branches]
 
+<<<<<<< HEAD
         for rb in raw_remote_branches:
             rb = rb.strip()
             if rb.startswith("origin/") and "HEAD" not in rb:
@@ -93,6 +91,23 @@ def sync(dry_run=False):
         # Use --no-edit to avoid hanging on commit message prompt
         # Use --allow-unrelated-histories to handle complex reconciliations
         run_command(["git", "merge", "origin/main", "--no-edit", "--allow-unrelated-histories"])
+=======
+    # 2. Sync with Origin and Upstream
+    print("\n[2/6] Syncing with origin and upstream...")
+    run_command(["git", "checkout", "main"])
+
+    # Always merge origin/main to get latest remote changes
+    print("  Merging changes from origin/main...")
+    # Use --no-edit to avoid hanging on commit message prompt
+    run_command(["git", "merge", "origin/main", "--no-edit"])
+
+    remotes = run_command(["git", "remote"]).stdout.split()
+    if "upstream" in remotes:
+        print("  Merging changes from upstream/main...")
+        run_command(["git", "merge", "upstream/main"])
+    else:
+        print("  No upstream remote found. Skipping upstream sync.")
+>>>>>>> ce7e217 (v1.1.5: Finalize real-time repo update logic and test suite)
 
         remotes = run_command(["git", "remote"]).stdout.split()
         if "upstream" in remotes:
@@ -158,25 +173,22 @@ def sync(dry_run=False):
 
         # HARDENING: Only push if the merged state passes critical integrity tests
         if os.getenv("SKIP_SYNC_VALIDATION") == "1" or validate_system():
-            if dry_run:
-                print("  [DRY-RUN] Validation passed. Skipping push to origin.")
-            else:
-                # Implementation of Retry-after-Rebase to handle distributed race conditions
-                max_retries = 3
-                for attempt in range(max_retries):
-                    push_res = run_command(["git", "push", "origin", "main"])
-                    if push_res.returncode == 0:
-                        print(f"  [SUCCESS] Pushed main to origin on attempt {attempt+1}.")
-                        break
-                    elif attempt < max_retries - 1:
-                        print(f"  [RETRY] Push failed (remote moved). Rebasing and retrying...")
-                        run_command(["git", "fetch", "origin"])
-                        run_command(["git", "rebase", "origin/main"])
-                    else:
-                        print(f"  [ERROR] Push failed after {max_retries} attempts.")
-                        sys.exit(1)
+            # Implementation of Retry-after-Rebase to handle distributed race conditions
+            max_retries = 3
+            for attempt in range(max_retries):
+                push_res = run_command(["git", "push", "origin", "main"])
+                if push_res.returncode == 0:
+                    print(f"  [SUCCESS] Pushed main to origin on attempt {attempt+1}.")
+                    break
+                elif attempt < max_retries - 1:
+                    print(f"  [RETRY] Push failed (remote moved). Rebasing and retrying...")
+                    run_command(["git", "fetch", "origin"])
+                    run_command(["git", "rebase", "origin/main"])
+                else:
+                    print(f"  [ERROR] Push failed after {max_retries} attempts.")
+                    sys.exit(1)
 
-                run_command(["git", "submodule", "foreach", "git push origin main || true"])
+            run_command(["git", "submodule", "foreach", "git push origin main || true"])
         else:
             print("[CRITICAL] Merged state failed validation! Aborting push to protect remote main.")
             sys.exit(1)
@@ -200,14 +212,6 @@ def sync(dry_run=False):
         duration = round(time.time() - start_time, 2)
         print(f"\n=== Repository Sync Protocol Complete (Duration: {duration}s) ===")
         db.log_system_event("SYNC", "SUCCESS", f"Protocol completed successfully in {duration}s")
-
-        # Trigger Version Auditor after successful sync
-        try:
-            from src.version_auditor import VersionAuditor
-            VersionAuditor().harvest_git_logs()
-        except Exception as aud_err:
-            print(f"Warning: Auditor failed: {aud_err}")
-
     except Exception as e:
         db.log_system_event("SYNC", "FAILURE", f"Protocol failed: {str(e)}")
         raise e
@@ -221,24 +225,25 @@ def validate_system():
     env = os.environ.copy()
     env["PYTHONPATH"] = f"{os.getcwd()}:{env.get('PYTHONPATH', '')}"
 
-    # Master Integrity Suite: Dynamic Discovery via Pytest
-    # This replaces the hardcoded list to ensure all new tests are automatically included.
-    print("  Executing full Master Integrity Suite (Pytest)...")
-    res = subprocess.run([sys.executable, "-m", "pytest", "tests/"], env=env, capture_output=True, text=True)
+    tests = [
+        "tests/test_db_manager.py",
+        "tests/test_ai_engine.py",
+        "tests/test_smoke.py",
+        "tests/test_realtime_repo_updates.py",
+        "tests/test_scaling.py",
+        "tests/test_protocol_e2e.py",
+        "tests/test_multi_branch_stress.py",
+        "tests/test_distributed_sync.py"
+    ]
 
-    if res.returncode != 0:
-        print("[CRITICAL] Master Integrity Suite failed!")
-        print(res.stdout)
-        print(res.stderr)
-        return False
-
-    print("  [SUCCESS] All integrity checks passed.")
+    for test in tests:
+        print(f"  Running {test}...")
+        res = subprocess.run([sys.executable, test], env=env, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"  [CRITICAL] Validation failed for {test}:")
+            print(res.stderr)
+            return False
     return True
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Autonomous Repository Synchronization Protocol")
-    parser.add_argument("--dry-run", action="store_true", help="Perform synchronization and validation without pushing to remote.")
-    args = parser.parse_args()
-
-    sync(dry_run=args.dry_run)
+    sync()
