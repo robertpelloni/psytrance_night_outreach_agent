@@ -244,3 +244,10 @@ class DatabaseManager:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
+
+    def get_version_audit_trail(self, limit=50):
+        query = "SELECT * FROM version_audit_trail ORDER BY timestamp DESC LIMIT ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (limit,))
+            return [dict(row) for row in cursor.fetchall()]

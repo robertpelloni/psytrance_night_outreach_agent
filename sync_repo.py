@@ -200,6 +200,14 @@ def sync(dry_run=False):
         duration = round(time.time() - start_time, 2)
         print(f"\n=== Repository Sync Protocol Complete (Duration: {duration}s) ===")
         db.log_system_event("SYNC", "SUCCESS", f"Protocol completed successfully in {duration}s")
+
+        # Trigger Version Auditor after successful sync
+        try:
+            from src.version_auditor import VersionAuditor
+            VersionAuditor().harvest_git_logs()
+        except Exception as aud_err:
+            print(f"Warning: Auditor failed: {aud_err}")
+
     except Exception as e:
         db.log_system_event("SYNC", "FAILURE", f"Protocol failed: {str(e)}")
         raise e

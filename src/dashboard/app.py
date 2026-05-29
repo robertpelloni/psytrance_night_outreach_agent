@@ -93,8 +93,9 @@ def system_status():
 
     sync_stats = reliability.get_sync_health_stats()
     stale_branches = reliability.get_stale_branches()
+    audit_trail = db.get_version_audit_trail()
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches)
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():

@@ -56,3 +56,13 @@ CREATE TABLE IF NOT EXISTS system_logs (
     message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS version_audit_trail (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commit_hash TEXT NOT NULL,
+    author TEXT,
+    timestamp DATETIME,
+    version_string TEXT,
+    summary TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
