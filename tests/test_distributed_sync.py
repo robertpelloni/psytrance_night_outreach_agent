@@ -77,7 +77,7 @@ class TestDistributedSync(unittest.TestCase):
         os.makedirs("database", exist_ok=True)
         test_db = DatabaseManager(db_path=os.path.join(self.agent_b_dir, "database/outreach.db"))
 
-        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1"}):
+        with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
             with patch('sync_repo.db', test_db):
                 sync()
 

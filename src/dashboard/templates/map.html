@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Venue Map - Psytrance Outreach</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 700px; width: 100%; border-radius: 10px; }
+        .vibe-high { color: #198754; font-weight: bold; }
+        .vibe-mid { color: #ffc107; font-weight: bold; }
+        .vibe-low { color: #0d6efd; font-weight: bold; }
+    </style>
+</head>
+<body class="container mt-5 text-bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Venue Geographic Intelligence</h1>
+        <div class="d-flex gap-2">
+            <select id="vibe-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;">
+                <option value="0">All Vibes</option>
+                <option value="8">High Vibe (8+)</option>
+                <option value="6">Mid Vibe (6+)</option>
+            </select>
+            <select id="status-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;">
+                <option value="ALL">All Status</option>
+                <option value="PENDING_REVIEW">Pending Review</option>
+                <option value="SENT">Sent</option>
+                <option value="APPROVED">Approved</option>
+            </select>
+            <button onclick="toggleClusters()" id="cluster-toggle" class="btn btn-sm btn-outline-info">Show Hotspots</button>
+            <a href="/" class="btn btn-sm btn-outline-primary">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-secondary shadow mb-4">
+        <div class="card-body p-0">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            className: 'map-tiles'
+        }).addTo(map);
+
+        const venues = {{ venues|tojson }};
+        const clusters = {{ clusters|tojson }};
+        let activeMarkers = [];
+        let clusterMarkers = [];
+        let clustersVisible = false;
+
+        function updateMap() {
+            // Clear existing markers
+            activeMarkers.forEach(m => map.removeLayer(m));
+            activeMarkers = [];
+
+            const vibeThreshold = parseInt(document.getElementById('vibe-filter').value);
+            const statusFilter = document.getElementById('status-filter').value;
+
+            venues.forEach(venue => {
+                if (venue.latitude && venue.longitude) {
+                    if (venue.vibe_score < vibeThreshold) return;
+                    if (statusFilter !== 'ALL' && venue.pipeline_status !== statusFilter) return;
+
+                    let vibeClass = 'vibe-mid';
+                    if (venue.vibe_score >= 8) vibeClass = 'vibe-high';
+                    if (venue.vibe_score < 6) vibeClass = 'vibe-low';
+
+                    const marker = L.circleMarker([venue.latitude, venue.longitude], {
+                        radius: 8,
+                        fillColor: venue.vibe_score >= 8 ? "#198754" : (venue.vibe_score >= 6 ? "#ffc107" : "#0d6efd"),
+                        color: "#fff",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+
+                    marker.bindPopup(`
+                        <div class="text-dark">
+                            <h6 class="mb-1">${venue.name}</h6>
+                            <p class="mb-1 small text-muted">${venue.city} (${venue.pipeline_status})</p>
+                            <div class="${vibeClass}">Vibe Score: ${venue.vibe_score}/10</div>
+                            <hr class="my-1">
+                            <a href="/" class="btn btn-sm btn-primary py-0 px-2 mt-1">Review Lead</a>
+                        </div>
+                    `);
+                    activeMarkers.push(marker);
+                }
+            });
+        }
+
+        function toggleClusters() {
+            clustersVisible = !clustersVisible;
+            const btn = document.getElementById('cluster-toggle');
+
+            if (clustersVisible) {
+                btn.innerText = 'Hide Hotspots';
+                btn.classList.replace('btn-outline-info', 'btn-info');
+                clusters.forEach(c => {
+                    const circle = L.circle([c.center.lat, c.center.lon], {
+                        color: '#0dcaf0',
+                        fillColor: '#0dcaf0',
+                        fillOpacity: 0.2,
+                        radius: 50000 // 50km
+                    }).addTo(map);
+                    circle.bindTooltip(`Hotspot: ${c.venue_count} venues, Avg Vibe: ${c.avg_vibe.toFixed(1)}`, { permanent: false, direction: 'top' });
+                    circle.on('click', () => {
+                        fetch(`/plan_tour/${clusters.indexOf(c)}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                alert("AI Tour Recommendation:\n\n" + data.recommendation);
+                            });
+                    });
+                    clusterMarkers.push(circle);
+                });
+            } else {
+                btn.innerText = 'Show Hotspots';
+                btn.classList.replace('btn-info', 'btn-outline-info');
+                clusterMarkers.forEach(m => map.removeLayer(m));
+                clusterMarkers = [];
+            }
+        }
+
+        document.getElementById('vibe-filter').addEventListener('change', updateMap);
+        document.getElementById('status-filter').addEventListener('change', updateMap);
+
+        updateMap();
+
+        if (activeMarkers.length > 0) {
+            const group = new L.featureGroup(activeMarkers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    </script>
+</body>
+</html>

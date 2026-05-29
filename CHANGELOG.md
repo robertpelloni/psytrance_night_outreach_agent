@@ -1,5 +1,75 @@
 # CHANGELOG
 
+## [1.1.24] - 2024-05-29
+### Added
+- **Contextual Media Matching**: Enhanced `AIEngine` to dynamically select the most relevant mix or visual from a new `media_library` based on venue atmosphere and technical specs.
+- **Media Library Infrastructure**: Expanded `ConfigManager` to support a tagged library of promotional media for hyper-personalized outreach.
+- **Social Vibe Enrichment**: Implemented `get_social_context` to incorporate mock Instagram "vibe" signals into the venue qualification process.
+
+## [1.1.23] - 2024-05-27
+### Added
+- **AI-Driven Tour Routing**: Implemented `src/tour_planner.py` to suggest optimal multi-city tour sequences and strategies based on geographic clusters.
+- **Venue Proximity Clustering**: Enhanced `src/analytics.py` with Haversine-based clustering to identify regional "hotspots" for promoters.
+- **Enhanced Map Dashboard**: Added interactive hotspot visualization and frontend filters for vibe-score and pipeline-status on the Leaflet map.
+
+## [1.1.22] - 2024-05-27
+### Added
+- **Geographic Intelligence**: Implemented `src/geocoding.py` using GPT-4o for zero-dependency venue coordinate resolution.
+- **Interactive Lead Mapping**: Added `/map` view to the HITL Dashboard using Leaflet.js to visualize lead density and vibe-score heatmaps.
+- **Geospatial Schema**: Extended `venues` table with `latitude` and `longitude` for persistent spatial intelligence.
+
+## [1.1.21] - 2024-05-27
+### Added
+- **Safety Gate Verification**: Implemented `tests/test_sync_safety_gates.py` to formally verify push-abortion on system validation failure.
+### Changed
+- **Unit Test Isolation**: Hardened `test_sync_repo.py` to use `SKIP_SYNC_VALIDATION` for cleaner execution in simulated environments.
+
+## [1.1.20] - 2024-05-27
+### Added
+- **Unified CI/CD Observability**: Integrated `PipelineMonitor` into the core `sync.yml` workflow, providing real-time granular reporting of CI validation and synchronization steps.
+- **Milestone Finalization**: Completed the integration of the autonomous development and repository synchronization protocol across all tiered environments.
+
+## [1.1.19] - 2024-05-27
+### Added
+- **Git Hook Hardening**: Updated `install_hooks.sh` to use dynamic root path resolution for the post-commit synchronization trigger.
+### Changed
+- **Pipeline Audit**: Conducted a final cross-environment stability audit, verifying all 30 tests in the Master Integrity Suite.
+- **Typo Fixes**: Corrected spelling errors in the project changelog.
+
+## [1.1.18] - 2024-05-27
+### Added
+- **Master Pipeline Unification**: Unified all major execution and deployment scripts (`start.sh`, `deploy_staging.sh`, `deploy_production.sh`) to use the hardened Master Integrity Suite (Pytest).
+- **Production Observability**: Integrated production deployment monitoring via `PipelineMonitor`.
+### Changed
+- **Audit Hardening**: Refactored the daily integrity audit workflow to utilize Pytest for stress testing.
+
+## [1.1.17] - 2024-05-27
+### Added
+- **Hardened Staging Environment**: Refactored `deploy_staging.sh` to use Pytest for standardized validation.
+- **Unified Staging Monitoring**: Integrated `PipelineMonitor` into the staging deployment flow for consistent health reporting.
+### Changed
+- **Validation Standards**: Standardized all deployment scripts (staging/production) to utilize the hardened Master Integrity Suite.
+
+## [1.1.16] - 2024-05-26
+### Added
+- **Unified Local Entry Point**: Refactored `start.sh` to use the Master Integrity Suite (Pytest) for all local system validations.
+- **Protocol Observability**: Integrated local synchronization and testing events with `PipelineMonitor` for real-time dashboard reporting.
+### Changed
+- **Execution Standards**: Aligned local development execution flows with hardened CI/CD pipeline standards.
+
+## [1.1.15] - 2024-05-26
+### Added
+- **CI Pipeline Monitoring**: Introduced `src/pipeline_monitor.py` for logging granular CI/CD execution data to the dashboard.
+- **System Heartbeat**: Implemented `.github/workflows/heartbeat.yml` for automated 30-minute health and integrity checks.
+- **Propagation Verification**: New `tests/test_end_to_end_propagation.py` validates bidirectional feature flow.
+### Changed
+- **Master Integrity Hardening**: Integrated code coverage (`pytest-cov`) into the primary synchronization workflow.
+
+## [1.1.14] - 2024-05-26
+### Added
+- **Unified Protocol Synchronization**: Successfully reconciled all independent development streams into a single high-integrity production branch.
+- **Master Versioning**: Established a unified global version string (v1.1.14) across all repository components.
+
 ## [1.1.13] - 2024-05-26
 ### Added
 - **CI/CD Hardening**: Refactored `.github/workflows/sync.yml` to use Pytest for a more robust Master Integrity Suite execution.
