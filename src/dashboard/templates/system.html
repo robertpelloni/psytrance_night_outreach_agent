@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <div class="card text-bg-dark border-secondary shadow">
+            <div class="card text-bg-dark border-secondary shadow mb-4">
                 <div class="card-header bg-dark text-white">Feature Branch Health</div>
                 <div class="card-body">
                     <table class="table table-dark table-sm table-hover border-secondary">
@@ -133,6 +133,37 @@
                                         {% endif %}
                                     {% endfor %}
                                 </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card text-bg-dark border-secondary shadow">
+                <div class="card-header bg-dark text-white">Version Audit Trail</div>
+                <div class="card-body">
+                    <table class="table table-dark table-sm table-hover border-secondary">
+                        <thead>
+                            <tr>
+                                <th>Commit</th>
+                                <th>Author</th>
+                                <th>Summary</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for commit in audit_trail %}
+                            <tr>
+                                <td><code>{{ commit.commit_hash[:7] }}</code></td>
+                                <td>{{ commit.author }}</td>
+                                <td>
+                                    <small>{{ commit.summary }}</small>
+                                    {% if commit.version_string %}
+                                        <span class="badge bg-warning text-dark ms-1">{{ commit.version_string }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-white-50">{{ commit.timestamp }}</small></td>
                             </tr>
                             {% endfor %}
                         </tbody>

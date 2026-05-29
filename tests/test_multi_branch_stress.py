@@ -67,9 +67,10 @@ class TestMultiBranchStress(unittest.TestCase):
                 return subprocess.run(command, capture_output=True, text=True, cwd=cwd)
             mock_run.side_effect = side_effect
 
-            with patch('sync_repo.validate_system', return_value=True):
-                with patch('sync_repo.db', self.test_db):
-                    sync()
+            with patch.dict(os.environ, {"GIT_SYNC_RUNNING": "0"}):
+                with patch('sync_repo.validate_system', return_value=True):
+                    with patch('sync_repo.db', self.test_db):
+                        sync()
 
         # 3. Verify main has integrated all unique files
         subprocess.run(["git", "checkout", "main"], capture_output=True)
