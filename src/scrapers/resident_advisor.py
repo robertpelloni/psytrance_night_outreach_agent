@@ -45,10 +45,10 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                                     'id': str(uuid.uuid4()),
                                     'name': name.strip(),
                                     'city': city,
-                                    'website': None,
+                                    'website': self.base_url + href if href.startswith('/') else href,
                                     'google_rating': None,
                                     'tags': 'resident-advisor',
-                                    'raw_about_text': f"Scraped from RA Guide: {url}"
+                                    'raw_about_text': f"Scraped from RA Guide: {url}. Profile link: {href}"
                                 })
                     except:
                         continue

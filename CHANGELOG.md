@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [1.1.30] - 2024-05-30
+### Added
+- **Hardened Resident Advisor Scraper**: Refactored `ResidentAdvisorWebScraper` with Playwright to improve venue discovery and handle dynamic rendering on RA.co.
+- **Enhanced Profile Discovery**: Now captures direct profile URLs during the discovery phase for deeper enrichment.
+
+## [1.1.29] - 2024-05-30
+### Added
+- **Cluster-based Outreach Orchestration**: Enhanced the `TourPlanner` to generate unified regional residency pitches for venue hotspots.
+- **Interactive Tour Dispatch**: Added a new UI workflow to the map dashboard allowing for the bulk dispatch of tour proposals to geographic clusters.
+- **Unified Outreach Engine**: Expanded `OutreachEngine` to support coordinated multi-venue cluster dispatches.
+
+## [1.1.28] - 2024-05-30
+### Added
+- **Sentiment-Driven Outreach Forecasting**: Introduced `OutreachPredictor` to calculate success probability for leads based on historical sentiment and AI-driven trait alignment.
+- **Success Probability Visualization**: Integrated real-time success probability percentages into the HITL dashboard for prioritized lead review.
+
 ## [1.1.27] - 2024-05-30
 ### Added
 - **Real-time Social Context Extraction**: Implemented `InstagramScraper` using Playwright to harvest live bio and activity snippets from venue profiles.

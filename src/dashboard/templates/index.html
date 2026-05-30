@@ -69,6 +69,11 @@
                         <span class="badge {% if lead.vibe_score >= 8 %}bg-success{% else %}bg-primary{% endif %}">
                             Vibe Score: {{ lead.vibe_score }}/10
                         </span>
+                        {% if lead.success_prob %}
+                        <span class="badge {% if lead.success_prob >= 70 %}bg-success{% elif lead.success_prob >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            Success Prob: {{ lead.success_prob }}%
+                        </span>
+                        {% endif %}
                         {% if lead.follow_up_count and lead.follow_up_count > 0 %}
                         <span class="badge bg-warning text-dark">
                             Follow-ups: {{ lead.follow_up_count }}

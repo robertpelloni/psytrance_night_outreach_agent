@@ -50,6 +50,42 @@ class TourPlanner:
         except Exception as e:
             return f"Error planning tour: {e}"
 
+    def generate_cluster_pitch(self, cluster_index=0):
+        """Generates a unified tour residency pitch for all venues in a cluster."""
+        if not self.ai or not self.ai.client:
+            return None
+
+        clusters = self.analytics.get_venue_clusters()
+        if not clusters or cluster_index >= len(clusters):
+            return None
+
+        cluster = clusters[cluster_index]
+        venues_list = cluster['venues']
+        venues_names = ", ".join([v['name'] for v in venues_list])
+
+        prompt = f"""
+        Write a professional cold email proposing a psytrance 'regional residency tour'.
+        We are reaching out to a group of top-tier venues in this region: {venues_names}.
+
+        The pitch should:
+        1. Propose a coordinated series of events across these specific venues.
+        2. Explain the benefits of a regional tour (shared promotion, reduced travel costs, building a local scene).
+        3. Reference the high 'vibe alignment' of these venues.
+
+        This will be sent individually to each venue, but will mention the other venues in the cluster to show the scale of the tour.
+
+        Tone: Professional, ambitious, and scene-building.
+        """
+        try:
+            response = self.ai.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error generating cluster pitch: {e}")
+            return None
+
 if __name__ == "__main__":
     planner = TourPlanner()
     print(planner.plan_optimized_tour())

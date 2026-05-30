@@ -15,6 +15,8 @@ from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
 from src.reliability_monitor import ReliabilityMonitor
 from src.tour_planner import TourPlanner
+from src.outreach_predictor import OutreachPredictor
+from src.outreach_engine import OutreachEngine
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -28,6 +30,8 @@ sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
 planner = TourPlanner(db_path=db_path)
+predictor = OutreachPredictor(db_path=db_path)
+outreach_engine = OutreachEngine(db_path=db_path)
 
 import json
 
@@ -35,6 +39,9 @@ import json
 def index():
     leads = db.get_pending_leads()
     for lead in leads:
+        # Get success probability
+        lead['success_prob'] = predictor.predict_success_probability(lead['id'])
+
         if lead.get('extracted_traits'):
             try:
                 lead['traits_dict'] = json.loads(lead['extracted_traits'])
@@ -71,7 +78,26 @@ def show_map():
 @app.route('/plan_tour/<int:cluster_index>')
 def plan_tour(cluster_index):
     recommendation = planner.plan_optimized_tour(cluster_index)
-    return jsonify({"recommendation": recommendation})
+    pitch = planner.generate_cluster_pitch(cluster_index)
+    return jsonify({
+        "recommendation": recommendation,
+        "pitch": pitch
+    })
+
+@app.route('/dispatch_tour/<int:cluster_index>', methods=['POST'])
+def dispatch_tour(cluster_index):
+    clusters = analytics.get_venue_clusters()
+    if cluster_index >= len(clusters):
+        return jsonify({"error": "Cluster not found"}), 404
+
+    cluster = clusters[cluster_index]
+    pitch = request.json.get('pitch')
+
+    if not pitch:
+        return jsonify({"error": "Pitch content required"}), 400
+
+    results = outreach_engine.dispatch_cluster_pitch(cluster['venues'], pitch)
+    return jsonify(results)
 
 @app.route('/system')
 def system_status():
