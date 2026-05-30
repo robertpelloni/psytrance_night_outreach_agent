@@ -67,3 +67,6 @@
 - [x] Finalize v1.1.25 Milestone Documentation (v1.1.25)
 - [x] Synchronize all local and remote feature branches (v1.1.26)
 - [x] Verify architectural consolidation and audit trail (v1.1.26)
+- [x] Implement `src/scrapers/instagram.py` (v1.1.27)
+- [x] Refactor `ContactExtractor` to use live IG context (v1.1.27)
+- [x] Refine AI vibe-check prompt with specific psytrance criteria (v1.1.27)

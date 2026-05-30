@@ -13,14 +13,20 @@ class AIEngine:
             return {"vibe_score": 5, "justification": "AI not configured."}
 
         prompt = f"""
-        Analyze this venue description and determine if it is suitable for a psytrance night.
+        Analyze this venue description and social media context to determine if it is suitable for a psytrance night.
         Venue Name: {venue_name}
-        Description: {raw_text}
+        Context/Description: {raw_text}
+
+        Criteria for high score (7-10):
+        - References to 'underground', 'forest', 'psy', 'techno', 'dark', 'industrial'.
+        - Mentions of high-quality sound systems (Funktion-One, etc.).
+        - Immersive visual elements mentioned in bio or reviews.
+        - Open-minded music policy.
 
         Output JSON format:
         {{
             "vibe_score": (1-10),
-            "justification": "short explanation"
+            "justification": "Detailed explanation incorporating social context if available"
         }}
         """
         try:

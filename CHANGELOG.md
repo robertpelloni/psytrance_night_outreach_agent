@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.27] - 2024-05-30
+### Added
+- **Real-time Social Context Extraction**: Implemented `InstagramScraper` using Playwright to harvest live bio and activity snippets from venue profiles.
+- **Enhanced AI Vibe Qualification**: Refined the `AIEngine` vibe-check prompt to prioritize social media signals and specific musical/atmospheric criteria for psytrance suitability.
+
 ## [1.1.26] - 2024-05-30
 ### Added
 - **Architectural Consolidation**: Finalized the reconciliation of all distributed feature branches into a unified high-integrity production stream.

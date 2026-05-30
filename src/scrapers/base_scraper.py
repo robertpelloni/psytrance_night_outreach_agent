@@ -63,16 +63,21 @@ class ContactExtractor:
     @staticmethod
     def get_social_context(instagram_handle):
         """
-        Mock implementation for extracting recent vibe/context from Instagram.
-        In a real scenario, this would use a browser to check recent stories/posts.
+        Extracts recent vibe/context from Instagram using real-time scraping.
         """
         if not instagram_handle: return None
-        # Mock logic based on handle keywords
-        handle_lower = instagram_handle.lower()
-        if "forest" in handle_lower or "outdoor" in handle_lower:
-            return "recent posts show a strong outdoor/nature vibe with high-quality projection mapping."
-        if "dark" in handle_lower or "underground" in handle_lower:
-            return "recent stories indicate a preference for dark, industrial aesthetics and fast BPMs."
+
+        # Avoid circular import
+        from .instagram import InstagramScraper
+
+        scraper = InstagramScraper()
+        context = scraper.get_profile_context(instagram_handle)
+
+        if context:
+            summary = f"Bio: {context.get('bio', 'N/A')}\n"
+            summary += f"Recent Activity Snippet: {context.get('recent_activity_context', 'N/A')}"
+            return summary
+
         return "social media activity suggests a standard high-energy club atmosphere."
 
     @staticmethod
