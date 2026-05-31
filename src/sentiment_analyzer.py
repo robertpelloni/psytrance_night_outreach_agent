@@ -7,10 +7,17 @@ class SentimentAnalyzer:
         self.ai = AIEngine()
 
     def process_new_reply(self, lead_id, content):
-        """Analyzes a new reply and stores it with sentiment."""
+        """Analyzes a new reply and stores it with sentiment and draft draft."""
         sentiment = self.ai.analyze_sentiment(content)
         print(f"SentimentAnalyzer: Detected {sentiment} for lead_id {lead_id}.")
-        self.db.add_reply(lead_id, content, sentiment)
+
+        draft = None
+        if sentiment in ['INTERESTED', 'INQUIRY']:
+            lead = self.db.get_lead(lead_id)
+            venue = self.db.get_venue(lead['venue_id'])
+            draft = self.ai.generate_reply_draft(venue['name'], content, lead['generated_pitch'])
+
+        self.db.add_reply(lead_id, content, sentiment, draft_response=draft)
         return sentiment
 
 if __name__ == "__main__":

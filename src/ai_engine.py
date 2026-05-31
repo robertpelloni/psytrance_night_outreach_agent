@@ -187,6 +187,36 @@ class AIEngine:
             print(f"Error selecting contextual media: {e}")
             return None
 
+    def generate_reply_draft(self, venue_name, lead_reply, original_pitch):
+        """Generates a professional draft response to a venue's reply."""
+        if not self.client:
+            return "Thank you for your reply! Let's discuss further."
+
+        prompt = f"""
+        Draft a professional and persuasive response to a booking manager at {venue_name}.
+
+        They replied to our initial pitch with:
+        "{lead_reply}"
+
+        Our original pitch was:
+        "{original_pitch[:1000]}..."
+
+        Goal:
+        - If they are interested, suggest a next step (e.g., a short call or meeting).
+        - If they have a question (INQUIRY), answer it politely and knowledgeably based on the psytrance collective context.
+        - Maintain a friendly, professional, and underground-authentic vibe.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are an expert music booking agent and negotiator."},
+                          {"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Draft Generation Error: {e}")
+            return "Thank you for your interest! We'll get back to you shortly."
+
     def resolve_merge_conflict(self, file_content_with_conflicts):
         if not self.client:
             return None

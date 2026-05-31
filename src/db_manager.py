@@ -215,10 +215,10 @@ class DatabaseManager:
             row = cursor.fetchone()
             return row is not None and row[0] == 'COMPLETED'
 
-    def add_reply(self, lead_id, content, sentiment='UNKNOWN'):
-        query = "INSERT INTO lead_replies (lead_id, content, sentiment) VALUES (?, ?, ?)"
+    def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
+        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
-            conn.execute(query, (lead_id, content, sentiment))
+            conn.execute(query, (lead_id, content, sentiment, draft_response))
 
     def get_lead_replies(self, lead_id):
         query = "SELECT * FROM lead_replies WHERE lead_id = ? ORDER BY received_at DESC"

@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS lead_replies (
     lead_id INTEGER,
     content TEXT NOT NULL,
     sentiment TEXT, -- INTERESTED, REJECTED, INQUIRY, OOO, UNKNOWN
+    draft_response TEXT,
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
 );

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.33] - 2024-05-31
+### Added
+- **Intelligent Reply Negotiation**: Introduced `generate_reply_draft` to AIEngine, enabling the agent to automatically draft professional responses to venue inquiries and interest.
+- **Automated Draft Orchestration**: SentimentAnalyzer now triggers draft generation for positive sentiments, persisting them to the database for human review.
+- **Dashboard Reply Management**: Enhanced the History view with interactive AI-drafted responses, allowing for rapid human-in-the-loop negotiation.
+
 ## [1.1.32] - 2024-05-31
 ### Added
 - **Resident Advisor Enrichment Scraper**: Implemented detailed profile enrichment for RA venues, extracting actual websites, descriptions, and social links.
