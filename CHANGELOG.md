@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.37] - 2024-05-31
+### Fixed
+- **Scraper Reliability**: Added missing `re` import to `GoogleMapsPlaywrightScraper`, fixing a critical crash during venue rating extraction.
+- **Environment Isolation**: Refactored `DatabaseManager` to respect the `DB_PATH` environment variable, ensuring robust data isolation between staging, production, and local environments.
+
 ## [1.1.36] - 2024-05-31
 ### Added
 - **Multi-Genre Discovery Orchestration**: The pipeline now iterates through all configured target genres for every city, significantly expanding the autonomous scouting reach.

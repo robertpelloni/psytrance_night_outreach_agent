@@ -1,5 +1,6 @@
 from .base_scraper import GoogleMapsScraper, UserAgentRotator, ProxyRotator
 import uuid
+import re
 from playwright.sync_api import sync_playwright
 import time
 

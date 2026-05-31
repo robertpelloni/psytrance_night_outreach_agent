@@ -3,7 +3,7 @@ import os
 
 class DatabaseManager:
     def __init__(self, db_path=None):
-        self.db_path = db_path or 'database/outreach.db'
+        self.db_path = db_path or os.getenv("DB_PATH") or 'database/outreach.db'
         self._init_db()
 
     def _get_connection(self):

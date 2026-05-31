@@ -82,3 +82,5 @@
 - [x] Implement Intelligent Reply Negotiation & Draft Orchestration (v1.1.33)
 - [x] Refactor system for Master Genre Dynamic Adaptation (v1.1.35)
 - [x] Implement Multi-Genre Discovery Orchestration (v1.1.36)
+- [x] Fix missing `re` import in `google_maps.py` (v1.1.37)
+- [x] Implement `DB_PATH` environment isolation in `DatabaseManager` (v1.1.37)
