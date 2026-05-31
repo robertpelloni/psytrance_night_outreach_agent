@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+import sqlite3
 import sys
 import os
 import subprocess
@@ -189,6 +190,34 @@ def approve(lead_id):
 def reject(lead_id):
     db.update_lead_status(lead_id, 'REJECTED')
     return redirect(url_for('index'))
+
+@app.route('/send_reply/<int:reply_id>', methods=['POST'])
+def send_reply(reply_id):
+    reply_content = request.form.get('reply_content')
+
+    # Fetch lead info via reply_id
+    with db._get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        reply = conn.execute("SELECT * FROM lead_replies WHERE id = ?", (reply_id,)).fetchone()
+        if not reply: return "Reply not found", 404
+
+        lead = db.get_lead(reply['lead_id'])
+        venue = db.get_venue(lead['venue_id'])
+
+        # Fetch email
+        cursor = conn.execute("SELECT email FROM venue_contacts WHERE venue_id = ?", (venue['id'],))
+        contact = cursor.fetchone()
+
+    if contact and contact[0]:
+        email = contact[0].split(',')[0].strip()
+        subject = f"Re: Proposal for Psytrance Night Residency - {venue['name']}"
+        if mailer.send_email(email, subject, reply_content):
+            # Update reply as 'SENT' or similar if we had a status,
+            # for now we'll just log success
+            db.log_system_event("OUTREACH", "SUCCESS", f"Sent manual reply to {email} for lead {lead['id']}")
+            return redirect(url_for('history'))
+
+    return "Error sending reply", 500
 
 @app.route('/regenerate/<int:lead_id>', methods=['POST'])
 def regenerate(lead_id):

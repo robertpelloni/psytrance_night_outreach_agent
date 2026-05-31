@@ -7,7 +7,7 @@ class SentimentAnalyzer:
         self.ai = AIEngine()
 
     def process_new_reply(self, lead_id, content):
-        """Analyzes a new reply and stores it with sentiment and draft draft."""
+        """Analyzes a new reply and stores it with sentiment and drafted response."""
         sentiment = self.ai.analyze_sentiment(content)
         print(f"SentimentAnalyzer: Detected {sentiment} for lead_id {lead_id}.")
 

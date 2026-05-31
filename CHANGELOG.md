@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.34] - 2024-05-31
+### Added
+- **Manual Reply Dispatch**: Integrated a backend route and UI workflow for sending edited AI-drafted negotiation responses directly from the dashboard.
+- **Interactive Dashboard Tooltips**: Enhanced the HITL Dashboard with informative Bootstrap tooltips for Vibe Scores, Success Probabilities, and Venue Traits.
+### Fixed
+- **Redundancy Cleanup**: Removed duplicate social context enrichment calls in the main pipeline.
+- **Code Hygiene**: Fixed minor typos in SentimentAnalyzer and ensured proper imports in the dashboard app.
+
 ## [1.1.33] - 2024-05-31
 ### Added
 - **Intelligent Reply Negotiation**: Introduced `generate_reply_draft` to AIEngine, enabling the agent to automatically draft professional responses to venue inquiries and interest.

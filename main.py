@@ -119,11 +119,6 @@ def main():
                     if social_context:
                         enriched_text += f"\nSocial Media Context: {social_context}"
 
-                    # NEW: Get contextual social context to enrich AI prompt
-                    social_context = ContactExtractor.get_social_context(insta)
-                    if social_context:
-                        enriched_text += f"\nSocial Media Context: {social_context}"
-
             # Only perform AI vibe check if it's a new lead
             vibe_result = ai.vibe_check(v_data['name'], enriched_text)
 
