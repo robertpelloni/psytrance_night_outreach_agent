@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.31] - 2024-05-31
+### Added
+- **Success Probability Caching**: Implemented a persistence layer for outreach success probabilities to significantly reduce dashboard load times.
+- **Automated Probability Backfill**: All existing leads are now pre-calculated and stored in the database.
+### Fixed
+- **E2E Test Robustness**: Resolved path resolution and CWD management issues in `tests/test_autonomous_pipeline_e2e.py` and `tests/test_protocol_e2e.py`, enabling full-cycle verification in sandboxed environments.
+
 ## [1.1.30] - 2024-05-30
 ### Added
 - **Hardened Resident Advisor Scraper**: Refactored `ResidentAdvisorWebScraper` with Playwright to improve venue discovery and handle dynamic rendering on RA.co.

@@ -13,13 +13,18 @@ class OutreachPredictor:
     def _get_connection(self):
         return sqlite3.connect(self.db_path)
 
-    def predict_success_probability(self, lead_id):
+    def predict_success_probability(self, lead_id, use_cache=True):
         """
         Calculates a success probability (0-100%) for a given lead.
         Uses a combination of historical success rates and AI-driven trait analysis.
         """
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
+
+            if use_cache:
+                cached = conn.execute("SELECT success_probability FROM outreach_leads WHERE id = ?", (lead_id,)).fetchone()
+                if cached and cached['success_probability'] is not None:
+                    return cached['success_probability']
 
             # Fetch lead and venue details
             query = """
@@ -61,7 +66,13 @@ class OutreachPredictor:
                 probability += adjustment
 
             # Clamp between 0 and 95 (nothing is 100% certain)
-            return max(5, min(95, round(probability, 1)))
+            prob = max(5, min(95, round(probability, 1)))
+
+            # Persist to cache
+            conn.execute("UPDATE outreach_leads SET success_probability = ? WHERE id = ?", (prob, lead_id))
+            conn.commit()
+
+            return prob
 
     def _get_ai_adjustment(self, traits):
         """Uses AI to provide a +/- adjustment to the success probability."""

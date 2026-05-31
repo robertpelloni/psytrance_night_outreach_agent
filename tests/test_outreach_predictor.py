@@ -21,7 +21,9 @@ def test_predict_success_probability_basic(mock_ai, predictor):
         mock_cursor = mock_conn.return_value.__enter__.return_value
 
         # Mock lead data
+        # Now we need to mock the cache check too
         mock_cursor.execute.return_value.fetchone.side_effect = [
+            None, # cache
             {'vibe_score': 8, 'extracted_traits': None, 'city': 'Berlin'}, # lead
             {'interested': 2, 'total': 10} # city stats
         ]
@@ -42,6 +44,7 @@ def test_predict_success_probability_with_ai(predictor):
         # Mock lead data
         traits = json.dumps({"sound_system": "Funktion-One"})
         mock_cursor.execute.return_value.fetchone.side_effect = [
+            None, # cache
             {'vibe_score': 10, 'extracted_traits': traits, 'city': 'Goa'}, # lead
             None # no city stats
         ]
@@ -52,3 +55,11 @@ def test_predict_success_probability_with_ai(predictor):
         # AI Adjustment: +10
         # Total: 90
         assert prob == 90
+
+def test_predict_success_probability_cached(predictor):
+    with patch.object(predictor, '_get_connection') as mock_conn:
+        mock_cursor = mock_conn.return_value.__enter__.return_value
+        mock_cursor.execute.return_value.fetchone.return_value = {'success_probability': 75.0}
+
+        prob = predictor.predict_success_probability(1)
+        assert prob == 75.0

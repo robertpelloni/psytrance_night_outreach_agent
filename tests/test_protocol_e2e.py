@@ -14,12 +14,12 @@ class TestProtocolE2E(unittest.TestCase):
     Verifies that the sync state and pipeline execution are seamlessly integrated.
     """
     def setUp(self):
+        self.old_cwd = os.getcwd()
         self.test_dir = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.test_dir, "database"))
         os.makedirs(os.path.join(self.test_dir, "src", "scrapers"))
 
         # Setup mock git environment
-        self.old_cwd = os.getcwd()
         os.chdir(self.test_dir)
         subprocess.run(["git", "init"], capture_output=True)
         subprocess.run(["git", "config", "user.name", "Test"], capture_output=True)
@@ -29,7 +29,8 @@ class TestProtocolE2E(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "Initial"], capture_output=True)
 
     def tearDown(self):
-        os.chdir(self.old_cwd)
+        if hasattr(self, 'old_cwd'):
+            os.chdir(self.old_cwd)
         shutil.rmtree(self.test_dir)
 
     @patch('sync_repo.run_command')

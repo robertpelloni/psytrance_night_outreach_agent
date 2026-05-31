@@ -39,8 +39,8 @@ import json
 def index():
     leads = db.get_pending_leads()
     for lead in leads:
-        # Get success probability
-        lead['success_prob'] = predictor.predict_success_probability(lead['id'])
+        # success_probability is now fetched from the database in get_pending_leads
+        lead['success_prob'] = lead.get('success_probability')
 
         if lead.get('extracted_traits'):
             try:

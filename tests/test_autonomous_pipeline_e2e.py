@@ -15,6 +15,7 @@ class TestAutonomousPipelineE2E(unittest.TestCase):
     Cycle: Code Gen -> Sync -> Execution -> Logging.
     """
     def setUp(self):
+        self.old_cwd = os.getcwd()
         self.test_dir = tempfile.mkdtemp()
         self.scrapers_dir = os.path.join(self.test_dir, "src", "scrapers")
         os.makedirs(self.scrapers_dir)
@@ -43,7 +44,8 @@ CREATE TABLE IF NOT EXISTS system_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, co
 
     def tearDown(self):
         # Return to project root
-        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        if hasattr(self, 'old_cwd'):
+            os.chdir(self.old_cwd)
         shutil.rmtree(self.test_dir)
 
     @patch('src.scraper_generator.OpenAI')

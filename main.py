@@ -9,6 +9,7 @@ from src.config_manager import ConfigManager
 from src.outreach_engine import OutreachEngine
 from src.follow_up_engine import FollowUpEngine
 from src.geocoding import GeocodingUtility
+from src.outreach_predictor import OutreachPredictor
 
 def load_scrapers():
     scrapers = []
@@ -43,6 +44,7 @@ def main():
     outreach = OutreachEngine()
     follow_up = FollowUpEngine()
     geocoder = GeocodingUtility()
+    predictor = OutreachPredictor()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
@@ -136,6 +138,11 @@ def main():
                 'pipeline_status': status
             }
             db.add_lead(lead_data)
+
+            # NEW: Calculate and cache success probability
+            lead = db.get_lead_by_venue_id(v_id)
+            if lead:
+                predictor.predict_success_probability(lead['id'], use_cache=False)
 
         db.mark_city_processed(city)
 
