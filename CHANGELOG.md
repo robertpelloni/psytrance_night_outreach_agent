@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.35] - 2024-05-31
+### Added
+- **Master Genre Dynamic Adaptation**: Refactored the entire AI and scouting pipeline to support any electronic music genre, removing hardcoded "psytrance" dependencies.
+- **Configurable Active Genre**: The pipeline now uses the first genre in the `target_genres` configuration as the "Active Genre" for AI prompts and scraper queries.
+- **Lead Genre Tracking**: Added `qualified_genre` to the leads schema to track which genre was used during qualification, now visible on the dashboard.
+### Changed
+- **AIEngine Robustness**: Updated core AI methods (`vibe_check`, `generate_pitch`, etc.) to utilize the new dynamic genre parameter.
+
 ## [1.1.34] - 2024-05-31
 ### Added
 - **Manual Reply Dispatch**: Integrated a backend route and UI workflow for sending edited AI-drafted negotiation responses directly from the dashboard.

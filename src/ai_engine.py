@@ -7,18 +7,18 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def vibe_check(self, venue_name, raw_text):
+    def vibe_check(self, venue_name, raw_text, genre="psytrance"):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
 
         prompt = f"""
-        Analyze this venue description and social media context to determine if it is suitable for a psytrance night.
+        Analyze this venue description and social media context to determine if it is suitable for a {genre} night.
         Venue Name: {venue_name}
         Context/Description: {raw_text}
 
         Criteria for high score (7-10):
-        - References to 'underground', 'forest', 'psy', 'techno', 'dark', 'industrial'.
+        - References to 'underground', 'atmospheric', '{genre}', 'high-quality audio', 'immersive'.
         - Mentions of high-quality sound systems (Funktion-One, etc.).
         - Immersive visual elements mentioned in bio or reviews.
         - Open-minded music policy.
@@ -41,13 +41,13 @@ class AIEngine:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_follow_up(self, venue_name, original_pitch):
+    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance"):
         if not self.client:
-            return "Just following up on our previous email regarding a psytrance night!"
+            return f"Just following up on our previous email regarding a {genre} night!"
 
         prompt = f"""
         Write a short, polite follow-up email to a booking manager at {venue_name}.
-        We previously sent them a pitch for a psytrance residency.
+        We previously sent them a pitch for a {genre} residency.
 
         Original Pitch context:
         {original_pitch[:500]}...
@@ -123,7 +123,7 @@ class AIEngine:
             print(f"AI Sentiment Analysis Error: {e}")
             return "UNKNOWN"
 
-    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None):
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None, genre="psytrance"):
         if not self.client:
             return "Hey, we would love to play at your venue!"
 
@@ -145,7 +145,7 @@ class AIEngine:
         prompt = f"""
         Write a professional cold email to the booking manager of {venue_name}.
         The reason we like them is: {justification}
-        We are a collective of psytrance selectors looking to start a recurring night.
+        We are a collective of {genre} selectors looking to start a recurring night.
         The tone should be professional and value-driven.
 
         Please include these links in the pitch:
@@ -187,7 +187,7 @@ class AIEngine:
             print(f"Error selecting contextual media: {e}")
             return None
 
-    def generate_reply_draft(self, venue_name, lead_reply, original_pitch):
+    def generate_reply_draft(self, venue_name, lead_reply, original_pitch, genre="psytrance"):
         """Generates a professional draft response to a venue's reply."""
         if not self.client:
             return "Thank you for your reply! Let's discuss further."
@@ -203,7 +203,7 @@ class AIEngine:
 
         Goal:
         - If they are interested, suggest a next step (e.g., a short call or meeting).
-        - If they have a question (INQUIRY), answer it politely and knowledgeably based on the psytrance collective context.
+        - If they have a question (INQUIRY), answer it politely and knowledgeably based on the {genre} collective context.
         - Maintain a friendly, professional, and underground-authentic vibe.
         """
         try:

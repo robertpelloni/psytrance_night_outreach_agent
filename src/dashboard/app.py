@@ -175,13 +175,16 @@ def approve(lead_id):
     pitch = request.form.get('pitch')
     db.update_lead_status(lead_id, 'APPROVED', pitch=pitch)
     lead = db.get_lead(lead_id)
+
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+
     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
         cursor = conn.execute(query, (lead['venue_id'],))
         contact = cursor.fetchone()
     if contact and contact[0]:
         email = contact[0].split(',')[0].strip()
-        subject = "Proposal for Psytrance Night Residency"
+        subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
         if mailer.send_email(email, subject, pitch):
             db.update_lead_status(lead_id, 'SENT')
     return redirect(url_for('index'))
@@ -226,13 +229,15 @@ def regenerate(lead_id):
     venue = db.get_venue(lead['venue_id'])
     if not venue: return jsonify({"error": "Venue not found"}), 404
 
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
     new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
         mix_link=config_mgr.get("mix_link"),
         traits=venue.get('extracted_traits'),
-        media_library=config_mgr.get("media_library")
+        media_library=config_mgr.get("media_library"),
+        genre=primary_genre
     )
     return jsonify({"pitch": new_pitch})
 

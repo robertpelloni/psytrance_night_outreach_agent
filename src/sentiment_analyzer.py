@@ -13,9 +13,12 @@ class SentimentAnalyzer:
 
         draft = None
         if sentiment in ['INTERESTED', 'INQUIRY']:
+            from src.config_manager import ConfigManager
+            primary_genre = (ConfigManager().get("target_genres") or ["psytrance"])[0]
+
             lead = self.db.get_lead(lead_id)
             venue = self.db.get_venue(lead['venue_id'])
-            draft = self.ai.generate_reply_draft(venue['name'], content, lead['generated_pitch'])
+            draft = self.ai.generate_reply_draft(venue['name'], content, lead['generated_pitch'], genre=primary_genre)
 
         self.db.add_reply(lead_id, content, sentiment, draft_response=draft)
         return sentiment

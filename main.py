@@ -51,6 +51,8 @@ def main():
 
     cities = config.get("cities")
     vibe_threshold = config.get("vibe_threshold")
+    target_genres = config.get("target_genres") or ["psytrance"]
+    primary_genre = target_genres[0] # Use the first genre as primary for this run
 
     for city in cities:
         if db.is_city_processed(city):
@@ -62,7 +64,14 @@ def main():
         raw_venues = []
         for scraper in scrapers:
             try:
-                raw_venues.extend(scraper.search_venues(city))
+                if hasattr(scraper, 'search_venues'):
+                    # Pass the primary genre to the scraper if it supports it
+                    import inspect
+                    sig = inspect.signature(scraper.search_venues)
+                    if 'query' in sig.parameters:
+                        raw_venues.extend(scraper.search_venues(city, query=f"underground {primary_genre} club"))
+                    else:
+                        raw_venues.extend(scraper.search_venues(city))
             except Exception as e:
                 print(f"Error running scraper {scraper.__class__.__name__}: {e}")
 
@@ -120,7 +129,7 @@ def main():
                         enriched_text += f"\nSocial Media Context: {social_context}"
 
             # Only perform AI vibe check if it's a new lead
-            vibe_result = ai.vibe_check(v_data['name'], enriched_text)
+            vibe_result = ai.vibe_check(v_data['name'], enriched_text, genre=primary_genre)
 
             # NEW: Extract technical and atmospheric traits for personalization
             traits = ai.extract_venue_traits(enriched_text)
@@ -139,7 +148,8 @@ def main():
                     epk_link=config.get("epk_link"),
                     mix_link=config.get("mix_link"),
                     traits=traits,
-                    media_library=config.get("media_library")
+                    media_library=config.get("media_library"),
+                    genre=primary_genre
                 )
                 status = 'PENDING_REVIEW'
             else:
@@ -150,7 +160,8 @@ def main():
                 'vibe_score': vibe_result['vibe_score'],
                 'qualification_justification': vibe_result['justification'],
                 'generated_pitch': pitch,
-                'pipeline_status': status
+                'pipeline_status': status,
+                'qualified_genre': primary_genre
             }
             db.add_lead(lead_data)
 

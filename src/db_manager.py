@@ -90,8 +90,8 @@ class DatabaseManager:
 
     def add_lead(self, lead_data):
         query = """
-        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status, success_probability)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status, success_probability, qualified_genre)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
             conn.execute(query, (
@@ -99,7 +99,8 @@ class DatabaseManager:
                 lead_data.get('qualification_justification'),
                 lead_data.get('generated_pitch'),
                 lead_data.get('pipeline_status', 'PENDING_QUALIFICATION'),
-                lead_data.get('success_probability')
+                lead_data.get('success_probability'),
+                lead_data.get('qualified_genre')
             ))
 
     def update_lead_status(self, lead_id, status, pitch=None):
@@ -121,7 +122,7 @@ class DatabaseManager:
 
     def get_pending_leads(self):
         query = """
-        SELECT l.id, v.name, v.city, v.extracted_traits, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.success_probability,
+        SELECT l.id, v.name, v.city, v.extracted_traits, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.success_probability, l.qualified_genre,
                (SELECT email FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as email,
                (SELECT instagram_handle FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as instagram
         FROM outreach_leads l
@@ -136,7 +137,7 @@ class DatabaseManager:
 
     def get_lead_history(self):
         query = """
-        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability
+        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
         WHERE l.pipeline_status IN ('SENT', 'REJECTED')

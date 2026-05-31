@@ -10,7 +10,8 @@
 - Flask for the HITL dashboard.
 
 ## Codebase Traits
-- Focus on underground subculture (psytrance).
+- Focus on underground electronic music subculture.
+- Dynamic genre adaptation for multi-niche outreach.
 - High emphasis on "vibe" and professional outreach.
 - Human-In-The-Loop as a critical safety feature.
 - Modular scraper design (base class + specific implementations).

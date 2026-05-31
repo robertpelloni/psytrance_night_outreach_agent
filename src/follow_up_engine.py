@@ -16,6 +16,7 @@ class FollowUpEngine:
         """Identifies leads eligible for a follow-up and dispatches them."""
         days_wait = self.config.get("follow_up_days") or 7
         max_follow_ups = self.config.get("max_follow_ups") or 2
+        primary_genre = (self.config.get("target_genres") or ["psytrance"])[0]
 
         print(f"FollowUpEngine: Checking for leads to follow up (after {days_wait} days, max_follow_ups={max_follow_ups})...")
 
@@ -36,9 +37,9 @@ class FollowUpEngine:
                 email = contact[0].split(',')[0].strip()
                 if email:
                     print(f"Generating follow-up for {venue['name']} ({email})...")
-                    follow_up_pitch = self.ai.generate_follow_up(venue['name'], lead['generated_pitch'])
+                    follow_up_pitch = self.ai.generate_follow_up(venue['name'], lead['generated_pitch'], genre=primary_genre)
 
-                    subject = f"Re: Proposal for Psytrance Night Residency - {venue['name']}"
+                    subject = f"Re: Proposal for {primary_genre.capitalize()} Night Residency - {venue['name']}"
                     if self.mailer.send_email(email, subject, follow_up_pitch):
                         self.db.record_follow_up(lead['id'])
                         print(f"Follow-up sent to {email}. Count is now {lead['follow_up_count'] + 1}.")

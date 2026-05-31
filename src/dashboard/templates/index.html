@@ -85,6 +85,11 @@
                             Success Prob: {{ lead.success_prob }}%
                         </span>
                         {% endif %}
+                        {% if lead.qualified_genre %}
+                        <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Target genre used during qualification.">
+                            Genre: {{ lead.qualified_genre }}
+                        </span>
+                        {% endif %}
                         {% if lead.follow_up_count and lead.follow_up_count > 0 %}
                         <span class="badge bg-warning text-dark">
                             Follow-ups: {{ lead.follow_up_count }}
