@@ -7,14 +7,17 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def vibe_check(self, venue_name, raw_text, genre="psytrance"):
+    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
 
+        rating_context = f"Google Rating: {rating}/5" if rating else ""
+
         prompt = f"""
         Analyze this venue description and social media context to determine if it is suitable for a {genre} night.
         Venue Name: {venue_name}
+        {rating_context}
         Context/Description: {raw_text}
 
         Criteria for high score (7-10):

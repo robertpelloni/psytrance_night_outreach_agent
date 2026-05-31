@@ -52,28 +52,36 @@ def main():
     cities = config.get("cities")
     vibe_threshold = config.get("vibe_threshold")
     target_genres = config.get("target_genres") or ["psytrance"]
-    primary_genre = target_genres[0] # Use the first genre as primary for this run
 
     for city in cities:
         if db.is_city_processed(city):
             print(f"Skipping {city} - Already processed in this cycle.")
             continue
 
-        print(f"\n--- Processing {city} ---")
+        print(f"\n--- Processing {city} (All configured genres) ---")
 
         raw_venues = []
-        for scraper in scrapers:
-            try:
-                if hasattr(scraper, 'search_venues'):
-                    # Pass the primary genre to the scraper if it supports it
-                    import inspect
-                    sig = inspect.signature(scraper.search_venues)
-                    if 'query' in sig.parameters:
-                        raw_venues.extend(scraper.search_venues(city, query=f"underground {primary_genre} club"))
-                    else:
-                        raw_venues.extend(scraper.search_venues(city))
-            except Exception as e:
-                print(f"Error running scraper {scraper.__class__.__name__}: {e}")
+        for genre in target_genres:
+            print(f"Hunting for: {genre}")
+            db.log_system_event("DISCOVERY", "START", f"Hunting for {genre} in {city}")
+            for scraper in scrapers:
+                try:
+                    if hasattr(scraper, 'search_venues'):
+                        import inspect
+                        sig = inspect.signature(scraper.search_venues)
+                        if 'query' in sig.parameters:
+                            # Use more specific query if possible
+                            query = f"underground {genre} club"
+                            results = scraper.search_venues(city, query=query)
+                        else:
+                            results = scraper.search_venues(city)
+
+                        # Add metadata about which genre discovery found this venue
+                        for r in results:
+                            r['discovery_genre'] = genre
+                        raw_venues.extend(results)
+                except Exception as e:
+                    print(f"Error running scraper {scraper.__class__.__name__}: {e}")
 
         for v_data in raw_venues:
             # OPTIMIZATION: Check if venue and lead already exist before burning AI tokens
@@ -128,8 +136,13 @@ def main():
                     if social_context:
                         enriched_text += f"\nSocial Media Context: {social_context}"
 
+            # Determine which genre to use for qualification
+            # If the venue was found during a specific genre hunt, use that.
+            # Fallback to the first target genre.
+            qualify_genre = v_data.get('discovery_genre', target_genres[0])
+
             # Only perform AI vibe check if it's a new lead
-            vibe_result = ai.vibe_check(v_data['name'], enriched_text, genre=primary_genre)
+            vibe_result = ai.vibe_check(v_data['name'], enriched_text, genre=qualify_genre, rating=v_data.get('google_rating'))
 
             # NEW: Extract technical and atmospheric traits for personalization
             traits = ai.extract_venue_traits(enriched_text)
@@ -149,7 +162,7 @@ def main():
                     mix_link=config.get("mix_link"),
                     traits=traits,
                     media_library=config.get("media_library"),
-                    genre=primary_genre
+                    genre=qualify_genre
                 )
                 status = 'PENDING_REVIEW'
             else:
@@ -161,7 +174,7 @@ def main():
                 'qualification_justification': vibe_result['justification'],
                 'generated_pitch': pitch,
                 'pipeline_status': status,
-                'qualified_genre': primary_genre
+                'qualified_genre': qualify_genre
             }
             db.add_lead(lead_data)
 

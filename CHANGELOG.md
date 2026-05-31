@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.36] - 2024-05-31
+### Added
+- **Multi-Genre Discovery Orchestration**: The pipeline now iterates through all configured target genres for every city, significantly expanding the autonomous scouting reach.
+- **Google Maps Scraper Hardening**: Enhanced `GoogleMapsPlaywrightScraper` to extract venue ratings from search results.
+- **Rating-Aware AI Qualification**: Refined `AIEngine.vibe_check` to incorporate Google ratings into the culture-fit scoring logic.
+- **Discovery Traceability**: Implemented system event logging for genre-specific discovery runs.
+
 ## [1.1.35] - 2024-05-31
 ### Added
 - **Master Genre Dynamic Adaptation**: Refactored the entire AI and scouting pipeline to support any electronic music genre, removing hardcoded "psytrance" dependencies.
