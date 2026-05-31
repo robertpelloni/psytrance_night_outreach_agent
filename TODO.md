@@ -78,3 +78,4 @@
 - [x] Add Tour Modal to `map.html` (v1.1.29)
 - [x] Refactor `ResidentAdvisorWebScraper` (v1.1.30)
 - [x] Verify RA discovery with unit tests (v1.1.30)
+- [x] Implement Resident Advisor Enrichment Scraper (v1.1.32)

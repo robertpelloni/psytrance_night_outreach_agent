@@ -81,7 +81,27 @@ def main():
                 db.add_venue(v_data)
 
             enriched_text = v_data.get('raw_about_text', "")
-            if v_data.get('website'):
+
+            # NEW: If it's an RA profile, enrich it first to get the actual website
+            if "ra.co/venues/" in v_data.get('website', ''):
+                from src.scrapers.resident_advisor import ResidentAdvisorWebScraper
+                ra_enricher = ResidentAdvisorWebScraper()
+                ra_details = ra_enricher.enrich_venue(v_data['website'])
+                if ra_details.get('website'):
+                    v_data['website'] = ra_details['website'] # Update to actual venue website
+                if ra_details.get('description'):
+                    enriched_text += f"\nResident Advisor Description: {ra_details['description']}"
+                if ra_details.get('socials'):
+                    # Try to find an IG handle from the social links
+                    for s in ra_details['socials']:
+                        if 'instagram.com' in s:
+                            insta_handle = s.split('/')[-1].split('?')[0]
+                            db.add_contact({
+                                'venue_id': v_id,
+                                'instagram_handle': insta_handle
+                            })
+
+            if v_data.get('website') and "ra.co" not in v_data['website']:
                 contact_info = ContactExtractor.scrape_website(v_data['website'])
                 if contact_info:
                     if contact_info.get('about_text'):

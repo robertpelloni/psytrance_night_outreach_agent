@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.32] - 2024-05-31
+### Added
+- **Resident Advisor Enrichment Scraper**: Implemented detailed profile enrichment for RA venues, extracting actual websites, descriptions, and social links.
+- **Enriched Outreach Pipeline**: Integrated RA enrichment into the main pipeline to improve data accuracy and qualification quality for leads sourced from RA.
+
 ## [1.1.31] - 2024-05-31
 ### Added
 - **Success Probability Caching**: Implemented a persistence layer for outreach success probabilities to significantly reduce dashboard load times.

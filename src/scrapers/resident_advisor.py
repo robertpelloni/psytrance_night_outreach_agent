@@ -59,3 +59,44 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                 browser.close()
 
         return venues[:10]
+
+    def enrich_venue(self, profile_url):
+        """Extracts detailed info from an RA venue profile page."""
+        details = {}
+        print(f"Enriching RA venue from {profile_url}...")
+
+        with sync_playwright() as p:
+            proxy = ProxyRotator.get_playwright_proxy()
+            browser = p.chromium.launch(headless=True, proxy=proxy)
+            context = browser.new_context(user_agent=UserAgentRotator.get_random())
+            page = context.new_page()
+
+            try:
+                page.goto(profile_url, wait_until="networkidle")
+                page.wait_for_timeout(3000)
+
+                # Extract Website (often in an 'a' with specific icon or text)
+                # RA often uses specific labels or aria-labels
+                website_el = page.query_selector('a[aria-label="Website"], a:has-text("Website")')
+                if website_el:
+                    details['website'] = website_el.get_attribute('href')
+
+                # Extract Description
+                desc_el = page.query_selector('span[itemprop="description"], .description, .about-text')
+                if desc_el:
+                    details['description'] = desc_el.inner_text()
+
+                # Extract Socials
+                links = page.query_selector_all('a')
+                details['socials'] = []
+                for link in links:
+                    href = link.get_attribute('href') or ""
+                    if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
+                        details['socials'].append(href)
+
+            except Exception as e:
+                print(f"Error enriching RA venue: {e}")
+            finally:
+                browser.close()
+
+        return details
