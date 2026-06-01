@@ -164,7 +164,13 @@ def main():
                 db.update_venue_location(v_id, lat, lon)
 
             pitch = ""
+            variant = "Professional"
             if vibe_result['vibe_score'] >= vibe_threshold:
+                # NEW: Randomly assign A/B variant
+                import random
+                variant = random.choice(["Professional", "Underground", "Technical"])
+                print(f"Generating '{variant}' pitch for {v_data['name']}...")
+
                 pitch = ai.generate_pitch(
                     v_data['name'],
                     vibe_result['justification'],
@@ -172,7 +178,8 @@ def main():
                     mix_link=config.get("mix_link"),
                     traits=traits,
                     media_library=config.get("media_library"),
-                    genre=qualify_genre
+                    genre=qualify_genre,
+                    variant=variant
                 )
                 status = 'PENDING_REVIEW'
             else:
@@ -184,7 +191,8 @@ def main():
                 'qualification_justification': vibe_result['justification'],
                 'generated_pitch': pitch,
                 'pipeline_status': status,
-                'qualified_genre': qualify_genre
+                'qualified_genre': qualify_genre,
+                'pitch_variant': variant
             }
             db.add_lead(lead_data)
 

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     generated_pitch TEXT,
     pipeline_status TEXT DEFAULT 'PENDING_QUALIFICATION', -- PENDING_QUALIFICATION, PENDING_REVIEW, APPROVED, REJECTED, SENT, REJECTED
     qualified_genre TEXT,
+    pitch_variant TEXT, -- A/B testing variant (e.g., 'Professional', 'Underground', 'Technical')
     last_outreach_at TIMESTAMP,
     follow_up_count INTEGER DEFAULT 0,
     success_probability REAL,

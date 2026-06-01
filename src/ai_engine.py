@@ -165,7 +165,7 @@ class AIEngine:
             print(f"AI Vision Error: {e}")
             return {"visual_vibe_score": 0, "visual_description": f"Error analyzing image: {e}"}
 
-    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None, genre="psytrance"):
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None, genre="psytrance", variant="Professional"):
         if not self.client:
             return "Hey, we would love to play at your venue!"
 
@@ -182,15 +182,24 @@ class AIEngine:
 
         traits_context = ""
         if traits:
-            traits_context = f"Additional Context about the venue: {traits}\nUse this to reference their specific setup (e.g., their sound system or unique lighting) to show we've done our homework."
+            traits_context = f"Deeply integrate these venue traits into the pitch to show authentic engagement:\n{traits}"
+
+        variant_prompts = {
+            "Professional": "The tone should be highly professional, business-oriented, and value-driven.",
+            "Underground": "The tone should be authentic, underground-focused, and slightly more casual, emphasizing subculture and community.",
+            "Technical": "The tone should focus heavily on technical specs, sound quality, and production value, speaking 'gear-talk' to their production manager."
+        }
+
+        tone_instruction = variant_prompts.get(variant, variant_prompts["Professional"])
 
         prompt = f"""
-        Write a professional cold email to the booking manager of {venue_name}.
-        The reason we like them is: {justification}
-        We are a collective of {genre} selectors looking to start a recurring night.
-        The tone should be professional and value-driven.
+        Write a bespoke cold email pitch to the booking manager of {venue_name}.
+        Justification for outreach: {justification}
+        Our project: A collective of {genre} selectors looking to start a recurring residency.
 
-        Please include these links in the pitch:
+        {tone_instruction}
+
+        Please include these links:
         {links_context}
 
         {traits_context}
@@ -198,7 +207,7 @@ class AIEngine:
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o",
-                messages=[{"role": "system", "content": "You are a professional booking agent."},
+                messages=[{"role": "system", "content": "You are an expert music booking agent specializing in electronic music subcultures."},
                           {"role": "user", "content": prompt}]
             )
             return response.choices[0].message.content

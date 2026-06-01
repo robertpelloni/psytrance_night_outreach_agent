@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.42] - 2024-06-01
+### Added
+- **A/B Testing Framework**: Implemented an automated framework for testing multiple outreach pitch variants (Professional, Underground, Technical).
+- **Deep Personalization**: Refined AI pitch generation to more aggressively integrate venue-specific technical and atmospheric traits.
+- **Variant Visualization**: Enhanced the HITL Dashboard to display the selected A/B variant for each lead.
+### Changed
+- **Database Schema**: Expanded `outreach_leads` with `pitch_variant` column for persistent A/B tracking.
+- **Pipeline Orchestration**: The pipeline now randomly assigns variants during the qualification phase.
+
 ## [1.1.41] - 2024-06-01
 ### Fixed
 - **E2E Test Stability**: Resolved critical failures in `tests/test_autonomous_pipeline_e2e.py` by hardening database isolation and improving mocks for `OutreachPredictor`.

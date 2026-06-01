@@ -45,5 +45,26 @@ class TestAIEngine(unittest.TestCase):
         self.assertEqual(result['visual_vibe_score'], 8)
         self.assertIn("Psychedelic", result['visual_description'])
 
+    @patch('src.ai_engine.OpenAI')
+    def test_generate_pitch_variants(self, mock_openai):
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_ai = AIEngine(api_key="fake-key")
+
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(message=MagicMock(content="Test Pitch Content"))
+        ]
+        mock_client.chat.completions.create.return_value = mock_response
+
+        # Test Underground variant
+        pitch = mock_ai.generate_pitch("Venue", "Justification", variant="Underground")
+        self.assertEqual(pitch, "Test Pitch Content")
+
+        # Verify prompt content contains variant keywords
+        args, kwargs = mock_client.chat.completions.create.call_args
+        prompt = kwargs['messages'][1]['content']
+        self.assertIn("authentic, underground-focused", prompt)
+
 if __name__ == "__main__":
     unittest.main()

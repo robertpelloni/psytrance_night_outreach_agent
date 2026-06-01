@@ -90,6 +90,11 @@
                             Genre: {{ lead.qualified_genre }}
                         </span>
                         {% endif %}
+                        {% if lead.pitch_variant %}
+                        <span class="badge bg-dark border border-light" data-bs-toggle="tooltip" title="A/B testing variant used for the pitch.">
+                            Variant: {{ lead.pitch_variant }}
+                        </span>
+                        {% endif %}
                         {% if lead.follow_up_count and lead.follow_up_count > 0 %}
                         <span class="badge bg-warning text-dark">
                             Follow-ups: {{ lead.follow_up_count }}
