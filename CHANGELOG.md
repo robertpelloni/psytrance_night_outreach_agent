@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.38] - 2024-05-31
+### Added
+- **Precise Geocoding**: Integrated `geopy` and Nominatim for real coordinate lookups, significantly improving map accuracy for tour planning.
+- **Component-Level Scraper Validation**: Introduced `tests/test_scrapers_component.py` which uses a local HTTP server to verify scraper parsing logic against real HTML.
+### Changed
+- **Sync Protocol Hardening**: Restricted forward-merging to designated feature branches (`feature/*`, `jules-*`), protecting the `main` branch from accidental merges.
+- **Geocoding Fallback**: Maintained AI estimation as a robust fallback for venues not found in global databases.
+
 ## [1.1.37] - 2024-05-31
 ### Fixed
 - **Scraper Reliability**: Added missing `re` import to `GoogleMapsPlaywrightScraper`, fixing a critical crash during venue rating extraction.

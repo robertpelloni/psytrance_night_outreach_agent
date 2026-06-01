@@ -110,7 +110,9 @@ def sync(dry_run=False):
         local_branches = run_command(["git", "branch", "--format=%(refname:short)"]).stdout.splitlines()
         for branch in local_branches:
             branch = branch.strip()
-            if branch not in ["main", "master", ""] and "HEAD" not in branch:
+            # HARDENING: Only forward-merge branches that are explicitly designated as features
+            is_feature = branch.startswith("feature/") or branch.startswith("jules-")
+            if is_feature and branch not in ["main", "master", ""] and "HEAD" not in branch:
                 print(f"Interrogating branch: {branch}")
                 # Check if it has unique commits
                 diff = run_command(["git", "rev-list", f"main..{branch}"]).stdout.strip()

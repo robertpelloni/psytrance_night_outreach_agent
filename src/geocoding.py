@@ -2,18 +2,28 @@ import os
 import requests
 import json
 from src.ai_engine import AIEngine
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 
 class GeocodingUtility:
     def __init__(self, api_key=None):
         self.ai = AIEngine(api_key=api_key)
+        self.geolocator = Nominatim(user_agent="psytrance_outreach_agent")
 
     def geocode_venue(self, venue_name, city):
         """
-        Uses AI to estimate coordinates if no API is available,
-        or a search utility if configured.
+        Attempts real coordinate lookup via Nominatim, falls back to AI estimation.
         """
-        # For this autonomous agent, we use GPT-4o to 'hallucinate' or
-        # recall coordinates for established venues, or use city centroids.
+        try:
+            query = f"{venue_name}, {city}"
+            location = self.geolocator.geocode(query, timeout=10)
+            if location:
+                print(f"Geocoding: Found {query} via Nominatim.")
+                return location.latitude, location.longitude
+        except (GeocoderTimedOut, Exception) as e:
+            print(f"Nominatim Geocoding Error for {venue_name}: {e}")
+
+        # Fallback to AI
         prompt = f"""
         Find the approximate latitude and longitude for the music venue:
         Venue: {venue_name}
