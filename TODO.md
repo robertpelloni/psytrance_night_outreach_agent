@@ -87,3 +87,11 @@
 - [x] Integrate Nominatim for precise geocoding (v1.1.38)
 - [x] Implement Component-level Scraper Validation (v1.1.38)
 - [x] Harden Sync Protocol branch filtering (v1.1.38)
+- [x] Implement GPT-4o-vision analysis in AIEngine (v1.1.40)
+- [x] Extract venue images in Google Maps and RA scrapers (v1.1.40)
+- [x] Integrate vision analysis into qualification pipeline (v1.1.40)
+- [x] Display venue images and visual analysis on HITL Dashboard (v1.1.40)
+- [x] Verify Vision-Enriched Qualification with Master Integrity Suite (v1.1.40)
+- [ ] Implement outreach pitch A/B testing framework
+- [ ] Add support for video analysis in venue qualification
+- [ ] Expand geocoding to support full address parsing from raw text

@@ -145,10 +145,17 @@ class E2EScraper:
                             test_db = RealDB(db_path=db_path)
                             mock_db_class.return_value = test_db
 
-                            # We also need to patch OutreachEngine and FollowUpEngine's DB
+                            # We also need to patch OutreachEngine, FollowUpEngine, and OutreachPredictor's DB
                             with patch('src.outreach_engine.DatabaseManager', return_value=test_db):
                                 with patch('src.follow_up_engine.DatabaseManager', return_value=test_db):
-                                    run_pipeline()
+                                    with patch('src.outreach_predictor.OutreachPredictor.__init__', autospec=True, return_value=None) as mock_pred_init:
+                                        def pred_init_side_effect(self, db_path=None):
+                                            self.db_path = db_path or 'database/outreach.db'
+                                            from src.ai_engine import AIEngine
+                                            self.ai = AIEngine()
+                                        mock_pred_init.side_effect = pred_init_side_effect
+                                        with patch('src.outreach_predictor.OutreachPredictor._get_connection', side_effect=lambda: sqlite3.connect(db_path)):
+                                            run_pipeline()
 
         # 5. Verify results in DB and Logs
         db = DatabaseManager(db_path=db_path)

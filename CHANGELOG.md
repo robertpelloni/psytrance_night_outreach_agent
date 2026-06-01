@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.41] - 2024-06-01
+### Fixed
+- **E2E Test Stability**: Resolved critical failures in `tests/test_autonomous_pipeline_e2e.py` by hardening database isolation and improving mocks for `OutreachPredictor`.
+- **Predictor Reliability**: Updated `OutreachPredictor` to respect the `DB_PATH` environment variable, ensuring consistent behavior across all environment tiers.
+### Changed
+- **Documentation Synchronization**: Updated `VISION.md`, `MEMORY.md`, `IDEAS.md`, `ROADMAP.md`, and `TODO.md` to reflect the latest Phase 35 accomplishments and Phase 36 goals.
+- **Sync Protocol Execution**: Performed a comprehensive repository-wide synchronization and dual-direction merge.
+
 ## [1.1.40] - 2024-06-01
 ### Added
 - **Vision-Enriched Venue Qualification**: Integrated GPT-4o-vision into the qualification pipeline, allowing the agent to analyze venue aesthetics from images.

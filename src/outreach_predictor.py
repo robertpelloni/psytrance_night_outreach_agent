@@ -6,8 +6,8 @@ from .ai_engine import AIEngine
 class OutreachPredictor:
     """Predicts the likelihood of outreach success based on venue traits and historical sentiment."""
 
-    def __init__(self, db_path='database/outreach.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or os.getenv("DB_PATH") or 'database/outreach.db'
         self.ai = AIEngine()
 
     def _get_connection(self):

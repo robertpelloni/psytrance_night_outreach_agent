@@ -17,3 +17,4 @@
 - Modular scraper design (base class + specific implementations).
 - Zero-dependency geospatial intelligence using AI for geocoding.
 - Proximity-based venue clustering for regional hotspot detection.
+- Vision-enriched qualification using GPT-4o-vision for aesthetic vetting.

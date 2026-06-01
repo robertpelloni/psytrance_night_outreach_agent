@@ -133,3 +133,8 @@
 - [x] Phase 32: Multi-Genre Discovery Orchestration & Google Maps Hardening (v1.1.36)
 - [x] Phase 33: Reliability Hardening & Environment Isolation (v1.1.37)
 - [x] Phase 34: Geocoding Precision & Component Validation (v1.1.38)
+- [x] Phase 35: Vision-Enriched Venue Qualification (v1.1.40)
+## Phase 36: Automated Outreach Personalization & A/B Testing
+- [ ] Implement A/B Testing Engine for pitch variants
+- [ ] Integrate deeper venue-specific technical metadata into AI pitches
+- [ ] Add support for multi-media pitch sequences

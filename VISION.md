@@ -5,11 +5,11 @@ To build an automated venue scouting and outreach pipeline for electronic music 
 
 ## Core Foundational Concepts
 - **Automated Discovery**: Using web scraping and APIs to find venues.
-- **AI-Powered Qualification**: Using LLMs to filter venues based on "culture fit" for a configurable genre.
+- **AI-Powered Qualification**: Using LLMs and computer vision to filter venues based on "culture fit" for a configurable genre.
 - **Personalized Outreach**: Generating bespoke pitches that resonate with venue owners/bookers, enriched by AI-extracted technical and atmospheric traits.
 - **Human-In-The-Loop (HITL)**: Ensuring quality and brand safety by having a human review pitches before they are sent, aided by geographic visualization and AI-driven tour optimization.
 
 ## User-Satisfaction Design
-- High-quality, personalized communication.
-- Efficient workflow for music selectors/promoters.
-- Professional presentation to venues.
+- **Vision-Enriched Vetting**: Curators see venue aesthetics before manual review, ensuring "underground" authenticity.
+- **High-quality, personalized communication**: Bespoke pitches reflecting venue-specific traits.
+- **Efficient workflow**: Integrated dashboard for mapping, analytics, and rapid outreach.
