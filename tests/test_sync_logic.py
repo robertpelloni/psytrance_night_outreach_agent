@@ -47,7 +47,7 @@ class TestSyncRepo(unittest.TestCase):
 
     def test_sync_logic_forward_merge(self):
         # Create a feature branch with a unique commit
-        run_command(["git", "checkout", "-b", "feature-1"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "feature/1"], cwd=self.local_dir)
         with open(os.path.join(self.local_dir, "feature.txt"), "w") as f:
             f.write("Feature work")
         run_command(["git", "add", "feature.txt"], cwd=self.local_dir)
@@ -75,8 +75,8 @@ class TestSyncRepo(unittest.TestCase):
 
     def test_sync_logic_reverse_merge(self):
         # Create a feature branch
-        run_command(["git", "checkout", "-b", "feature-2"], cwd=self.local_dir)
-        run_command(["git", "push", "origin", "feature-2"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "feature/2"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "feature/2"], cwd=self.local_dir)
 
         # Add a commit to main
         run_command(["git", "checkout", "main"], cwd=self.local_dir)
@@ -96,18 +96,18 @@ class TestSyncRepo(unittest.TestCase):
         finally:
             os.chdir(old_cwd)
 
-        # Verify feature-2 has the main update commit
-        res = run_command(["git", "log", "feature-2", "--format=%s"], cwd=self.local_dir)
+        # Verify feature/2 has the main update commit
+        res = run_command(["git", "log", "feature/2", "--format=%s"], cwd=self.local_dir)
         self.assertIn("Main update commit", res.stdout)
 
     def test_sync_logic_conflict_handling_no_ai(self):
         # 1. Create a feature branch and modify README
-        run_command(["git", "checkout", "-b", "conflict-branch-no-ai"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "feature/conflict-no-ai"], cwd=self.local_dir)
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
             f.write("# Conflict work")
         run_command(["git", "add", "README.md"], cwd=self.local_dir)
         run_command(["git", "commit", "-m", "Feature conflict commit"], cwd=self.local_dir)
-        run_command(["git", "push", "origin", "conflict-branch-no-ai"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "feature/conflict-no-ai"], cwd=self.local_dir)
 
         # 2. Go back to main and modify README differently
         run_command(["git", "checkout", "main"], cwd=self.local_dir)
@@ -142,12 +142,12 @@ class TestSyncRepo(unittest.TestCase):
         mock_resolve.return_value = "# Resolved Content"
 
         # 1. Create conflict
-        run_command(["git", "checkout", "-b", "conflict-branch-ai"], cwd=self.local_dir)
+        run_command(["git", "checkout", "-b", "feature/conflict-ai"], cwd=self.local_dir)
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
             f.write("# Feature work")
         run_command(["git", "add", "README.md"], cwd=self.local_dir)
         run_command(["git", "commit", "-m", "Feature commit"], cwd=self.local_dir)
-        run_command(["git", "push", "origin", "conflict-branch-ai"], cwd=self.local_dir)
+        run_command(["git", "push", "origin", "feature/conflict-ai"], cwd=self.local_dir)
 
         run_command(["git", "checkout", "main"], cwd=self.local_dir)
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
