@@ -100,6 +100,18 @@
                 <div class="card-body">
                     <p class="card-text"><strong>Why:</strong> {{ lead.qualification_justification }}</p>
 
+                    {% if lead.visual_description %}
+                    <div class="mb-3 d-flex gap-3 align-items-start bg-black p-3 rounded border border-secondary">
+                        {% if lead.image_url %}
+                        <img src="{{ lead.image_url }}" alt="Venue Image" class="rounded" style="max-width: 200px; max-height: 150px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <small class="text-info d-block mb-1">Vision-Enriched Analysis:</small>
+                            <p class="small mb-0">{{ lead.visual_description }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if lead.traits_dict %}
                     <div class="mb-3">
                         <div class="d-flex flex-wrap gap-2">

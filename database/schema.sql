@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS venues (
     raw_about_text TEXT,
     extracted_traits TEXT, -- JSON blob of sound/lighting/vibe traits
     latitude REAL,
-    longitude REAL
+    longitude REAL,
+    image_url TEXT,
+    visual_description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS venue_contacts (

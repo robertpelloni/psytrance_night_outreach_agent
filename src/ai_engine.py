@@ -126,6 +126,45 @@ class AIEngine:
             print(f"AI Sentiment Analysis Error: {e}")
             return "UNKNOWN"
 
+    def analyze_visual_vibe(self, image_url, genre="psytrance"):
+        """Uses GPT-4o vision to analyze a venue image for aesthetic compatibility."""
+        if not self.client or not image_url:
+            return {"visual_vibe_score": 5, "visual_description": "No image or AI not configured."}
+
+        prompt = f"""
+        Analyze this image of a music venue.
+        Does it look like a good fit for a {genre} night?
+        Consider lighting (lasers, UV, projection mapping), décor (psychedelic, industrial, underground), and space layout.
+
+        Output JSON format:
+        {{
+            "visual_vibe_score": (1-10),
+            "visual_description": "Concise summary of the aesthetic features found in the image."
+        }}
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_url},
+                            },
+                        ],
+                    }
+                ],
+                max_tokens=300,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(response.choices[0].message.content)
+        except Exception as e:
+            print(f"AI Vision Error: {e}")
+            return {"visual_vibe_score": 0, "visual_description": f"Error analyzing image: {e}"}
+
     def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None, genre="psytrance"):
         if not self.client:
             return "Hey, we would love to play at your venue!"

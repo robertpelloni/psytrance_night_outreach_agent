@@ -29,5 +29,21 @@ class TestAIEngine(unittest.TestCase):
         pitch = ai_no_key.generate_pitch("Venue", "Justification")
         self.assertEqual(pitch, "Hey, we would love to play at your venue!")
 
+    @patch('src.ai_engine.OpenAI')
+    def test_analyze_visual_vibe(self, mock_openai):
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_ai = AIEngine(api_key="fake-key")
+
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(message=MagicMock(content='{"visual_vibe_score": 8, "visual_description": "Psychedelic lighting detected"}'))
+        ]
+        mock_client.chat.completions.create.return_value = mock_response
+
+        result = mock_ai.analyze_visual_vibe("http://example.com/image.jpg")
+        self.assertEqual(result['visual_vibe_score'], 8)
+        self.assertIn("Psychedelic", result['visual_description'])
+
 if __name__ == "__main__":
     unittest.main()

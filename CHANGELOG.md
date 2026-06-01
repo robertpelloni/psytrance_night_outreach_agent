@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.40] - 2024-06-01
+### Added
+- **Vision-Enriched Venue Qualification**: Integrated GPT-4o-vision into the qualification pipeline, allowing the agent to analyze venue aesthetics from images.
+- **Visual Metadata Extraction**: Updated Google Maps and Resident Advisor scrapers to capture venue thumbnails and hero images.
+- **Aesthetic Vibe Scoring**: Implemented `analyze_visual_vibe` in `AIEngine` to provide a 1-10 aesthetic fit score and descriptive visual summary.
+- **Vision Dashboard Integration**: Enhanced the HITL Dashboard to display venue images and AI vision analysis alongside textual data.
+- **Schema Expansion**: Added `image_url` and `visual_description` to the `venues` table for persistent visual intelligence.
+
 ## [1.1.39] - 2024-06-01
 ### Fixed
 - **Sync Logic Tests**: Corrected branch naming in `tests/test_sync_logic.py` to utilize the `feature/` prefix, ensuring compatibility with the hardened synchronization protocol.

@@ -106,6 +106,8 @@ def main():
                 ra_details = ra_enricher.enrich_venue(v_data['website'])
                 if ra_details.get('website'):
                     v_data['website'] = ra_details['website'] # Update to actual venue website
+                if ra_details.get('image_url'):
+                    v_data['image_url'] = ra_details['image_url']
                 if ra_details.get('description'):
                     enriched_text += f"\nResident Advisor Description: {ra_details['description']}"
                 if ra_details.get('socials'):
@@ -137,9 +139,17 @@ def main():
                         enriched_text += f"\nSocial Media Context: {social_context}"
 
             # Determine which genre to use for qualification
-            # If the venue was found during a specific genre hunt, use that.
-            # Fallback to the first target genre.
             qualify_genre = v_data.get('discovery_genre', target_genres[0])
+
+            # NEW: Phase 35 - Vision-Enriched Qualification
+            image_url = v_data.get('image_url')
+            if image_url:
+                print(f"Performing visual analysis for {v_data['name']}...")
+                visual_result = ai.analyze_visual_vibe(image_url, genre=qualify_genre)
+                visual_desc = visual_result.get('visual_description', "")
+                db.update_venue_visuals(v_id, image_url, visual_desc)
+                if visual_desc:
+                    enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc}"
 
             # Only perform AI vibe check if it's a new lead
             vibe_result = ai.vibe_check(v_data['name'], enriched_text, genre=qualify_genre, rating=v_data.get('google_rating'))

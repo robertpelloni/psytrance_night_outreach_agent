@@ -115,3 +115,8 @@ class GoogleMapsScraper:
     def search_venues(self, city, query="underground techno club"):
         print(f"Searching Google Maps for {query} in {city}...")
         return []
+
+class BaseScraper:
+    """Base class for all scrapers."""
+    def search_venues(self, city, query=None):
+        raise NotImplementedError("Scrapers must implement search_venues")

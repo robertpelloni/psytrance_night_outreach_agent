@@ -56,6 +56,15 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                     except:
                         pass
 
+                    # Extract image URL if possible
+                    image_url = None
+                    try:
+                        img_el = el.query_selector('img')
+                        if img_el:
+                            image_url = img_el.get_attribute('src')
+                    except:
+                        pass
+
                     venues.append({
                         'id': str(uuid.uuid4()),
                         'name': name,
@@ -63,7 +72,8 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                         'website': None,
                         'google_rating': rating,
                         'tags': query,
-                        'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}"
+                        'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",
+                        'image_url': image_url
                     })
                 except Exception as e:
                     print(f"Error parsing element: {e}")

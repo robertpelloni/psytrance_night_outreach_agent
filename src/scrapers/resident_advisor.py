@@ -86,6 +86,11 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                 if desc_el:
                     details['description'] = desc_el.inner_text()
 
+                # Extract Image URL
+                img_el = page.query_selector('img[alt*="venue"], .hero img, .venue-header img')
+                if img_el:
+                    details['image_url'] = img_el.get_attribute('src')
+
                 # Extract Socials
                 links = page.query_selector_all('a')
                 details['socials'] = []
