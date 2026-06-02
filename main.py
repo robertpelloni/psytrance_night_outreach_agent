@@ -166,9 +166,23 @@ def main():
             pitch = ""
             variant = "Professional"
             if vibe_result['vibe_score'] >= vibe_threshold:
-                # NEW: Randomly assign A/B variant
+                # NEW: Phase 37 - Sentiment-Driven Variant Optimization (Epsilon-Greedy)
+                from src.analytics import AnalyticsEngine
+                analytics = AnalyticsEngine()
+                variant_stats = analytics.get_variant_stats()
+
+                variants = ["Professional", "Underground", "Technical"]
                 import random
-                variant = random.choice(["Professional", "Underground", "Technical"])
+                epsilon = 0.2 # 20% exploration
+
+                if random.random() < epsilon or not variant_stats:
+                    variant = random.choice(variants)
+                    print(f"Exploration: Randomly assigned '{variant}' variant.")
+                else:
+                    # Exploit: Pick the variant with the highest conversion rate
+                    variant = max(variant_stats.keys(), key=lambda k: variant_stats[k]['conversion_rate'])
+                    print(f"Exploitation: Assigned best performing variant '{variant}' (Conv Rate: {variant_stats[variant]['conversion_rate']}%).")
+
                 print(f"Generating '{variant}' pitch for {v_data['name']}...")
 
                 pitch = ai.generate_pitch(

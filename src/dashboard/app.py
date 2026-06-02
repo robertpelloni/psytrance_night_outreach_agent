@@ -68,7 +68,8 @@ def sources():
 def show_analytics():
     stats = analytics.get_summary_stats()
     approval_rate = analytics.get_approval_rate()
-    return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
+    variant_stats = analytics.get_variant_stats()
+    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats)
 
 @app.route('/map')
 def show_map():

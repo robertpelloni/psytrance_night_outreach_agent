@@ -104,3 +104,38 @@ class AnalyticsEngine:
                 })
 
         return sorted(clusters, key=lambda x: x['venue_count'], reverse=True)
+
+    def get_variant_stats(self):
+        """Calculates conversion metrics per pitch variant."""
+        query = """
+        SELECT
+            l.pitch_variant,
+            COUNT(l.id) as total_leads,
+            SUM(CASE WHEN l.pipeline_status IN ('SENT', 'APPROVED') THEN 1 ELSE 0 END) as sent_or_approved,
+            SUM(CASE WHEN r.sentiment = 'INTERESTED' THEN 1 ELSE 0 END) as interested_replies
+        FROM outreach_leads l
+        LEFT JOIN lead_replies r ON l.id = r.lead_id
+        WHERE l.pitch_variant IS NOT NULL
+        GROUP BY l.pitch_variant
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+
+            stats = {}
+            for row in rows:
+                variant = row['pitch_variant']
+                total = row['total_leads']
+                sent = row['sent_or_approved']
+                interested = row['interested_replies'] or 0
+
+                # Conversion rate = interested / sent (if any sent)
+                conv_rate = round((interested / sent * 100), 1) if sent > 0 else 0
+
+                stats[variant] = {
+                    "total": total,
+                    "sent": sent,
+                    "interested": interested,
+                    "conversion_rate": conv_rate
+                }
+            return stats

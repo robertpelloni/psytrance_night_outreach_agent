@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.43] - 2024-06-01
+### Added
+- **Sentiment-Driven Variant Optimization**: Implemented an epsilon-greedy algorithm in the main pipeline to automatically select high-converting pitch variants based on historical interested replies.
+- **A/B Performance Analytics**: Added a new performance table to the Analytics Dashboard, visualizing conversion rates (Interested / Sent) per variant with real-time progress bars.
+- **Conversion-Aware Discovery**: Refactored `AnalyticsEngine` to support aggregated metric retrieval for data-driven qualification.
+### Changed
+- **Pipeline Intelligence**: The orchestrator now balances 20% exploration (random variants) with 80% exploitation of the current winning strategy.
+
 ## [1.1.42] - 2024-06-01
 ### Added
 - **A/B Testing Framework**: Implemented an automated framework for testing multiple outreach pitch variants (Professional, Underground, Technical).
