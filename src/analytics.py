@@ -2,8 +2,8 @@ import sqlite3
 import os
 
 class AnalyticsEngine:
-    def __init__(self, db_path='database/outreach.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or os.getenv("DB_PATH") or 'database/outreach.db'
 
     def _get_connection(self):
         return sqlite3.connect(self.db_path)
