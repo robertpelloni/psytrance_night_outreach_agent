@@ -49,6 +49,56 @@
         </div>
     </div>
 
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card text-bg-secondary">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5>A/B Testing: Pitch Variant Performance</h5>
+                    <span class="badge bg-primary">Conversion = Interested / Sent</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Variant</th>
+                                    <th>Total Leads</th>
+                                    <th>Sent/Approved</th>
+                                    <th>Interested Replies</th>
+                                    <th>Conversion Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for variant, v_stats in variant_stats.items() %}
+                                <tr>
+                                    <td><strong>{{ variant }}</strong></td>
+                                    <td>{{ v_stats.total }}</td>
+                                    <td>{{ v_stats.sent }}</td>
+                                    <td><span class="badge bg-success">{{ v_stats.interested }}</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 20px;">
+                                                <div class="progress-bar {% if v_stats.conversion_rate > 20 %}bg-success{% elif v_stats.conversion_rate > 10 %}bg-info{% else %}bg-warning{% endif %}"
+                                                     role="progressbar" style="width: {{ v_stats.conversion_rate }}%"></div>
+                                            </div>
+                                            <span>{{ v_stats.conversion_rate }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not variant_stats %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-secondary">No A/B variant data available yet.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card text-bg-secondary h-100">

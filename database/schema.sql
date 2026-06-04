@@ -5,7 +5,12 @@ CREATE TABLE IF NOT EXISTS venues (
     website TEXT UNIQUE,
     google_rating REAL,
     tags TEXT, -- JSON string or comma-separated tags
-    raw_about_text TEXT
+    raw_about_text TEXT,
+    extracted_traits TEXT, -- JSON blob of sound/lighting/vibe traits
+    latitude REAL,
+    longitude REAL,
+    image_url TEXT,
+    visual_description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS venue_contacts (
@@ -25,8 +30,11 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     qualification_justification TEXT,
     generated_pitch TEXT,
     pipeline_status TEXT DEFAULT 'PENDING_QUALIFICATION', -- PENDING_QUALIFICATION, PENDING_REVIEW, APPROVED, REJECTED, SENT, REJECTED
+    qualified_genre TEXT,
+    pitch_variant TEXT, -- A/B testing variant (e.g., 'Professional', 'Underground', 'Technical')
     last_outreach_at TIMESTAMP,
     follow_up_count INTEGER DEFAULT 0,
+    success_probability REAL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(venue_id) REFERENCES venues(id)
 );
@@ -42,6 +50,7 @@ CREATE TABLE IF NOT EXISTS lead_replies (
     lead_id INTEGER,
     content TEXT NOT NULL,
     sentiment TEXT, -- INTERESTED, REJECTED, INQUIRY, OOO, UNKNOWN
+    draft_response TEXT,
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
 );
@@ -51,5 +60,15 @@ CREATE TABLE IF NOT EXISTS system_logs (
     component TEXT NOT NULL, -- SYNC, DISCOVERY, OUTREACH
     status TEXT NOT NULL, -- SUCCESS, FAILURE
     message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS version_audit_trail (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commit_hash TEXT NOT NULL,
+    author TEXT,
+    timestamp DATETIME,
+    version_string TEXT,
+    summary TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

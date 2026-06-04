@@ -3,25 +3,31 @@ import os
 
 class DatabaseManager:
     def __init__(self, db_path=None):
-        self.db_path = db_path or 'database/outreach.db'
+        self.db_path = db_path or os.getenv("DB_PATH") or 'database/outreach.db'
         self._init_db()
 
     def _get_connection(self):
         return sqlite3.connect(self.db_path)
 
     def _init_db(self):
-        schema_path = 'database/schema.sql'
-        if not os.path.exists('database'):
-            os.makedirs('database')
+        # Find schema path relative to project root
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        schema_path = os.path.join(base_dir, 'database', 'schema.sql')
+
+        if not os.path.exists(os.path.dirname(self.db_path)):
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
         with self._get_connection() as conn:
-            with open(schema_path, 'r') as f:
-                conn.executescript(f.read())
+            if os.path.exists(schema_path):
+                with open(schema_path, 'r') as f:
+                    conn.executescript(f.read())
+            else:
+                print(f"Warning: schema.sql not found at {schema_path}")
 
     def add_venue(self, venue_data):
         query = """
-        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude, image_url, visual_description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         # Ensure we don't insert NULL for website if we want UNIQUE constraint to be effective
         # Note: SQLite treats multiple NULLs as unique, but we want to avoid duplicate names in the same city too.
@@ -29,8 +35,40 @@ class DatabaseManager:
             conn.execute(query, (
                 venue_data['id'], venue_data['name'], venue_data['city'],
                 venue_data.get('website'), venue_data.get('google_rating'),
-                venue_data.get('tags'), venue_data.get('raw_about_text')
+                venue_data.get('tags'), venue_data.get('raw_about_text'),
+                venue_data.get('extracted_traits'),
+                venue_data.get('latitude'),
+                venue_data.get('longitude'),
+                venue_data.get('image_url'),
+                venue_data.get('visual_description')
             ))
+
+    def update_venue_traits(self, venue_id, traits_json):
+        query = "UPDATE venues SET extracted_traits = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (traits_json, venue_id))
+
+    def update_venue_location(self, venue_id, lat, lon):
+        query = "UPDATE venues SET latitude = ?, longitude = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (lat, lon, venue_id))
+
+    def update_venue_visuals(self, venue_id, image_url, visual_description):
+        query = "UPDATE venues SET image_url = ?, visual_description = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (image_url, visual_description, venue_id))
+
+    def get_venues_with_location(self):
+        query = """
+        SELECT v.*, l.vibe_score
+        FROM venues v
+        JOIN outreach_leads l ON v.id = l.venue_id
+        WHERE v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            return [dict(row) for row in cursor.fetchall()]
 
     def venue_exists_by_name(self, name, city):
         query = "SELECT id FROM venues WHERE name = ? AND city = ?"
@@ -59,15 +97,18 @@ class DatabaseManager:
 
     def add_lead(self, lead_data):
         query = """
-        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status, success_probability, qualified_genre, pitch_variant)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
             conn.execute(query, (
                 lead_data['venue_id'], lead_data.get('vibe_score'),
                 lead_data.get('qualification_justification'),
                 lead_data.get('generated_pitch'),
-                lead_data.get('pipeline_status', 'PENDING_QUALIFICATION')
+                lead_data.get('pipeline_status', 'PENDING_QUALIFICATION'),
+                lead_data.get('success_probability'),
+                lead_data.get('qualified_genre'),
+                lead_data.get('pitch_variant')
             ))
 
     def update_lead_status(self, lead_id, status, pitch=None):
@@ -89,7 +130,7 @@ class DatabaseManager:
 
     def get_pending_leads(self):
         query = """
-        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status,
+        SELECT l.id, v.name, v.city, v.extracted_traits, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.success_probability, l.qualified_genre, l.pitch_variant,
                (SELECT email FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as email,
                (SELECT instagram_handle FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as instagram
         FROM outreach_leads l
@@ -104,7 +145,7 @@ class DatabaseManager:
 
     def get_lead_history(self):
         query = """
-        SELECT l.id, v.name, v.city, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at
+        SELECT l.id, v.name, v.city, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre, l.pitch_variant
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
         WHERE l.pipeline_status IN ('SENT', 'REJECTED')
@@ -183,10 +224,10 @@ class DatabaseManager:
             row = cursor.fetchone()
             return row is not None and row[0] == 'COMPLETED'
 
-    def add_reply(self, lead_id, content, sentiment='UNKNOWN'):
-        query = "INSERT INTO lead_replies (lead_id, content, sentiment) VALUES (?, ?, ?)"
+    def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
+        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
-            conn.execute(query, (lead_id, content, sentiment))
+            conn.execute(query, (lead_id, content, sentiment, draft_response))
 
     def get_lead_replies(self, lead_id):
         query = "SELECT * FROM lead_replies WHERE lead_id = ? ORDER BY received_at DESC"
@@ -209,6 +250,13 @@ class DatabaseManager:
 
     def get_latest_system_logs(self, limit=5):
         query = "SELECT * FROM system_logs ORDER BY created_at DESC LIMIT ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (limit,))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_version_audit_trail(self, limit=50):
+        query = "SELECT * FROM version_audit_trail ORDER BY timestamp DESC LIMIT ?"
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (limit,))

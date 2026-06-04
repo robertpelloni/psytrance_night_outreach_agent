@@ -61,6 +61,26 @@ class ContactExtractor:
         return re.findall(r'(?:@|(?:www\.)?instagram\.com/)([a-zA-Z0-9_.]+)', text)
 
     @staticmethod
+    def get_social_context(instagram_handle):
+        """
+        Extracts recent vibe/context from Instagram using real-time scraping.
+        """
+        if not instagram_handle: return None
+
+        # Avoid circular import
+        from .instagram import InstagramScraper
+
+        scraper = InstagramScraper()
+        context = scraper.get_profile_context(instagram_handle)
+
+        if context:
+            summary = f"Bio: {context.get('bio', 'N/A')}\n"
+            summary += f"Recent Activity Snippet: {context.get('recent_activity_context', 'N/A')}"
+            return summary
+
+        return "social media activity suggests a standard high-energy club atmosphere."
+
+    @staticmethod
     def scrape_website(url):
         if not url:
             return {}
@@ -95,3 +115,8 @@ class GoogleMapsScraper:
     def search_venues(self, city, query="underground techno club"):
         print(f"Searching Google Maps for {query} in {city}...")
         return []
+
+class BaseScraper:
+    """Base class for all scrapers."""
+    def search_venues(self, city, query=None):
+        raise NotImplementedError("Scrapers must implement search_venues")

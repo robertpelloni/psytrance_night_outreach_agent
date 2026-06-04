@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <div class="card text-bg-secondary shadow">
+            <div class="card text-bg-secondary mb-4 shadow">
                 <div class="card-header bg-dark">Database Status</div>
                 <div class="card-body">
                     <p><strong>Total Venues:</strong> {{ stats.total_venues }}</p>
@@ -57,13 +57,117 @@
                     <p><strong>Sent Pitches:</strong> {{ stats.status_breakdown.get('SENT', 0) }}</p>
                 </div>
             </div>
+
+            <div class="card text-bg-secondary shadow">
+                <div class="card-header bg-dark">Sync Reliability (7d)</div>
+                <div class="card-body">
+                    <h2 class="text-center {% if sync_stats.success_rate >= 90 %}text-success{% else %}text-warning{% endif %}">
+                        {{ sync_stats.success_rate }}%
+                    </h2>
+                    <p class="text-center text-white-50"><small>Success Rate</small></p>
+                    <hr class="border-secondary">
+                    <p><strong>Total Syncs:</strong> {{ sync_stats.total_syncs }}</p>
+                    <p><strong>Failures:</strong> <span class="text-danger">{{ sync_stats.failures }}</span></p>
+                </div>
+            </div>
         </div>
 
         <div class="col-md-8">
-            <div class="card text-bg-dark border-secondary shadow" style="height: 100%;">
+            <div class="card text-bg-dark border-secondary shadow mb-4">
                 <div class="card-header bg-secondary text-white">Sync Protocol Output</div>
                 <div class="card-body">
-                    <pre id="sync-output" class="text-white-50 p-3 bg-black rounded" style="height: 400px; overflow-y: auto; font-size: 0.85rem;">Ready to sync...</pre>
+                    <pre id="sync-output" class="text-white-50 p-3 bg-black rounded" style="height: 300px; overflow-y: auto; font-size: 0.85rem;">Ready to sync...</pre>
+                </div>
+            </div>
+
+            <div class="card text-bg-dark border-secondary shadow mb-4">
+                <div class="card-header bg-dark text-white">Feature Branch Health</div>
+                <div class="card-body">
+                    <table class="table table-dark table-sm table-hover border-secondary">
+                        <thead>
+                            <tr>
+                                <th>Branch Name</th>
+                                <th>Status</th>
+                                <th>Last Message</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for branch in git_info.branches %}
+                            <tr {% if branch in stale_branches|map(attribute='name') %}class="table-warning text-dark"{% endif %}>
+                                <td>
+                                    <code>{{ branch }}</code>
+                                    {% if branch in stale_branches|map(attribute='name') %}
+                                        <span class="badge bg-warning text-dark ms-2">STALE</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <span class="badge {% if log.status == 'SUCCESS' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ log.status }}
+                                            </span>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not found %}
+                                        <span class="badge bg-secondary">UNKNOWN</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <small class="text-white-50">{{ log.message }}</small>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% set found = false %}
+                                    {% for log in sync_logs %}
+                                        {% if branch in log.message and not found %}
+                                            <small class="text-white-50">{{ log.created_at }}</small>
+                                            {% set found = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card text-bg-dark border-secondary shadow">
+                <div class="card-header bg-dark text-white">Version Audit Trail</div>
+                <div class="card-body">
+                    <table class="table table-dark table-sm table-hover border-secondary">
+                        <thead>
+                            <tr>
+                                <th>Commit</th>
+                                <th>Author</th>
+                                <th>Summary</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for commit in audit_trail %}
+                            <tr>
+                                <td><code>{{ commit.commit_hash[:7] }}</code></td>
+                                <td>{{ commit.author }}</td>
+                                <td>
+                                    <small>{{ commit.summary }}</small>
+                                    {% if commit.version_string %}
+                                        <span class="badge bg-warning text-dark ms-1">{{ commit.version_string }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-white-50">{{ commit.timestamp }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

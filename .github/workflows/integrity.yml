@@ -1,0 +1,49 @@
+name: Sync Integrity Audit
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Run daily at noon
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  integrity-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Integrity Auditor"
+          git config --global user.email "audit@github.com"
+
+      - name: Run Multi-Branch Stress Test (Pytest)
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          python3 -m pytest tests/test_multi_branch_stress.py || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_STRESS" "FAILURE" && exit 1)
+          python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_STRESS" "SUCCESS"
+
+      - name: Run Full Sync Logic Audit
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          export SKIP_SYNC_VALIDATION=1
+          python3 sync_repo.py || (python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_SYNC" "FAILURE" && exit 1)
+          python3 src/pipeline_monitor.py "${{ github.run_id }}" "AUDIT_SYNC_COMPLETE" "SUCCESS"
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

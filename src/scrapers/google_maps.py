@@ -1,5 +1,6 @@
 from .base_scraper import GoogleMapsScraper, UserAgentRotator, ProxyRotator
 import uuid
+import re
 from playwright.sync_api import sync_playwright
 import time
 
@@ -41,17 +42,38 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                 try:
                     name = el.get_attribute("aria-label") or "Unknown Venue"
 
-                    # For more details, we'd need to click each and wait for the side panel
-                    # But for now, we'll try to get what we can from the list
+                    # Attempt to extract rating if visible in the result item
+                    # This often appears in a span with aria-label containing "stars"
+                    rating = None
+                    try:
+                        rating_el = el.query_selector('span[aria-label*="stars"]')
+                        if rating_el:
+                            rating_text = rating_el.get_attribute("aria-label")
+                            # Extract number like "4.5" from "4.5 stars"
+                            rating_match = re.search(r"(\d+\.?\d*)", rating_text)
+                            if rating_match:
+                                rating = float(rating_match.group(1))
+                    except:
+                        pass
+
+                    # Extract image URL if possible
+                    image_url = None
+                    try:
+                        img_el = el.query_selector('img')
+                        if img_el:
+                            image_url = img_el.get_attribute('src')
+                    except:
+                        pass
 
                     venues.append({
                         'id': str(uuid.uuid4()),
                         'name': name,
                         'city': city,
-                        'website': None, # Requires clicking
-                        'google_rating': None, # Requires clicking or more complex parsing
+                        'website': None,
+                        'google_rating': rating,
                         'tags': query,
-                        'raw_about_text': f"Scraped from Google Maps for {full_query}"
+                        'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",
+                        'image_url': image_url
                     })
                 except Exception as e:
                     print(f"Error parsing element: {e}")

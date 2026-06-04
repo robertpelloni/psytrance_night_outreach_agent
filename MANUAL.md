@@ -79,6 +79,9 @@ Once the pipeline has run, you can manage your leads through the web dashboard.
 ```bash
 python src/dashboard/app.py
 ```
+
+### Automated Development Synchronization
+The agent supports automated repository synchronization for local development. By running `./install_hooks.sh`, you install a Git `post-commit` hook that automatically triggers the `sync_repo.py` protocol after every commit. This ensures that your local work is continuously merged and reconciled with the remote repository.
 Access it at: `http://localhost:5000`
 
 ### Dashboard Features
@@ -132,7 +135,20 @@ if vibe_result['vibe_score'] >= 7: # Change this number to be more/less selectiv
 
 ---
 
-## 7. Extending the Agent
+## 7. Live Pilot & Environment Validation
+The agent includes a suite of connectivity tests to ensure that external services (OpenAI, Proxies, SMTP) are reachable from your deployment environment.
+
+To test your production environment:
+```bash
+python tests/test_live_connectivity.py
+```
+
+To execute a complete production-safe pilot run:
+```bash
+./pilot_run.sh
+```
+
+## 8. Extending the Agent
 The system is modular. To add a new scraper (e.g., Eventbrite):
 1.  Create a new file in `src/scrapers/`.
 2.  Inherit from a base scraper class.

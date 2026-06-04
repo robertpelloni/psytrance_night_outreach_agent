@@ -8,6 +8,8 @@ from src.ai_engine import AIEngine
 from src.config_manager import ConfigManager
 from src.outreach_engine import OutreachEngine
 from src.follow_up_engine import FollowUpEngine
+from src.geocoding import GeocodingUtility
+from src.outreach_predictor import OutreachPredictor
 
 def load_scrapers():
     scrapers = []
@@ -41,26 +43,45 @@ def main():
     config = ConfigManager()
     outreach = OutreachEngine()
     follow_up = FollowUpEngine()
+    geocoder = GeocodingUtility()
+    predictor = OutreachPredictor()
     scrapers = load_scrapers()
 
     print(f"Loaded {len(scrapers)} scrapers: {[s.__class__.__name__ for s in scrapers]}")
 
     cities = config.get("cities")
     vibe_threshold = config.get("vibe_threshold")
+    target_genres = config.get("target_genres") or ["psytrance"]
 
     for city in cities:
         if db.is_city_processed(city):
             print(f"Skipping {city} - Already processed in this cycle.")
             continue
 
-        print(f"\n--- Processing {city} ---")
+        print(f"\n--- Processing {city} (All configured genres) ---")
 
         raw_venues = []
-        for scraper in scrapers:
-            try:
-                raw_venues.extend(scraper.search_venues(city))
-            except Exception as e:
-                print(f"Error running scraper {scraper.__class__.__name__}: {e}")
+        for genre in target_genres:
+            print(f"Hunting for: {genre}")
+            db.log_system_event("DISCOVERY", "START", f"Hunting for {genre} in {city}")
+            for scraper in scrapers:
+                try:
+                    if hasattr(scraper, 'search_venues'):
+                        import inspect
+                        sig = inspect.signature(scraper.search_venues)
+                        if 'query' in sig.parameters:
+                            # Use more specific query if possible
+                            query = f"underground {genre} club"
+                            results = scraper.search_venues(city, query=query)
+                        else:
+                            results = scraper.search_venues(city)
+
+                        # Add metadata about which genre discovery found this venue
+                        for r in results:
+                            r['discovery_genre'] = genre
+                        raw_venues.extend(results)
+                except Exception as e:
+                    print(f"Error running scraper {scraper.__class__.__name__}: {e}")
 
         for v_data in raw_venues:
             # OPTIMIZATION: Check if venue and lead already exist before burning AI tokens
@@ -77,28 +98,102 @@ def main():
                 db.add_venue(v_data)
 
             enriched_text = v_data.get('raw_about_text', "")
-            if v_data.get('website'):
+
+            # NEW: If it's an RA profile, enrich it first to get the actual website
+            if "ra.co/venues/" in v_data.get('website', ''):
+                from src.scrapers.resident_advisor import ResidentAdvisorWebScraper
+                ra_enricher = ResidentAdvisorWebScraper()
+                ra_details = ra_enricher.enrich_venue(v_data['website'])
+                if ra_details.get('website'):
+                    v_data['website'] = ra_details['website'] # Update to actual venue website
+                if ra_details.get('image_url'):
+                    v_data['image_url'] = ra_details['image_url']
+                if ra_details.get('description'):
+                    enriched_text += f"\nResident Advisor Description: {ra_details['description']}"
+                if ra_details.get('socials'):
+                    # Try to find an IG handle from the social links
+                    for s in ra_details['socials']:
+                        if 'instagram.com' in s:
+                            insta_handle = s.split('/')[-1].split('?')[0]
+                            db.add_contact({
+                                'venue_id': v_id,
+                                'instagram_handle': insta_handle
+                            })
+
+            if v_data.get('website') and "ra.co" not in v_data['website']:
                 contact_info = ContactExtractor.scrape_website(v_data['website'])
                 if contact_info:
                     if contact_info.get('about_text'):
                         enriched_text = contact_info['about_text']
 
+                    insta = ", ".join(contact_info.get('instagrams', []))
                     db.add_contact({
                         'venue_id': v_id,
                         'email': ", ".join(contact_info.get('emails', [])),
-                        'instagram_handle': ", ".join(contact_info.get('instagrams', []))
+                        'instagram_handle': insta
                     })
 
+                    # NEW: Get contextual social context to enrich AI prompt
+                    social_context = ContactExtractor.get_social_context(insta)
+                    if social_context:
+                        enriched_text += f"\nSocial Media Context: {social_context}"
+
+            # Determine which genre to use for qualification
+            qualify_genre = v_data.get('discovery_genre', target_genres[0])
+
+            # NEW: Phase 35 - Vision-Enriched Qualification
+            image_url = v_data.get('image_url')
+            if image_url:
+                print(f"Performing visual analysis for {v_data['name']}...")
+                visual_result = ai.analyze_visual_vibe(image_url, genre=qualify_genre)
+                visual_desc = visual_result.get('visual_description', "")
+                db.update_venue_visuals(v_id, image_url, visual_desc)
+                if visual_desc:
+                    enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc}"
+
             # Only perform AI vibe check if it's a new lead
-            vibe_result = ai.vibe_check(v_data['name'], enriched_text)
+            vibe_result = ai.vibe_check(v_data['name'], enriched_text, genre=qualify_genre, rating=v_data.get('google_rating'))
+
+            # NEW: Extract technical and atmospheric traits for personalization
+            traits = ai.extract_venue_traits(enriched_text)
+            db.update_venue_traits(v_id, traits)
+
+            # NEW: Geocode venue for mapping
+            lat, lon = geocoder.geocode_venue(v_data['name'], v_data['city'])
+            if lat and lon:
+                db.update_venue_location(v_id, lat, lon)
 
             pitch = ""
+            variant = "Professional"
             if vibe_result['vibe_score'] >= vibe_threshold:
+                # NEW: Phase 37 - Sentiment-Driven Variant Optimization (Epsilon-Greedy)
+                from src.analytics import AnalyticsEngine
+                analytics = AnalyticsEngine()
+                variant_stats = analytics.get_variant_stats()
+
+                variants = ["Professional", "Underground", "Technical"]
+                import random
+                epsilon = 0.2 # 20% exploration
+
+                if random.random() < epsilon or not variant_stats:
+                    variant = random.choice(variants)
+                    print(f"Exploration: Randomly assigned '{variant}' variant.")
+                else:
+                    # Exploit: Pick the variant with the highest conversion rate
+                    variant = max(variant_stats.keys(), key=lambda k: variant_stats[k]['conversion_rate'])
+                    print(f"Exploitation: Assigned best performing variant '{variant}' (Conv Rate: {variant_stats[variant]['conversion_rate']}%).")
+
+                print(f"Generating '{variant}' pitch for {v_data['name']}...")
+
                 pitch = ai.generate_pitch(
                     v_data['name'],
                     vibe_result['justification'],
                     epk_link=config.get("epk_link"),
-                    mix_link=config.get("mix_link")
+                    mix_link=config.get("mix_link"),
+                    traits=traits,
+                    media_library=config.get("media_library"),
+                    genre=qualify_genre,
+                    variant=variant
                 )
                 status = 'PENDING_REVIEW'
             else:
@@ -109,9 +204,16 @@ def main():
                 'vibe_score': vibe_result['vibe_score'],
                 'qualification_justification': vibe_result['justification'],
                 'generated_pitch': pitch,
-                'pipeline_status': status
+                'pipeline_status': status,
+                'qualified_genre': qualify_genre,
+                'pitch_variant': variant
             }
             db.add_lead(lead_data)
+
+            # NEW: Calculate and cache success probability
+            lead = db.get_lead_by_venue_id(v_id)
+            if lead:
+                predictor.predict_success_probability(lead['id'], use_cache=False)
 
         db.mark_city_processed(city)
 

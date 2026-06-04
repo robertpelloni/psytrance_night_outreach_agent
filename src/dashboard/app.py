@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+import sqlite3
 import sys
 import os
 import subprocess
@@ -13,6 +14,10 @@ from src.scraper_generator import ScraperGenerator
 from src.analytics import AnalyticsEngine
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.config_manager import ConfigManager
+from src.reliability_monitor import ReliabilityMonitor
+from src.tour_planner import TourPlanner
+from src.outreach_predictor import OutreachPredictor
+from src.outreach_engine import OutreachEngine
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -24,10 +29,25 @@ generator = ScraperGenerator()
 analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
 config_mgr = ConfigManager()
+reliability = ReliabilityMonitor(db_path=db_path)
+planner = TourPlanner(db_path=db_path)
+predictor = OutreachPredictor(db_path=db_path)
+outreach_engine = OutreachEngine(db_path=db_path)
+
+import json
 
 @app.route('/')
 def index():
     leads = db.get_pending_leads()
+    for lead in leads:
+        # success_probability is now fetched from the database in get_pending_leads
+        lead['success_prob'] = lead.get('success_probability')
+
+        if lead.get('extracted_traits'):
+            try:
+                lead['traits_dict'] = json.loads(lead['extracted_traits'])
+            except:
+                lead['traits_dict'] = {}
     return render_template('index.html', leads=leads, view='pending')
 
 @app.route('/history')
@@ -48,7 +68,38 @@ def sources():
 def show_analytics():
     stats = analytics.get_summary_stats()
     approval_rate = analytics.get_approval_rate()
-    return render_template('analytics.html', stats=stats, approval_rate=approval_rate)
+    variant_stats = analytics.get_variant_stats()
+    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats)
+
+@app.route('/map')
+def show_map():
+    venues = db.get_venues_with_location()
+    clusters = analytics.get_venue_clusters()
+    return render_template('map.html', venues=venues, clusters=clusters)
+
+@app.route('/plan_tour/<int:cluster_index>')
+def plan_tour(cluster_index):
+    recommendation = planner.plan_optimized_tour(cluster_index)
+    pitch = planner.generate_cluster_pitch(cluster_index)
+    return jsonify({
+        "recommendation": recommendation,
+        "pitch": pitch
+    })
+
+@app.route('/dispatch_tour/<int:cluster_index>', methods=['POST'])
+def dispatch_tour(cluster_index):
+    clusters = analytics.get_venue_clusters()
+    if cluster_index >= len(clusters):
+        return jsonify({"error": "Cluster not found"}), 404
+
+    cluster = clusters[cluster_index]
+    pitch = request.json.get('pitch')
+
+    if not pitch:
+        return jsonify({"error": "Pitch content required"}), 400
+
+    results = outreach_engine.dispatch_cluster_pitch(cluster['venues'], pitch)
+    return jsonify(results)
 
 @app.route('/system')
 def system_status():
@@ -61,10 +112,18 @@ def system_status():
 
     git_info = {
         "branch": subprocess.getoutput("git rev-parse --abbrev-ref HEAD"),
-        "commit": subprocess.getoutput("git rev-parse --short HEAD")
+        "commit": subprocess.getoutput("git rev-parse --short HEAD"),
+        "branches": subprocess.getoutput("git branch --format='%(refname:short)'").splitlines()
     }
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info)
+    # Fetch last 10 sync logs
+    sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
+
+    sync_stats = reliability.get_sync_health_stats()
+    stale_branches = reliability.get_stale_branches()
+    audit_trail = db.get_version_audit_trail()
+
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():
@@ -117,13 +176,16 @@ def approve(lead_id):
     pitch = request.form.get('pitch')
     db.update_lead_status(lead_id, 'APPROVED', pitch=pitch)
     lead = db.get_lead(lead_id)
+
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+
     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
         cursor = conn.execute(query, (lead['venue_id'],))
         contact = cursor.fetchone()
     if contact and contact[0]:
         email = contact[0].split(',')[0].strip()
-        subject = "Proposal for Psytrance Night Residency"
+        subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
         if mailer.send_email(email, subject, pitch):
             db.update_lead_status(lead_id, 'SENT')
     return redirect(url_for('index'))
@@ -133,6 +195,34 @@ def reject(lead_id):
     db.update_lead_status(lead_id, 'REJECTED')
     return redirect(url_for('index'))
 
+@app.route('/send_reply/<int:reply_id>', methods=['POST'])
+def send_reply(reply_id):
+    reply_content = request.form.get('reply_content')
+
+    # Fetch lead info via reply_id
+    with db._get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        reply = conn.execute("SELECT * FROM lead_replies WHERE id = ?", (reply_id,)).fetchone()
+        if not reply: return "Reply not found", 404
+
+        lead = db.get_lead(reply['lead_id'])
+        venue = db.get_venue(lead['venue_id'])
+
+        # Fetch email
+        cursor = conn.execute("SELECT email FROM venue_contacts WHERE venue_id = ?", (venue['id'],))
+        contact = cursor.fetchone()
+
+    if contact and contact[0]:
+        email = contact[0].split(',')[0].strip()
+        subject = f"Re: Proposal for Psytrance Night Residency - {venue['name']}"
+        if mailer.send_email(email, subject, reply_content):
+            # Update reply as 'SENT' or similar if we had a status,
+            # for now we'll just log success
+            db.log_system_event("OUTREACH", "SUCCESS", f"Sent manual reply to {email} for lead {lead['id']}")
+            return redirect(url_for('history'))
+
+    return "Error sending reply", 500
+
 @app.route('/regenerate/<int:lead_id>', methods=['POST'])
 def regenerate(lead_id):
     lead = db.get_lead(lead_id)
@@ -140,11 +230,15 @@ def regenerate(lead_id):
     venue = db.get_venue(lead['venue_id'])
     if not venue: return jsonify({"error": "Venue not found"}), 404
 
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
     new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
-        mix_link=config_mgr.get("mix_link")
+        mix_link=config_mgr.get("mix_link"),
+        traits=venue.get('extracted_traits'),
+        media_library=config_mgr.get("media_library"),
+        genre=primary_genre
     )
     return jsonify({"pitch": new_pitch})
 

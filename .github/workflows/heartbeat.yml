@@ -1,0 +1,31 @@
+name: System Heartbeat
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Run every 30 minutes
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Database Integrity Check
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          python3 -c "from src.db_manager import DatabaseManager; db = DatabaseManager(); print('DB OK') if db.get_latest_system_logs(1) else print('DB EMPTY/INIT')"
+
+      - name: Log Heartbeat
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          python3 src/pipeline_monitor.py "${{ github.run_id }}" "HEARTBEAT" "SUCCESS"

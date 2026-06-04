@@ -7,20 +7,29 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def vibe_check(self, venue_name, raw_text):
+    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
 
+        rating_context = f"Google Rating: {rating}/5" if rating else ""
+
         prompt = f"""
-        Analyze this venue description and determine if it is suitable for a psytrance night.
+        Analyze this venue description and social media context to determine if it is suitable for a {genre} night.
         Venue Name: {venue_name}
-        Description: {raw_text}
+        {rating_context}
+        Context/Description: {raw_text}
+
+        Criteria for high score (7-10):
+        - References to 'underground', 'atmospheric', '{genre}', 'high-quality audio', 'immersive'.
+        - Mentions of high-quality sound systems (Funktion-One, etc.).
+        - Immersive visual elements mentioned in bio or reviews.
+        - Open-minded music policy.
 
         Output JSON format:
         {{
             "vibe_score": (1-10),
-            "justification": "short explanation"
+            "justification": "Detailed explanation incorporating social context if available"
         }}
         """
         try:
@@ -35,13 +44,13 @@ class AIEngine:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_follow_up(self, venue_name, original_pitch):
+    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance"):
         if not self.client:
-            return "Just following up on our previous email regarding a psytrance night!"
+            return f"Just following up on our previous email regarding a {genre} night!"
 
         prompt = f"""
         Write a short, polite follow-up email to a booking manager at {venue_name}.
-        We previously sent them a pitch for a psytrance residency.
+        We previously sent them a pitch for a {genre} residency.
 
         Original Pitch context:
         {original_pitch[:500]}...
@@ -58,6 +67,33 @@ class AIEngine:
         except Exception as e:
             print(f"AI Error: {e}")
             return "Just checking back on my previous email!"
+
+    def extract_venue_traits(self, raw_text):
+        """Parses venue description for technical and atmospheric traits."""
+        if not self.client or not raw_text: return "{}"
+
+        prompt = f"""
+        Analyze the following text about a music venue and extract key traits in JSON format.
+        Focus on:
+        1. sound_system: Mentioned brands or quality (e.g., 'Funktion-One', 'Void').
+        2. lighting: Notable features (e.g., 'projection mapping', 'lasers').
+        3. atmosphere: Keywords (e.g., 'intimate', 'industrial', 'outdoor').
+        4. music_policy: Primary genres mentioned.
+
+        Text: "{raw_text[:2000]}"
+
+        Return ONLY valid JSON.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error extracting traits: {e}")
+            return "{}"
 
     def analyze_sentiment(self, reply_content):
         if not self.client:
@@ -90,35 +126,147 @@ class AIEngine:
             print(f"AI Sentiment Analysis Error: {e}")
             return "UNKNOWN"
 
-    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None):
-        if not self.client:
-            return "Hey, we would love to play at your venue!"
-
-        links_context = ""
-        if epk_link:
-            links_context += f"- Link to our Electronic Press Kit (EPK): {epk_link}\n"
-        if mix_link:
-            links_context += f"- Our showcase mix: {mix_link}\n"
+    def analyze_visual_vibe(self, image_url, genre="psytrance"):
+        """Uses GPT-4o vision to analyze a venue image for aesthetic compatibility."""
+        if not self.client or not image_url:
+            return {"visual_vibe_score": 5, "visual_description": "No image or AI not configured."}
 
         prompt = f"""
-        Write a professional cold email to the booking manager of {venue_name}.
-        The reason we like them is: {justification}
-        We are a collective of psytrance selectors looking to start a recurring night.
-        The tone should be professional and value-driven.
+        Analyze this image of a music venue.
+        Does it look like a good fit for a {genre} night?
+        Consider lighting (lasers, UV, projection mapping), décor (psychedelic, industrial, underground), and space layout.
 
-        Please include these links in the pitch:
-        {links_context}
+        Output JSON format:
+        {{
+            "visual_vibe_score": (1-10),
+            "visual_description": "Concise summary of the aesthetic features found in the image."
+        }}
         """
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o",
-                messages=[{"role": "system", "content": "You are a professional booking agent."},
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": image_url},
+                            },
+                        ],
+                    }
+                ],
+                max_tokens=300,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(response.choices[0].message.content)
+        except Exception as e:
+            print(f"AI Vision Error: {e}")
+            return {"visual_vibe_score": 0, "visual_description": f"Error analyzing image: {e}"}
+
+    def generate_pitch(self, venue_name, justification, epk_link=None, mix_link=None, traits=None, media_library=None, genre="psytrance", variant="Professional"):
+        if not self.client:
+            return "Hey, we would love to play at your venue!"
+
+        selected_media = mix_link
+        if media_library and traits:
+            # Use AI to select the best media from the library based on traits
+            selected_media = self.select_contextual_media(traits, media_library) or mix_link
+
+        links_context = ""
+        if epk_link:
+            links_context += f"- Link to our Electronic Press Kit (EPK): {epk_link}\n"
+        if selected_media:
+            links_context += f"- Our showcase mix/visuals: {selected_media}\n"
+
+        traits_context = ""
+        if traits:
+            traits_context = f"Deeply integrate these venue traits into the pitch to show authentic engagement:\n{traits}"
+
+        variant_prompts = {
+            "Professional": "The tone should be highly professional, business-oriented, and value-driven.",
+            "Underground": "The tone should be authentic, underground-focused, and slightly more casual, emphasizing subculture and community.",
+            "Technical": "The tone should focus heavily on technical specs, sound quality, and production value, speaking 'gear-talk' to their production manager."
+        }
+
+        tone_instruction = variant_prompts.get(variant, variant_prompts["Professional"])
+
+        prompt = f"""
+        Write a bespoke cold email pitch to the booking manager of {venue_name}.
+        Justification for outreach: {justification}
+        Our project: A collective of {genre} selectors looking to start a recurring residency.
+
+        {tone_instruction}
+
+        Please include these links:
+        {links_context}
+
+        {traits_context}
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are an expert music booking agent specializing in electronic music subcultures."},
                           {"role": "user", "content": prompt}]
             )
             return response.choices[0].message.content
         except Exception as e:
             print(f"AI Error: {e}")
             return "Error generating pitch."
+
+    def select_contextual_media(self, venue_traits, media_library):
+        """Uses AI to pick the most relevant media from the library for a given venue."""
+        if not self.client or not media_library: return None
+
+        prompt = f"""
+        Given the following venue traits:
+        {venue_traits}
+
+        Select the most appropriate media item from this library:
+        {json.dumps(media_library)}
+
+        Return ONLY the 'url' of the best match.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Error selecting contextual media: {e}")
+            return None
+
+    def generate_reply_draft(self, venue_name, lead_reply, original_pitch, genre="psytrance"):
+        """Generates a professional draft response to a venue's reply."""
+        if not self.client:
+            return "Thank you for your reply! Let's discuss further."
+
+        prompt = f"""
+        Draft a professional and persuasive response to a booking manager at {venue_name}.
+
+        They replied to our initial pitch with:
+        "{lead_reply}"
+
+        Our original pitch was:
+        "{original_pitch[:1000]}..."
+
+        Goal:
+        - If they are interested, suggest a next step (e.g., a short call or meeting).
+        - If they have a question (INQUIRY), answer it politely and knowledgeably based on the {genre} collective context.
+        - Maintain a friendly, professional, and underground-authentic vibe.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are an expert music booking agent and negotiator."},
+                          {"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Draft Generation Error: {e}")
+            return "Thank you for your interest! We'll get back to you shortly."
 
     def resolve_merge_conflict(self, file_content_with_conflicts):
         if not self.client:

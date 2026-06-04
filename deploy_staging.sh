@@ -22,21 +22,20 @@ export DB_PATH="database/staging_outreach.db"
 # DatabaseManager will automatically create it based on schema.sql
 python3 -c "from src.db_manager import DatabaseManager; DatabaseManager(db_path='$DB_PATH')"
 
-# 3. Run End-to-End Integration Tests
-echo "Step 3: Running End-to-End Integration Tests..."
+# 3. Run Master Integrity Suite (Hardened v1.1.13)
+echo "Step 3: Running Master Integrity Suite..."
 export PYTHONPATH=$PYTHONPATH:.
-python3 tests/test_smoke.py
+python3 -m pytest
 if [ $? -ne 0 ]; then
-    echo "ERROR: Staging smoke tests failed! Aborting."
+    echo "ERROR: Master Integrity Suite failed in staging! Aborting."
+    python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_VALIDATION" "FAILURE"
     exit 1
 fi
 
-python3 tests/test_protocol_e2e.py
-if [ $? -ne 0 ]; then
-    echo "ERROR: Staging protocol tests failed! Aborting."
-    exit 1
-fi
+# 4. Health Reporting (Unified v1.1.15)
+echo "Step 4: Logging staging deployment event..."
+python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_DEPLOY" "SUCCESS"
 
-# 4. Final Validation Summary
+# 5. Final Validation Summary
 echo "=== STAGING DEPLOYMENT SUCCESSFUL: $(date) ==="
 echo "System is verified for staging at $DB_PATH."

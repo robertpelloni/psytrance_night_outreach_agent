@@ -63,6 +63,10 @@ class TestAutonomousDevE2E(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "Add generated scraper"], capture_output=True)
 
         # 3. Trigger Synchronization Protocol (Mocking the remote push)
+        from src.db_manager import DatabaseManager
+        os.makedirs("database", exist_ok=True)
+        test_db = DatabaseManager(db_path=os.path.join(self.test_dir, "database/outreach.db"))
+
         with patch('sync_repo.run_command') as mock_run:
             # Mock success for git commands in sync
             mock_run.return_value = MagicMock(returncode=0, stdout="main")
@@ -71,7 +75,8 @@ class TestAutonomousDevE2E(unittest.TestCase):
             # but we need to prevent it from trying to push to a non-existent origin
             with patch('subprocess.run') as mock_sub:
                 mock_sub.return_value = MagicMock(returncode=0)
-                sync()
+                with patch('sync_repo.db', test_db):
+                    sync()
 
         # Verification: Verify sync protocol attempted to reconcile
         # (In a real run, main would now have the new_file)

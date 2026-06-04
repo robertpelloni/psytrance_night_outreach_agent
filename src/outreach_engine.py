@@ -52,6 +52,40 @@ class OutreachEngine:
         self.auto_approve_high_vibe_leads(threshold=auto_threshold)
         self.process_approved_leads()
 
+    def dispatch_cluster_pitch(self, venues_list, cluster_pitch):
+        """Sends a unified tour pitch to a list of venues."""
+        print(f"OutreachEngine: Dispatching cluster pitch to {len(venues_list)} venues...")
+        results = {"success": 0, "failure": 0}
+
+        for venue in venues_list:
+            venue_id = venue['id']
+            # Fetch contact email
+            query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
+            with self.db._get_connection() as conn:
+                cursor = conn.execute(query, (venue_id,))
+                contact = cursor.fetchone()
+
+            if contact and contact[0]:
+                email = contact[0].split(',')[0].strip()
+                if email:
+                    print(f"Dispatching tour pitch to {email}...")
+                    subject = "Proposal for Regional Psytrance Residency Tour"
+
+                    if self.mailer.send_email(email, subject, cluster_pitch):
+                        # Update any existing lead for this venue to SENT
+                        # Note: This uses venue_id to find the lead
+                        lead_query = "SELECT id FROM outreach_leads WHERE venue_id = ?"
+                        with self.db._get_connection() as conn:
+                            lead = conn.execute(lead_query, (venue_id,)).fetchone()
+                            if lead:
+                                self.db.update_lead_status(lead[0], 'SENT', pitch=cluster_pitch)
+
+                        results['success'] += 1
+                    else:
+                        results['failure'] += 1
+
+        return results
+
 if __name__ == "__main__":
     engine = OutreachEngine()
     while True:
