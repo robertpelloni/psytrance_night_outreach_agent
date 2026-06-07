@@ -13,71 +13,88 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
         full_query = f"{query} in {city}"
         print(f"Scraping Google Maps for: {full_query}")
 
-        with sync_playwright() as p:
-            proxy = ProxyRotator.get_playwright_proxy()
-            browser = p.chromium.launch(headless=True, proxy=proxy)
-            context = browser.new_context(user_agent=UserAgentRotator.get_random())
-            page = context.new_page()
+        max_retries = 3
+        retry_delay = 2
 
-            # Go to Google Maps
-            page.goto(f"https://www.google.com/maps/search/{full_query.replace(' ', '+')}")
-
-            # Wait for results to load
+        for attempt in range(max_retries):
             try:
-                page.wait_for_selector(".m677R", timeout=10000)
-            except:
-                print("Could not find results selector, attempting to continue...")
+                with sync_playwright() as p:
+                    proxy = ProxyRotator.get_playwright_proxy()
+                    browser = p.chromium.launch(headless=True, proxy=proxy)
+                    context = browser.new_context(user_agent=UserAgentRotator.get_random())
+                    page = context.new_page()
 
-            # Simple scrolling to load more results if needed
-            for _ in range(3):
-                page.mouse.wheel(0, 5000)
-                time.sleep(2)
+                    # Go to Google Maps
+                    page.goto(f"https://www.google.com/maps/search/{full_query.replace(' ', '+')}")
 
-            # Extract venue elements
-            # Note: Google Maps selectors change frequently.
-            # These are common ones but might need updates.
-            venue_elements = page.query_selector_all(".m677R") or page.query_selector_all(".hfpxzc")
-
-            for el in venue_elements[:10]: # Limit to 10 for now
-                try:
-                    name = el.get_attribute("aria-label") or "Unknown Venue"
-
-                    # Attempt to extract rating if visible in the result item
-                    # This often appears in a span with aria-label containing "stars"
-                    rating = None
+                    # Wait for results to load
                     try:
-                        rating_el = el.query_selector('span[aria-label*="stars"]')
-                        if rating_el:
-                            rating_text = rating_el.get_attribute("aria-label")
-                            # Extract number like "4.5" from "4.5 stars"
-                            rating_match = re.search(r"(\d+\.?\d*)", rating_text)
-                            if rating_match:
-                                rating = float(rating_match.group(1))
+                        # .m677R and .hfpxzc are common result selectors
+                        page.wait_for_selector(".m677R, .hfpxzc", timeout=10000)
                     except:
-                        pass
+                        print(f"  [Attempt {attempt+1}] Could not find results selector.")
+                        if attempt < max_retries - 1:
+                            browser.close()
+                            time.sleep(retry_delay * (2 ** attempt))
+                            continue
+                        else:
+                            print("  Max retries reached. Attempting to parse whatever is there...")
 
-                    # Extract image URL if possible
-                    image_url = None
-                    try:
-                        img_el = el.query_selector('img')
-                        if img_el:
-                            image_url = img_el.get_attribute('src')
-                    except:
-                        pass
+                    # Simple scrolling to load more results if needed
+                    for _ in range(3):
+                        page.mouse.wheel(0, 5000)
+                        time.sleep(2)
 
-                    venues.append({
-                        'id': str(uuid.uuid4()),
-                        'name': name,
-                        'city': city,
-                        'website': None,
-                        'google_rating': rating,
-                        'tags': query,
-                        'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",
-                        'image_url': image_url
-                    })
-                except Exception as e:
-                    print(f"Error parsing element: {e}")
+                    # Extract venue elements
+                    venue_elements = page.query_selector_all(".m677R") or page.query_selector_all(".hfpxzc")
 
-            browser.close()
+                    for el in venue_elements[:15]: # Slightly higher limit
+                        try:
+                            name = el.get_attribute("aria-label") or "Unknown Venue"
+
+                            # Attempt to extract rating if visible in the result item
+                            # This often appears in a span with aria-label containing "stars"
+                            rating = None
+                            try:
+                                rating_el = el.query_selector('span[aria-label*="stars"]')
+                                if rating_el:
+                                    rating_text = rating_el.get_attribute("aria-label")
+                                    # Extract number like "4.5" from "4.5 stars"
+                                    rating_match = re.search(r"(\d+\.?\d*)", rating_text)
+                                    if rating_match:
+                                        rating = float(rating_match.group(1))
+                            except:
+                                pass
+
+                            # Extract image URL if possible
+                            image_url = None
+                            try:
+                                img_el = el.query_selector('img')
+                                if img_el:
+                                    image_url = img_el.get_attribute('src')
+                            except:
+                                pass
+
+                            venues.append({
+                                'id': str(uuid.uuid4()),
+                                'name': name,
+                                'city': city,
+                                'website': None,
+                                'google_rating': rating,
+                                'tags': query,
+                                'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",
+                                'image_url': image_url
+                            })
+                        except Exception as e:
+                            print(f"Error parsing element: {e}")
+
+                    browser.close()
+                break # Success
+            except Exception as e:
+                print(f"  [Attempt {attempt+1}] Scraper error: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay * (2 ** attempt))
+                else:
+                    print(f"  Scraper failed after {max_retries} attempts.")
 
         return venues

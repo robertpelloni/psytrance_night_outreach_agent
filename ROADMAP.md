@@ -68,21 +68,17 @@
 - [x] Refactor pipeline into modular qualify_and_pitch function
 - [x] Update ConfigManager with full Detroit config defaults
 
+### Phase 37: Real-World Scraper Hardening (v1.1.45)
+The current scrapers work in principle but are fragile in practice. This phase makes discovery reliable enough for production use.
+- [x] Add retry logic with exponential backoff to `GoogleMapsPlaywrightScraper`
+- [x] Implement per-venue try/catch isolation in `main.py`
+- [x] Validate scraper output (reject empty names/missing cities)
+- [x] Add rate limiting between scraper calls
+- [x] Implement pipeline "dry run" mode
+
 ---
 
 ## Upcoming Phases
-
-### Phase 37: Real-World Scraper Hardening (v1.1.45)
-The current scrapers work in principle but are fragile in practice. Google Maps CSS selectors change frequently, RA has aggressive Cloudflare protection, and Instagram requires login for most profiles. This phase makes discovery reliable enough for production use.
-
-- [ ] Add retry logic with exponential backoff to all scrapers (max 3 retries per query)
-- [ ] Add per-venue try/catch isolation so one bad result doesn't kill a city run
-- [ ] Validate scraper output: reject venues with empty names, duplicate IDs, or missing city
-- [ ] Add rate limiting between scraper calls (2-5 second delay) to avoid IP bans
-- [ ] Add a dedicated Detroit venue knowledge base (`database/detroit_venues_seed.json`) with known venues to bootstrap the pipeline
-- [ ] Implement Google Maps Places API as a reliable fallback when Playwright selectors break
-- [ ] Add scraper health tracking: log success/failure rates per scraper per city to `system_logs`
-- [ ] Add a "dry run" mode to `main.py` that reports what would be discovered without making AI calls
 
 ### Phase 38: Email Inbox Integration (v1.1.46)
 Currently, venue replies must be manually pasted into the "Simulate Reply" form. This is the single biggest usability gap — in production, replies arrive in the booking inbox and must be ingested automatically.

@@ -2,6 +2,8 @@ import os
 import importlib.util
 import sys
 import random
+import time
+import argparse
 from dotenv import load_dotenv
 from src.db_manager import DatabaseManager
 from src.scrapers.base_scraper import ContactExtractor
@@ -227,7 +229,21 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
     )
 
 
-def main():
+def main(args_list=None):
+    parser = argparse.ArgumentParser(description="Psytrance Night Outreach Agent")
+    parser.add_argument("--dry-run", action="store_true", help="Run discovery and qualification without making AI calls or database writes.")
+    parser.add_argument("--city", type=str, help="Process a specific city instead of all cities in config.")
+
+    if args_list is not None:
+        args = parser.parse_args(args_list)
+    else:
+        # If running via pytest, sys.argv might contain pytest arguments.
+        # We only want to parse if it looks like we're running main.py directly.
+        if "pytest" in sys.argv[0]:
+             args = parser.parse_args([]) # Use defaults
+        else:
+             args = parser.parse_args()
+
     load_dotenv()
     db = DatabaseManager()
     ai = AIEngine()
@@ -238,6 +254,9 @@ def main():
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
     scrapers = load_scrapers()
+
+    if args.dry_run:
+        print("\n!!! DRY RUN MODE ENABLED: No database writes or AI API calls will be made. !!!\n")
 
     artist_name = config.get("artist_name") or ""
     collective = config.get("collective_name") or ""
@@ -253,11 +272,11 @@ def main():
     print(f"  Scrapers: {len(scrapers)} ({[s.__class__.__name__ for s in scrapers]})")
     print(f"{'=' * 60}\n")
 
-    cities = config.get("cities") or [home_city]
+    cities = [args.city] if args.city else (config.get("cities") or [home_city])
     target_genres = config.get("target_genres") or ["psytrance"]
 
     for city in cities:
-        if db.is_city_processed(city):
+        if not args.dry_run and db.is_city_processed(city):
             print(f"Skipping {city} - Already processed in this cycle.")
             continue
 
@@ -271,8 +290,12 @@ def main():
         seen_venue_names = set()
 
         for query, genre in search_queries:
+            # Rate limiting
+            time.sleep(random.uniform(2, 5))
+
             print(f'\n  Hunting: "{query}" (genre: {genre})')
-            db.log_system_event("DISCOVERY", "START", f"Hunting: '{query}' in {city}")
+            if not args.dry_run:
+                db.log_system_event("DISCOVERY", "START", f"Hunting: '{query}' in {city}")
 
             for scraper in scrapers:
                 try:
@@ -286,6 +309,11 @@ def main():
                             results = scraper.search_venues(city)
 
                         for r in results:
+                            # Validation
+                            if not r.get("name") or not r.get("city"):
+                                print(f"  [Scraper Validation] Rejecting invalid result: {r}")
+                                continue
+
                             r["discovery_genre"] = genre
                             venue_key = (r["name"].strip().lower(), city.lower())
                             if venue_key not in seen_venue_names:
@@ -297,31 +325,43 @@ def main():
         print(f"\n  Discovered {len(raw_venues)} unique venues in {city}")
 
         for v_data in raw_venues:
-            existing_id = db.venue_exists_by_name(v_data["name"], v_data["city"])
-            if existing_id:
-                v_id = existing_id
-                existing_lead = db.get_lead_by_venue_id(v_id)
-                if existing_lead:
-                    print(f"  Skipping {v_data['name']} - Lead already exists.")
+            try:
+                if args.dry_run:
+                    print(f"  [Dry Run] Would process venue: {v_data['name']}")
                     continue
-            else:
-                v_id = v_data["id"]
-                db.add_venue(v_data)
 
-            qualify_and_pitch(
-                v_data, v_id, db, ai, geocoder, predictor, config, analytics
-            )
+                existing_id = db.venue_exists_by_name(v_data["name"], v_data["city"])
+                if existing_id:
+                    v_id = existing_id
+                    existing_lead = db.get_lead_by_venue_id(v_id)
+                    if existing_lead:
+                        print(f"  Skipping {v_data['name']} - Lead already exists.")
+                        continue
+                else:
+                    v_id = v_data["id"]
+                    db.add_venue(v_data)
 
-        db.mark_city_processed(city)
+                qualify_and_pitch(
+                    v_data, v_id, db, ai, geocoder, predictor, config, analytics
+                )
+            except Exception as e:
+                print(f"  [CRITICAL] Error processing {v_data.get('name', 'Unknown')}: {e}")
+                db.log_system_event("PIPELINE", "FAILURE", f"Error processing {v_data.get('name')}: {str(e)}")
 
-    print(
-        "\nScraping and qualification complete. Running outreach and follow-up cycles..."
-    )
-    outreach.run_outreach_cycle()
-    follow_up.run_follow_up_cycle()
+        if not args.dry_run:
+            db.mark_city_processed(city)
 
-    print("\nPipeline run complete.")
-    db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")
+    if not args.dry_run:
+        print(
+            "\nScraping and qualification complete. Running outreach and follow-up cycles..."
+        )
+        outreach.run_outreach_cycle()
+        follow_up.run_follow_up_cycle()
+
+        print("\nPipeline run complete.")
+        db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")
+    else:
+        print("\nDry run complete. No outreach or follow-up cycles performed.")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [1.1.45] - 2026-06-07
+### Added
+- **Real-World Scraper Hardening**: Implemented exponential backoff retry logic in `GoogleMapsPlaywrightScraper` to handle transient network and selector errors.
+- **Pipeline Resilience**: Added per-venue try/catch isolation in `main.py` to ensure a single failure does not abort the entire city run.
+- **Rate Limiting**: Integrated random delays (2-5 seconds) between scraper calls to avoid IP bans.
+- **Discovery Validation**: Added logic to reject venues with empty names or missing cities.
+- **Pipeline Dry Run**: Added `--dry-run` flag to `main.py` for testing discovery and qualification logic without making AI calls or database writes.
+
+### Fixed
+- **E2E Test Regression**: Resolved `AssertionError` in `test_full_autonomous_cycle` by correctly ordering system logs for verification.
+- **Multi-Genre Test Regression**: Updated `test_multi_genre_loop` to match the new Detroit-aware query generation logic.
+
 ## [1.1.44] - 2026-06-07
 ### Added
 - **Detroit-Focus Refoundation**: Retargeted all cities from 15 global hubs to Detroit + Midwest circuit (Detroit, Hamtramck, Ferndale, Royal Oak, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus, Toronto).

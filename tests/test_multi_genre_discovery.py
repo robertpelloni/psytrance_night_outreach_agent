@@ -52,16 +52,18 @@ class TestMultiGenreDiscovery(unittest.TestCase):
         main.main()
 
         # 6. Verify Scraper called for BOTH genres
-        self.assertEqual(mock_scraper.search_venues.call_count, 2)
+        # Note: build_search_queries now returns 2 queries per genre for non-Detroit cities
+        # (underground {genre} club, {genre} venue)
+        self.assertEqual(mock_scraper.search_venues.call_count, 4)
         calls = mock_scraper.search_venues.call_args_list
 
-        # Verify queries - one should contain techno, one should contain psytrance
+        # Verify queries - should contain techno and psytrance
         queries = [c[1].get('query', '') for c in calls]
         self.assertTrue(any("techno" in q for q in queries))
         self.assertTrue(any("psytrance" in q for q in queries))
 
         # 7. Verify AI called with correct genre context
-        self.assertEqual(mock_ai_inst.vibe_check.call_count, 2)
+        self.assertEqual(mock_ai_inst.vibe_check.call_count, 4)
         vibe_calls = mock_ai_inst.vibe_check.call_args_list
 
         genres_seen = [c[1].get('genre') for c in vibe_calls]

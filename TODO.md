@@ -102,6 +102,11 @@
 - [x] Add Detroit-specific trait extraction (detroit_relevance) (v1.1.44)
 - [x] Rewrite main.py with multi-query neighborhood search strategy (v1.1.44)
 - [x] Refactor pipeline into modular qualify_and_pitch function (v1.1.44)
+- [x] Add retry logic with exponential backoff to `GoogleMapsPlaywrightScraper` (v1.1.45)
+- [x] Implement per-venue try/catch isolation in `main.py` (v1.1.45)
+- [x] Validate scraper output (reject empty names/missing cities) (v1.1.45)
+- [x] Add rate limiting between scraper calls (v1.1.45)
+- [x] Implement pipeline "dry run" mode (v1.1.45)
 
 ---
 
@@ -117,14 +122,8 @@ These are the things that prevent the agent from being genuinely useful in the r
 
 *Without this, every venue reply must be manually copy-pasted. This is the #1 usability gap.*
 
-### Scraper Reliability
-- [ ] Add retry logic with exponential backoff to all scrapers (max 3 retries per query)
-- [ ] Add per-venue try/catch isolation in `main.py` so one bad result doesn't kill a city run
-- [ ] Validate scraper output: reject venues with empty names or missing city
-- [ ] Add rate limiting between scraper calls (2-5 second delay) to avoid IP bans
+### Scraper Reliability (Ongoing)
 - [ ] Add Google Maps Places API as a reliable fallback when Playwright selectors break
-
-*Current scrapers use brittle CSS selectors and one crash aborts the entire city.*
 
 ### Pipeline Reset & Scheduling
 - [ ] Add `db.reset_city_cycle(city)` to allow re-running discovery for a city

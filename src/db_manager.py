@@ -249,7 +249,7 @@ class DatabaseManager:
             conn.execute(query, (component, status, message))
 
     def get_latest_system_logs(self, limit=5):
-        query = "SELECT * FROM system_logs ORDER BY created_at DESC LIMIT ?"
+        query = "SELECT * FROM system_logs ORDER BY id DESC LIMIT ?"
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (limit,))
