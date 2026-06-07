@@ -25,7 +25,8 @@ class TestSyncRepo(unittest.TestCase):
         # Initialize database in local_dir to satisfy sync_repo's db logging
         os.makedirs(os.path.join(self.local_dir, "database"), exist_ok=True)
         from src.db_manager import DatabaseManager
-        db = DatabaseManager(db_path=os.path.join(self.local_dir, "database/outreach.db"))
+        self.db_path = os.path.abspath(os.path.join(self.local_dir, "database/outreach.db"))
+        self.test_db = DatabaseManager(db_path=self.db_path)
 
         with open(os.path.join(self.local_dir, "README.md"), "w") as f:
             f.write("# Initial Commit")
@@ -65,7 +66,8 @@ class TestSyncRepo(unittest.TestCase):
         os.chdir(self.local_dir)
         try:
             with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+                with patch('sync_repo.db', self.test_db):
+                    sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -92,7 +94,8 @@ class TestSyncRepo(unittest.TestCase):
         os.chdir(self.local_dir)
         try:
             with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+                with patch('sync_repo.db', self.test_db):
+                    sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -124,7 +127,8 @@ class TestSyncRepo(unittest.TestCase):
             os.chdir(self.local_dir)
             try:
                 with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                    sync_repo.sync()
+                    with patch('sync_repo.db', self.test_db):
+                        sync_repo.sync()
             finally:
                 os.chdir(old_cwd)
 
@@ -161,7 +165,8 @@ class TestSyncRepo(unittest.TestCase):
         os.chdir(self.local_dir)
         try:
             with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+                with patch('sync_repo.db', self.test_db):
+                    sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
@@ -187,7 +192,8 @@ class TestSyncRepo(unittest.TestCase):
         os.chdir(self.local_dir)
         try:
             with patch.dict(os.environ, {"SKIP_SYNC_VALIDATION": "1", "GIT_SYNC_RUNNING": "0"}):
-                sync_repo.sync()
+                with patch('sync_repo.db', self.test_db):
+                    sync_repo.sync()
         finally:
             os.chdir(old_cwd)
 
