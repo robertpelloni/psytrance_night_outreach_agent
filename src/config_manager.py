@@ -1,20 +1,83 @@
 import json
 import os
 
+
 class ConfigManager:
-    def __init__(self, config_path='database/config.json'):
+    def __init__(self, config_path="database/config.json"):
         self.config_path = config_path
         self.default_config = {
-            "cities": ["Detroit", "Berlin", "London", "Tokyo", "Lisbon"],
-            "target_genres": ["psytrance", "underground techno", "progressive psy"],
-            "epk_link": "https://your-epk-link.com",
-            "mix_link": "https://soundcloud.com/your-mix-link",
-            "vibe_threshold": 7,
+            "cities": [
+                "Detroit",
+                "Hamtramck",
+                "Ferndale",
+                "Royal Oak",
+                "Ann Arbor",
+                "Grand Rapids",
+                "Chicago",
+                "Cleveland",
+                "Columbus",
+                "Toronto",
+            ],
+            "target_genres": [
+                "psytrance",
+                "psychedelic trance",
+                "forest psy",
+                "dark prog",
+                "progressive psy",
+                "hi-tech",
+            ],
+            "epk_link": "",
+            "mix_link": "",
+            "artist_name": "",
+            "collective_name": "",
+            "home_city": "Detroit",
+            "vibe_threshold": 6,
+            "auto_approve_threshold": 9,
+            "follow_up_days": 7,
+            "max_follow_ups": 2,
+            "detroit_search_queries": [
+                "underground electronic music venue",
+                "warehouse venue Detroit",
+                "techno club Detroit",
+                "psytrance event Detroit",
+                "electronic music art space Detroit",
+                "afterhours Detroit",
+                "DIY venue Detroit",
+                "loft party Detroit",
+                "industrial venue Detroit",
+            ],
+            "detroit_neighborhoods": [
+                "Midtown Detroit",
+                "Downtown Detroit",
+                "Corktown Detroit",
+                "Southwest Detroit",
+                "Eastside Detroit",
+                "New Center Detroit",
+                "Hamtramck",
+                "Ferndale",
+            ],
             "media_library": [
-                {"name": "Dark Psy Mix", "url": "https://soundcloud.com/dark-psy", "tags": ["underground", "dark", "industrial"]},
-                {"name": "Progressive Morning", "url": "https://soundcloud.com/prog-morning", "tags": ["outdoor", "chill", "progressive"]},
-                {"name": "Visual EPK 2024", "url": "https://vimeo.com/epk", "tags": ["visuals", "lasers", "projections"]}
-            ]
+                {
+                    "name": "Forest Psy DJ Set",
+                    "url": "",
+                    "tags": ["forest", "underground", "dark", "nighttime"],
+                },
+                {
+                    "name": "Progressive Psy Morning Set",
+                    "url": "",
+                    "tags": ["outdoor", "progressive", "morning", "chill"],
+                },
+                {
+                    "name": "Dark Prog/Techno Crossover",
+                    "url": "",
+                    "tags": ["techno", "dark prog", "crossover", "industrial"],
+                },
+                {
+                    "name": "Visual Projection Reel",
+                    "url": "",
+                    "tags": ["visuals", "lasers", "projections", "psychedelic"],
+                },
+            ],
         }
         self._ensure_config()
 
@@ -24,7 +87,7 @@ class ConfigManager:
 
     def load_config(self):
         try:
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading config: {e}")
@@ -32,7 +95,7 @@ class ConfigManager:
 
     def save_config(self, config_data):
         try:
-            with open(self.config_path, 'w') as f:
+            with open(self.config_path, "w") as f:
                 json.dump(config_data, f, indent=4)
             return True
         except Exception as e:

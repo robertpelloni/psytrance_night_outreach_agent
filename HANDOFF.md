@@ -1,33 +1,47 @@
-# SESSION HANDOFF - v1.1.40
+# SESSION HANDOFF - v1.1.44
 
 ## OVERVIEW
-This session focused on implementing **Phase 35: Vision-Enriched Venue Qualification**, integrating GPT-4o-vision into the scouting pipeline, and hardening the system's resilience through E2E test fixes and documentation synchronization.
+This session focused on **Detroit-Focus Refoundation**: retargeting the entire agent from a global 15-city system to a Detroit-psytrance-specific tool with artist identity, neighborhood-aware search, and scene-contextualized AI prompts. Additionally, a comprehensive gap analysis was performed and all project documentation was rewritten.
 
 ## STRUCTURAL SHIFTS & ARCHITECTURE
-- **Visual Intelligence Layer**: The system now supports visual aesthetic vetting. `AIEngine.analyze_visual_vibe` utilizes GPT-4o-vision to evaluate venue compatibility based on imagery (lighting, decor, layout).
-- **Schema Expansion**: The `venues` table now persists `image_url` and `visual_description`, providing a richer data model for curators.
-- **Enhanced Scraper Orchestration**: Discovery scrapers (Google Maps, Resident Advisor) now extract image metadata during the initial discovery and enrichment phases.
-- **Dashboard UI Evolution**: The HITL Dashboard incorporates a "Vision-Enriched Analysis" block in lead cards, significantly improving the human vetting workflow.
+- **City List Replaced**: 15 global hubs → Detroit + Midwest circuit (10 cities)
+- **Artist Identity Layer**: `artist_name`, `collective_name`, `home_city` now injected into all AI prompts via `_get_identity_context()`
+- **Neighborhood Search Strategy**: `build_search_queries()` generates Detroit-specific queries per neighborhood + scene-specific phrases + genre queries
+- **Detroit Scene Context**: All AI prompts (vibe check, pitch, follow-up, vision, reply draft) rewritten with Detroit underground knowledge
+- **Vibe Threshold**: Lowered from 7 → 6 to cast wider net in untapped market
+- **Pipeline Modularization**: `qualify_and_pitch()` extracted from `main.py`
+- **Intra-Run Deduplication**: Venues deduplicated by (name, city) within a single pipeline run
 
-## KEY ACHIEVEMENTS (v1.1.40)
-1. **Vision-Enriched Pipeline**: Fully integrated computer vision into the qualification logic. Venues are now vetted not just by text but by visual subculture signals.
-2. **Hardened E2E Tests**: Fixed a critical failure in `tests/test_autonomous_pipeline_e2e.py` related to `OutreachPredictor` initialization and database isolation.
-3. **Environment Reliability**: Refactored `OutreachPredictor` to respect the `DB_PATH` environment variable, ensuring consistent behavior across Local, Staging, and Production tiers.
-4. **Master Integrity Verification**: Verified the system with 67 tests (100% pass rate for active tests).
-5. **Documentation Governance**: Synchronized `ROADMAP.md`, `TODO.md`, `VISION.md`, `MEMORY.md`, `IDEAS.md`, and `CHANGELOG.md`.
+## KEY ACHIEVEMENTS (v1.1.44)
+1. **Detroit-First Pipeline**: Every search query, AI prompt, and config default is now shaped for the Detroit psytrance scene
+2. **Artist Identity**: Pitches now reference the actual artist/collective, not generic text
+3. **Neighborhood Coverage**: 8 Detroit neighborhoods get dedicated search queries
+4. **Comprehensive Gap Analysis**: Identified 15+ critical missing features across 8 categories
+5. **Documentation Overhaul**: Rewrote README, VISION, ROADMAP, TODO, IDEAS, MANUAL, DEPLOY, CHANGELOG, MEMORY, VERSION
+6. **New .env.template**: Created for onboarding
+7. **AIEngine Type Safety**: Fixed all `str | None` issues with OpenAI response handling
 
 ## DISCOVERIES & LEARNED PATTERNS
-- **Vision vs. Text**: Visual signals often reveal "commercial" vs. "underground" vibes more reliably than raw bio text.
-- **Mock Persistence**: When mocking `DatabaseManager` in E2E tests, ensure all dependent modules (`OutreachPredictor`, `OutreachEngine`, etc.) are correctly patched to share the same test database connection.
-- **Sync Protocol Constraints**: In sandboxed environments with disabled terminal prompts, the final `git push` in `sync_repo.py` may fail; however, the local merges and validation suites remain highly effective for maintaining code integrity.
-- **Verification Integrity**: Confirmed 100% pass rate for the Master Integrity Suite (69 tests), including the new sentiment-driven optimization and fixed E2E pipeline mocks.
+- **Config Schema Mismatch**: Settings UI saves only 5 fields but config.json has 15+ fields. The POST handler in `app.py` will silently drop fields it doesn't know about.
+- **CSS Selector Fragility**: Google Maps selectors (`.m677R`, `.hfpxzc`) are known to change frequently. The scraper needs a fallback API strategy.
+- **No Per-Venue Error Isolation**: A single bad venue object can crash the entire city processing loop. Each venue should be processed in its own try/catch.
+- **City Processing Log is a Dead End**: Once a city is marked COMPLETED, there's no UI or CLI way to reset it. Users must manually edit the database.
+- **Pitch Subject Hardcoding**: Subject lines like "Proposal for Psytrance Night Residency" are hardcoded in `outreach_engine.py` and `app.py`, ignoring the genre configuration.
 
-## UPCOMING MILESTONES (Phase 38)
-- **Video Analysis**: Expanding vision capabilities to venue stories and videos.
-- **Automated Media Sequencing**: Testing different combinations of mixes and visuals in pitch variants to optimize conversions.
+## UPCOMING MILESTONES (Phases 37–46)
+- **Phase 37**: Scraper hardening (retry logic, error isolation, rate limiting, validation)
+- **Phase 38**: IMAP inbox integration (auto-ingest venue replies)
+- **Phase 39**: Pipeline scheduling + cycle reset (APScheduler, run history)
+- **Phase 40**: Settings UI completeness (artist identity, media library, Detroit fields)
+- **Phase 41**: Outreach safety (throttle, token budget, DNC list, AI subject lines)
+- **Phase 42**: Data model improvements (address, capacity, venue_type, neighborhood, source, indexes, migrations)
+- **Phase 43**: Detroit venue seed + manual venue entry + additional scrapers
+- **Phase 44**: Negotiation engine (state machine, BOOKED/LOST statuses, booking tracker)
+- **Phase 45**: Reporting & scene analytics (funnel, warmth scores, CSV export)
+- **Phase 46**: Multi-artist & collaboration support
 
 ## SYSTEM STATE
-- **Version**: 1.1.43
-- **Database**: `database/outreach.db` (Schema v1.1.40)
+- **Version**: 1.1.44
+- **Database**: `database/outreach.db` (Schema v1.1.40 — unchanged)
 - **Primary Branch**: `main`
-- **Integrity**: 67 tests passing (Master Integrity Suite)
+- **Integrity**: Test suite has pytest dependency issue on Python 3.14 (chromadb/pydantic conflict) — needs pinned requirements

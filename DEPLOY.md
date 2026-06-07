@@ -1,66 +1,100 @@
 # DEPLOY
 
 ## Prerequisites
-- Python 3.9+
+- Python 3.9+ (3.11+ recommended)
 - Playwright (`playwright install chromium`)
 - OpenAI API Key (set in `.env`)
 
 ## Local Setup
 1. Clone the repository.
 2. Create a virtual environment: `python -m venv venv`
-3. Activate the environment: `source venv/bin/activate`
+3. Activate the environment: `source venv/bin/activate` (Windows: `venv\Scripts\activate`)
 4. Install dependencies: `pip install -r requirements.txt`
 5. Install Playwright browsers: `playwright install chromium`
-6. Create a `.env` file based on `MANUAL.md` (OpenAI, SMTP, Proxy settings).
-7. Initialize the database: (Automatically handled by `DatabaseManager`)
+6. Create a `.env` file (see MANUAL.md for all variables).
+7. Edit `database/config.json` with your artist name, EPK link, and target cities.
+8. Database initializes automatically on first run.
 
 ## Running the Pipeline
-`python main.py`
+```bash
+python main.py
+```
 
 ## Running the Dashboard
-`python src/dashboard/app.py`
+```bash
+python src/dashboard/app.py
+# Access at http://localhost:5000
+```
+
+## Resetting a City Cycle
+Once a city is processed, it's skipped on subsequent runs. To re-run discovery for a city:
+- Use the Dashboard System tab → "Reset All Cycles" (coming in v1.1.47)
+- Or programmatically: `db.mark_city_processed("Detroit", status="PENDING")`
 
 ## Repository Synchronization
+
 The repository includes an automated synchronization protocol that runs daily via GitHub Actions (`.github/workflows/sync.yml`). This ensures that feature branches are merged into `main` if they contain unique progress, and `main` is synced back into active feature branches.
 
-To run the sync manually:
-`python sync_repo.py`
+To run the sync manually: `python sync_repo.py`
 
 ### Automated Local Sync (Git Hook)
-For developers working locally, you can automate repository synchronization by installing a `post-commit` hook. This hook triggers the `sync_repo.py` protocol after every local commit:
-`./install_hooks.sh`
+Install a `post-commit` hook that triggers `sync_repo.py` after every local commit:
+```bash
+./install_hooks.sh
+```
 
 ## CI/CD Pipeline (GitHub Actions)
-The synchronization protocol is fully integrated into GitHub Actions. For the pipeline to function correctly, the following **GitHub Secrets** must be configured in the repository settings:
 
-- `OPENAI_API_KEY`: Required for vibe-checking, pitch generation, and AI conflict resolution.
-- `PROXY_LIST`: Comma-separated list of proxies (e.g., `http://user:pass@host:port`).
-- `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: Credentials for the booking email.
-- `SENDER_EMAIL`: The outbound email address (e.g., `booking@yourdomain.com`).
+The following **GitHub Secrets** must be configured:
 
-The pipeline triggers on every push to **any** branch (`**`), ensuring continuous synchronization across the entire repository. Note that the full outreach pipeline (`main.py`) only executes on the `main` branch or scheduled runs to optimize API usage.
+| Secret | Purpose |
+|--------|---------|
+| `OPENAI_API_KEY` | Vibe-checking, pitch generation, AI conflict resolution |
+| `PROXY_LIST` | Comma-separated proxy URLs |
+| `SMTP_SERVER` | SMTP host for booking emails |
+| `SMTP_PORT` | SMTP port |
+| `SMTP_USER` | SMTP username |
+| `SMTP_PASSWORD` | SMTP password |
+| `SENDER_EMAIL` | Outbound booking email address |
+
+The pipeline triggers on every push to **any** branch. The full outreach pipeline (`main.py`) only executes on `main` or scheduled runs to optimize API usage.
 
 ## Tiered Deployment Architecture
 
 ### 1. Feature Environment (Local / CI Sync)
 - **Trigger**: Every push to any branch.
-- **Actions**: Continuous repository synchronization and unit testing via `.github/workflows/sync.yml`.
-- **Purpose**: To keep all branches up-to-date and ensure local development doesn't drift.
+- **Actions**: Repository synchronization and unit testing via `.github/workflows/sync.yml`.
+- **Purpose**: Keep all branches up-to-date and ensure local development doesn't drift.
 
 ### 2. Staging Environment (Release Candidate)
-A dedicated staging workflow is configured in `.github/workflows/staging.yml`.
 - **Trigger**: Push to the `staging` branch.
-- **Actions**: Sets up a clean environment, initializes `database/staging_outreach.db`, and executes the full end-to-end integration suite (`tests/test_smoke.py` and `tests/test_protocol_e2e.py`).
-- **Purpose**: To verify that upcoming releases are functionally sound before merging into `main`.
+- **Workflow**: `.github/workflows/staging.yml`
+- **Actions**: Clean environment, `database/staging_outreach.db`, full E2E suite.
 - **Manual Command**: `./deploy_staging.sh`
 
 ### 3. Production Environment (Live Deployment)
 - **Trigger**: Push to the `main` branch.
-- **Workflow**: `.github/workflows/production.yml`.
-- **Actions**: Refreshes production environment, executes the **Master Integrity Suite** (all 20+ tests), and logs the deployment event to the dashboard.
+- **Workflow**: `.github/workflows/production.yml`
+- **Actions**: Master Integrity Suite (all tests), deployment event logging.
 - **Manual Command**: `./deploy_production.sh`
 
 ## Live Pilot Validation
-Before moving to full 24/7 autonomous operation, execute a live pilot run to verify connectivity and external service limits:
-`./pilot_run.sh`
-This script runs connectivity diagnostics, performs a single-city discovery cycle, and synchronizes the results.
+
+Before full autonomous operation, execute a pilot run:
+```bash
+./pilot_run.sh
+```
+This runs connectivity diagnostics, a single-city discovery cycle, and synchronizes results.
+
+## Token Cost Awareness
+
+Each full pipeline run makes multiple GPT-4o calls per venue:
+- 1 × vibe check (~500 tokens)
+- 1 × trait extraction (~400 tokens)
+- 1 × pitch generation (~800 tokens)
+- Optional: 1 × vision analysis (~300 tokens)
+- Optional: 1 × media selection (~200 tokens)
+
+**Rough cost**: ~$0.05–0.10 per qualified venue at GPT-4o pricing. A 50-venue run ≈ $2.50–5.00.
+
+A token budget tracker and dry-run mode are planned (Phase 41).
