@@ -130,7 +130,10 @@ class ContactExtractor:
             return {}
 
         headers = {'User-Agent': UserAgentRotator.get_random()}
-        proxies = ProxyRotator.get_proxy_config()
+
+        # Bypass proxy for localhost to support component tests
+        is_localhost = "localhost" in url or "127.0.0.1" in url
+        proxies = ProxyRotator.get_proxy_config() if not is_localhost else None
 
         try:
             response = requests.get(url, headers=headers, proxies=proxies, timeout=10)
