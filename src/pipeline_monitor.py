@@ -1,6 +1,11 @@
 import os
 import sys
 import time
+
+# Ensure project root is in sys.path when run directly
+if __name__ == "__main__" and __package__ is None:
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.db_manager import DatabaseManager
 
 class PipelineMonitor:

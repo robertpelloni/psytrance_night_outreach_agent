@@ -6,7 +6,8 @@ import os
 class Mailer:
     def __init__(self):
         self.smtp_server = os.getenv("SMTP_SERVER")
-        self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        port = os.getenv("SMTP_PORT")
+        self.smtp_port = int(port) if port and port.strip() else 587
         self.smtp_user = os.getenv("SMTP_USER")
         self.smtp_password = os.getenv("SMTP_PASSWORD")
         self.sender_email = os.getenv("SENDER_EMAIL")
