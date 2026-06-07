@@ -15,9 +15,11 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
 
         print(f"Scraping Resident Advisor venues in {city} via Playwright at {url}...")
 
+        proxy_config = ProxyRotator.get_playwright_proxy()
+        proxy_url = proxy_config['server'] if proxy_config else None
+
         with sync_playwright() as p:
-            proxy = ProxyRotator.get_playwright_proxy()
-            browser = p.chromium.launch(headless=True, proxy=proxy)
+            browser = p.chromium.launch(headless=True, proxy=proxy_config)
             context = browser.new_context(
                 user_agent=UserAgentRotator.get_random()
             )
@@ -31,6 +33,9 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                 if "Just a moment" in page.title():
                     print("Hit Cloudflare on RA. Attempting to wait...")
                     page.wait_for_timeout(10000)
+                    if "Just a moment" in page.title():
+                         ProxyRotator.report_failure(proxy_url)
+                         return []
 
                 # Search for any links that look like venues
                 links = page.query_selector_all('a')
@@ -52,9 +57,11 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                                 })
                     except:
                         continue
+                ProxyRotator.report_success(proxy_url)
 
             except Exception as e:
                 print(f"Error scraping RA: {e}")
+                ProxyRotator.report_failure(proxy_url)
             finally:
                 browser.close()
 
@@ -64,10 +71,11 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
         """Extracts detailed info from an RA venue profile page."""
         details = {}
         print(f"Enriching RA venue from {profile_url}...")
+        proxy_config = ProxyRotator.get_playwright_proxy()
+        proxy_url = proxy_config['server'] if proxy_config else None
 
         with sync_playwright() as p:
-            proxy = ProxyRotator.get_playwright_proxy()
-            browser = p.chromium.launch(headless=True, proxy=proxy)
+            browser = p.chromium.launch(headless=True, proxy=proxy_config)
             context = browser.new_context(user_agent=UserAgentRotator.get_random())
             page = context.new_page()
 
@@ -98,9 +106,11 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                     href = link.get_attribute('href') or ""
                     if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
                         details['socials'].append(href)
+                ProxyRotator.report_success(proxy_url)
 
             except Exception as e:
                 print(f"Error enriching RA venue: {e}")
+                ProxyRotator.report_failure(proxy_url)
             finally:
                 browser.close()
 

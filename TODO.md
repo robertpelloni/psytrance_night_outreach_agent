@@ -107,6 +107,10 @@
 - [x] Validate scraper output (reject empty names/missing cities) (v1.1.45)
 - [x] Add rate limiting between scraper calls (v1.1.45)
 - [x] Implement pipeline "dry run" mode (v1.1.45)
+- [x] Implement Dynamic Proxy Rotation (v1.1.46)
+- [x] Add health tracking to ProxyRotator (success/fail counts) (v1.1.46)
+- [x] Integrate proxy feedback loop into all scrapers (v1.1.46)
+- [x] Implement exponential backoff blacklisting for proxies (v1.1.46)
 
 ---
 

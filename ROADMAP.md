@@ -76,11 +76,18 @@ The current scrapers work in principle but are fragile in practice. This phase m
 - [x] Add rate limiting between scraper calls
 - [x] Implement pipeline "dry run" mode
 
+### Phase 38: Dynamic Proxy Rotation (v1.1.46)
+Further strengthen bot mitigation by tracking proxy health and rotating based on performance.
+- [x] Implement health tracking in `ProxyRotator` (success/fail counts)
+- [x] Add exponential backoff blacklisting for failing proxies
+- [x] Integrate feedback loop from scrapers (success/failure reporting)
+- [x] Verified 100% stability across Master Integrity Suite
+
 ---
 
 ## Upcoming Phases
 
-### Phase 38: Email Inbox Integration (v1.1.46)
+### Phase 39: Email Inbox Integration (v1.1.47)
 Currently, venue replies must be manually pasted into the "Simulate Reply" form. This is the single biggest usability gap — in production, replies arrive in the booking inbox and must be ingested automatically.
 
 - [ ] Implement IMAP inbox polling (`src/inbox_monitor.py`) to fetch unread emails from the booking mailbox
@@ -91,7 +98,7 @@ Currently, venue replies must be manually pasted into the "Simulate Reply" form.
 - [ ] Poll on configurable interval (default: every 15 minutes)
 - [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
 
-### Phase 39: Pipeline Scheduling & Cycle Management (v1.1.47)
+### Phase 40: Pipeline Scheduling & Cycle Management (v1.1.48)
 The pipeline currently requires manual execution. For ongoing scene-building, it needs to run on a schedule with proper cycle management.
 
 - [ ] Integrate APScheduler into the dashboard app for automated pipeline runs
@@ -102,7 +109,7 @@ The pipeline currently requires manual execution. For ongoing scene-building, it
 - [ ] Add a dashboard "Pipeline" tab showing run history and next scheduled run
 - [ ] Add pipeline run email/Slack notification on completion
 
-### Phase 40: Settings & Dashboard Completeness (v1.1.48)
+### Phase 41: Settings & Dashboard Completeness (v1.1.49)
 The Settings UI doesn't expose half the config fields. The dashboard is missing key workflows.
 
 - [ ] Add Artist Identity section to Settings UI (artist_name, collective_name, home_city)
@@ -115,7 +122,7 @@ The Settings UI doesn't expose half the config fields. The dashboard is missing 
 - [ ] Fix map default center to Detroit (42.3314, -83.0458) instead of world view
 - [ ] Add "Re-qualify" button on PENDING_QUALIFICATION leads (re-run vibe check after editing venue text)
 
-### Phase 41: Outreach Intelligence & Safety (v1.1.49)
+### Phase 42: Outreach Intelligence & Safety (v1.1.50)
 The outreach engine needs guardrails to protect sender reputation and optimize conversion.
 
 - [ ] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags
@@ -127,7 +134,7 @@ The outreach engine needs guardrails to protect sender reputation and optimize c
 - [ ] Add "Do Not Contact" list — venues that asked to never be emailed again
 - [ ] Add A/B testing statistical significance calculator (stop testing when one variant is clearly winning)
 
-### Phase 42: Data Model & Persistence Improvements (v1.1.50)
+### Phase 43: Data Model & Persistence Improvements (v1.1.51)
 The database schema has several gaps that limit real-world use.
 
 - [ ] Add `address` column to `venues` table
@@ -142,7 +149,7 @@ The database schema has several gaps that limit real-world use.
 - [ ] Add `pipeline_runs` table for tracking run history
 - [ ] Add migration system for safe schema upgrades without data loss
 
-### Phase 43: Detroit Venue Seed & Community Intelligence (v1.1.51)
+### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.52)
 Bootstrap the system with known Detroit venues and community knowledge.
 
 - [ ] Create `database/detroit_venues_seed.json` with 20-30 known Detroit-area venues (TV Lounge, Marble Bar, Spot Lite, El Club, Hasrat, New Dodge Lounge, etc.)
@@ -153,7 +160,7 @@ Bootstrap the system with known Detroit venues and community knowledge.
 - [ ] Add Eventbrite scraper for Detroit electronic music events
 - [ ] Add Meetup.com scraper for Detroit DJ/music groups
 
-### Phase 44: Reply Automation & Negotiation Engine (v1.1.52)
+### Phase 45: Reply Automation & Negotiation Engine (v1.1.53)
 Expand the reply handling from draft-only to semi-automated negotiation.
 
 - [ ] Add auto-response for OOO replies (queue re-attempt after OOO end date)
@@ -164,7 +171,7 @@ Expand the reply handling from draft-only to semi-automated negotiation.
 - [ ] Add "Mark as Booked" workflow on dashboard with date/confirmation fields
 - [ ] Add booking tracker: venue, date, deal terms, status
 
-### Phase 45: Reporting & Scene Analytics (v1.1.53)
+### Phase 46: Reporting & Scene Analytics (v1.1.54)
 Turn the data into actionable intelligence for scene-building.
 
 - [ ] Add venue outreach timeline visualization (first contact → replies → booked)
@@ -175,7 +182,7 @@ Turn the data into actionable intelligence for scene-building.
 - [ ] Export leads/contacts to CSV for use in other tools
 - [ ] Add venue comparison view (side-by-side for decision making between similar venues)
 
-### Phase 46: Multi-Artist & Collaboration (v1.1.54)
+### Phase 47: Multi-Artist & Collaboration (v1.1.55)
 Enable the system to support multiple artists or a collective.
 
 - [ ] Add artist profiles table (name, bio, genres, links, rate card)

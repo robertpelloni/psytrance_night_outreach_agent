@@ -4,20 +4,50 @@ import re
 import random
 import os
 
+import time
+
 class ProxyRotator:
-    """Manages a pool of proxies sourced from the PROXY_LIST environment variable."""
+    """Manages a pool of proxies with health tracking and dynamic rotation."""
+    _proxies = {} # url -> {'fails': 0, 'success': 0, 'blacklist_until': 0}
+    _initialized = False
+
+    @classmethod
+    def _initialize(cls):
+        if cls._initialized:
+            return
+        proxy_list = os.getenv("PROXY_LIST")
+        if proxy_list:
+            urls = [p.strip() for p in proxy_list.split(",") if p.strip()]
+            for url in urls:
+                if url not in cls._proxies:
+                    cls._proxies[url] = {'fails': 0, 'success': 0, 'blacklist_until': 0}
+        cls._initialized = True
+
+    @classmethod
+    def get_proxy_url(cls):
+        """Selects the best available proxy based on health."""
+        cls._initialize()
+        if not cls._proxies:
+            return None
+
+        now = time.time()
+        # Filter out currently blacklisted proxies
+        available = [url for url, stats in cls._proxies.items() if stats['blacklist_until'] < now]
+
+        if not available:
+            # If all are blacklisted, pick the one that expires soonest
+            print("  [ProxyRotator] All proxies blacklisted. Picking least-bad option.")
+            available = sorted(cls._proxies.keys(), key=lambda x: cls._proxies[x]['blacklist_until'])[:1]
+
+        # Weight selection by success/fail ratio (simple epsilon-greedy or weighted choice)
+        # For now, just random choice from available to keep it simple but effective
+        return random.choice(available)
+
     @classmethod
     def get_proxy_config(cls):
-        proxy_list = os.getenv("PROXY_LIST")
-        if not proxy_list:
+        proxy = cls.get_proxy_url()
+        if not proxy:
             return None
-
-        proxies = [p.strip() for p in proxy_list.split(",") if p.strip()]
-        if not proxies:
-            return None
-
-        proxy = random.choice(proxies)
-        # Format: http://user:pass@host:port or http://host:port
         return {
             "http": proxy,
             "https": proxy
@@ -26,16 +56,30 @@ class ProxyRotator:
     @classmethod
     def get_playwright_proxy(cls):
         """Returns proxy config in the format expected by Playwright."""
-        proxy_list = os.getenv("PROXY_LIST")
-        if not proxy_list:
+        proxy = cls.get_proxy_url()
+        if not proxy:
             return None
+        return {"server": proxy}
 
-        proxies = [p.strip() for p in proxy_list.split(",") if p.strip()]
-        if not proxies:
-            return None
+    @classmethod
+    def report_success(cls, proxy_url):
+        if not proxy_url: return
+        cls._initialize()
+        if proxy_url in cls._proxies:
+            cls._proxies[proxy_url]['success'] += 1
+            cls._proxies[proxy_url]['fails'] = 0 # Reset fails on success
+            cls._proxies[proxy_url]['blacklist_until'] = 0
 
-        proxy_url = random.choice(proxies)
-        return {"server": proxy_url}
+    @classmethod
+    def report_failure(cls, proxy_url):
+        if not proxy_url: return
+        cls._initialize()
+        if proxy_url in cls._proxies:
+            cls._proxies[proxy_url]['fails'] += 1
+            # Exponential backoff for blacklist: 10s, 40s, 90s, 160s... (fails^2 * 10)
+            wait_time = (cls._proxies[proxy_url]['fails'] ** 2) * 10
+            cls._proxies[proxy_url]['blacklist_until'] = time.time() + wait_time
+            print(f"  [ProxyRotator] Proxy {proxy_url} failed {cls._proxies[proxy_url]['fails']} times. Blacklisted for {wait_time}s.")
 
 class UserAgentRotator:
     USER_AGENTS = [

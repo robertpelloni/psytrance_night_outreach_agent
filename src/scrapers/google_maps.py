@@ -17,10 +17,12 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
         retry_delay = 2
 
         for attempt in range(max_retries):
+            proxy_config = ProxyRotator.get_playwright_proxy()
+            proxy_url = proxy_config['server'] if proxy_config else None
+
             try:
                 with sync_playwright() as p:
-                    proxy = ProxyRotator.get_playwright_proxy()
-                    browser = p.chromium.launch(headless=True, proxy=proxy)
+                    browser = p.chromium.launch(headless=True, proxy=proxy_config)
                     context = browser.new_context(user_agent=UserAgentRotator.get_random())
                     page = context.new_page()
 
@@ -34,6 +36,7 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                     except:
                         print(f"  [Attempt {attempt+1}] Could not find results selector.")
                         if attempt < max_retries - 1:
+                            ProxyRotator.report_failure(proxy_url)
                             browser.close()
                             time.sleep(retry_delay * (2 ** attempt))
                             continue
@@ -89,9 +92,11 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                             print(f"Error parsing element: {e}")
 
                     browser.close()
+                ProxyRotator.report_success(proxy_url)
                 break # Success
             except Exception as e:
                 print(f"  [Attempt {attempt+1}] Scraper error: {e}")
+                ProxyRotator.report_failure(proxy_url)
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay * (2 ** attempt))
                 else:

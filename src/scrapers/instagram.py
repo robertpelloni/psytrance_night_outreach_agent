@@ -12,11 +12,12 @@ class InstagramScraper:
         handle = handle.strip().replace('@', '')
         url = f"https://www.instagram.com/{handle}/"
         print(f"Scraping Instagram profile: {url}")
+        proxy_config = ProxyRotator.get_playwright_proxy()
+        proxy_url = proxy_config['server'] if proxy_config else None
 
         try:
             with sync_playwright() as p:
-                proxy = ProxyRotator.get_playwright_proxy()
-                browser = p.chromium.launch(headless=True, proxy=proxy)
+                browser = p.chromium.launch(headless=True, proxy=proxy_config)
                 context = browser.new_context(user_agent=UserAgentRotator.get_random())
                 page = context.new_page()
 
@@ -41,11 +42,14 @@ class InstagramScraper:
                 browser.close()
 
                 if bio or len(visible_text) > 100:
+                    ProxyRotator.report_success(proxy_url)
                     return {
                         'bio': bio,
                         'recent_activity_context': visible_text[:1000]
                     }
+                ProxyRotator.report_failure(proxy_url)
                 return None
         except Exception as e:
             print(f"Error scraping Instagram {handle}: {e}")
+            ProxyRotator.report_failure(proxy_url)
             return None

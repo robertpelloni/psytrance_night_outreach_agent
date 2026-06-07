@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.46] - 2026-06-07
+### Added
+- **Phase 38: Dynamic Proxy Rotation**: Further strengthen bot mitigation by tracking proxy health and rotating based on performance.
+- **Proxy Health Tracking**: `ProxyRotator` now maintains success/failure counts for every proxy in the pool.
+- **Intelligent Blacklisting**: Proxies that fail are temporarily blacklisted with an exponential backoff wait time (`fails^2 * 10s`).
+- **Scraper Feedback Loop**: Integrated `report_success` and `report_failure` methods across all Playwright scrapers (Google Maps, RA, Instagram) to drive rotation logic.
+- **Resilient Fallback**: If all proxies are blacklisted, the system automatically selects the one that will expire soonest.
+
 ## [1.1.45] - 2026-06-07
 ### Added
 - **Real-World Scraper Hardening**: Implemented exponential backoff retry logic in `GoogleMapsPlaywrightScraper` to handle transient network and selector errors.
