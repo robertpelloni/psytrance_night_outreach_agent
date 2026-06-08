@@ -9,35 +9,33 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
     def search_venues(self, city):
         venues = []
         city_slug = city.lower().replace(" ", "-")
-        # Try a different URL pattern if the guide one fails or is empty
-        # Sometimes RA uses /directory/venues/[city]
         url = f"{self.base_url}/guide/{city_slug}/venues"
-
         print(f"Scraping Resident Advisor venues in {city} via Playwright at {url}...")
 
-        proxy_config = ProxyRotator.get_playwright_proxy()
-        proxy_url = proxy_config['server'] if proxy_config else None
+        max_retries = 3
+        retry_delay = 2
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, proxy=proxy_config)
-            context = browser.new_context(
-                user_agent=UserAgentRotator.get_random()
-            )
-            page = context.new_page()
+        for attempt in range(max_retries):
+            proxy_config = ProxyRotator.get_playwright_proxy()
+            proxy_url = proxy_config['server'] if proxy_config else None
 
             try:
-                page.goto(url, wait_until="domcontentloaded")
-                page.wait_for_timeout(5000) # Wait for JS to render
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True, proxy=proxy_config)
+                    context = browser.new_context(user_agent=UserAgentRotator.get_random())
+                    page = context.new_page()
 
-                # Check for "Just a moment" (Cloudflare)
-                if "Just a moment" in page.title():
-                    print("Hit Cloudflare on RA. Attempting to wait...")
-                    page.wait_for_timeout(10000)
+                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    page.wait_for_timeout(5000) # Wait for JS
+
                     if "Just a moment" in page.title():
-                         ProxyRotator.report_failure(proxy_url)
-                         return []
+                        print(f"  [Attempt {attempt+1}] Hit Cloudflare on RA.")
+                        ProxyRotator.report_failure(proxy_url)
+                        browser.close()
+                        time.sleep(retry_delay * (2 ** attempt))
+                        continue
 
-                # Search for any links that look like venues
+                    # Search for any links that look like venues
                 links = page.query_selector_all('a')
                 for link in links:
                     try:
@@ -57,13 +55,17 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                                 })
                     except:
                         continue
-                ProxyRotator.report_success(proxy_url)
 
+                    browser.close()
+                ProxyRotator.report_success(proxy_url)
+                break # Success
             except Exception as e:
-                print(f"Error scraping RA: {e}")
+                print(f"  [Attempt {attempt+1}] RA Scraper error: {e}")
                 ProxyRotator.report_failure(proxy_url)
-            finally:
-                browser.close()
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay * (2 ** attempt))
+                else:
+                    print(f"  RA Scraper failed after {max_retries} attempts.")
 
         return venues[:10]
 
@@ -71,16 +73,22 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
         """Extracts detailed info from an RA venue profile page."""
         details = {}
         print(f"Enriching RA venue from {profile_url}...")
-        proxy_config = ProxyRotator.get_playwright_proxy()
-        proxy_url = proxy_config['server'] if proxy_config else None
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, proxy=proxy_config)
-            context = browser.new_context(user_agent=UserAgentRotator.get_random())
-            page = context.new_page()
+        max_retries = 3
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            proxy_config = ProxyRotator.get_playwright_proxy()
+            proxy_url = proxy_config['server'] if proxy_config else None
 
             try:
-                page.goto(profile_url, wait_until="networkidle")
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True, proxy=proxy_config)
+                    context = browser.new_context(user_agent=UserAgentRotator.get_random())
+                    page = context.new_page()
+
+                    page.goto(profile_url, wait_until="networkidle", timeout=30000)
+                    page.wait_for_timeout(3000)
                 page.wait_for_timeout(3000)
 
                 # Extract Website (often in an 'a' with specific icon or text)
@@ -106,12 +114,17 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                     href = link.get_attribute('href') or ""
                     if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
                         details['socials'].append(href)
+
+                    browser.close()
                 ProxyRotator.report_success(proxy_url)
+                break # Success
 
             except Exception as e:
-                print(f"Error enriching RA venue: {e}")
+                print(f"  [Attempt {attempt+1}] RA Enrichment error: {e}")
                 ProxyRotator.report_failure(proxy_url)
-            finally:
-                browser.close()
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay * (2 ** attempt))
+                else:
+                    print(f"  RA Enrichment failed after {max_retries} attempts.")
 
         return details

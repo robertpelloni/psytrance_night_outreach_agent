@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.47] - 2026-06-08
+### Added
+- **Multi-Scraper Production Hardening**: Extended exponential backoff retry logic and standardized error isolation to Resident Advisor and Instagram scrapers.
+- **Unified Proxy Reporting**: All scraper methods (search and enrichment) now report success/failure to `ProxyRotator` for intelligent pool management.
+
 ## [1.1.46] - 2026-06-07
 ### Added
 - **Phase 38: Dynamic Proxy Rotation**: Further strengthen bot mitigation by tracking proxy health and rotating based on performance.
