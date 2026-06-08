@@ -159,7 +159,8 @@ class E2EScraper:
                                             with patch('src.analytics.AnalyticsEngine.__init__', autospec=True, return_value=None) as mock_anal_init:
                                                 mock_anal_init.side_effect = lambda self, db_path=None: setattr(self, 'db_path', db_path or 'database/outreach.db')
                                                 with patch('src.analytics.AnalyticsEngine._get_connection', side_effect=lambda: sqlite3.connect(db_path)):
-                                                    run_pipeline()
+                                                    with patch('sys.argv', ['main.py']):
+                                                        run_pipeline()
 
         # 5. Verify results in DB and Logs
         db = DatabaseManager(db_path=db_path)

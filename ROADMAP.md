@@ -89,15 +89,16 @@ Further strengthen bot mitigation by tracking proxy health and rotating based on
 
 ## Upcoming Phases
 
-### Phase 39: Email Inbox Integration (v1.1.48)
+### Phase 39: Email Inbox Integration (v1.1.49)
 Currently, venue replies must be manually pasted into the "Simulate Reply" form. This is the single biggest usability gap — in production, replies arrive in the booking inbox and must be ingested automatically.
 
-- [ ] Implement IMAP inbox polling (`src/inbox_monitor.py`) to fetch unread emails from the booking mailbox
-- [ ] Match incoming emails to leads by sender address or venue name in subject/body
-- [ ] Auto-route matched emails through `SentimentAnalyzer.process_new_reply()`
+- [x] Implement IMAP inbox polling (`src/inbox_monitor.py`) to fetch unread emails from the booking mailbox
+- [x] Match incoming emails to leads by sender address or venue name in subject/body
+- [x] Auto-route matched emails through `SentimentAnalyzer.process_new_reply()`
+- [x] Add "Fetch New Replies" button to the HITL Dashboard (v1.1.49)
 - [ ] Add dashboard notification for new replies requiring attention
 - [ ] Add an "Unmatched Replies" view for emails that can't be auto-matched
-- [ ] Poll on configurable interval (default: every 15 minutes)
+- [x] Poll on configurable interval (integrated into main pipeline cycle)
 - [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
 
 ### Phase 40: Pipeline Scheduling & Cycle Management (v1.1.49)

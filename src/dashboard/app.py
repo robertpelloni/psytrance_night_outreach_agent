@@ -18,6 +18,7 @@ from src.reliability_monitor import ReliabilityMonitor
 from src.tour_planner import TourPlanner
 from src.outreach_predictor import OutreachPredictor
 from src.outreach_engine import OutreachEngine
+from src.inbox_monitor import InboxMonitor
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -33,6 +34,7 @@ reliability = ReliabilityMonitor(db_path=db_path)
 planner = TourPlanner(db_path=db_path)
 predictor = OutreachPredictor(db_path=db_path)
 outreach_engine = OutreachEngine(db_path=db_path)
+inbox_monitor = InboxMonitor(db_path=db_path)
 
 import json
 
@@ -137,6 +139,21 @@ def run_sync():
         "status": status,
         "output": result.stdout + result.stderr
     })
+
+@app.route('/fetch_replies', methods=['POST'])
+def fetch_replies():
+    try:
+        count = inbox_monitor.fetch_new_replies()
+        return jsonify({
+            "status": "success",
+            "count": count,
+            "message": f"Processed {count} new replies."
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route('/simulate_reply/<int:lead_id>', methods=['POST'])
 def simulate_reply(lead_id):

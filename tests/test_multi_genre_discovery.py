@@ -49,7 +49,8 @@ class TestMultiGenreDiscovery(unittest.TestCase):
         mock_geo_inst.geocode_venue.return_value = (52.5, 13.4)
 
         # 5. Run Main
-        main.main()
+        with patch('sys.argv', ['main.py']):
+            main.main()
 
         # 6. Verify Scraper called for BOTH genres
         # Note: build_search_queries now returns 2 queries per genre for non-Detroit cities

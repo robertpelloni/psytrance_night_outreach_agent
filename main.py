@@ -15,6 +15,7 @@ from src.follow_up_engine import FollowUpEngine
 from src.geocoding import GeocodingUtility
 from src.outreach_predictor import OutreachPredictor
 from src.analytics import AnalyticsEngine
+from src.inbox_monitor import InboxMonitor
 
 
 def load_scrapers():
@@ -261,6 +262,7 @@ def main(args_list=None):
     config = ConfigManager()
     outreach = OutreachEngine()
     follow_up = FollowUpEngine()
+    inbox = InboxMonitor()
     geocoder = GeocodingUtility()
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
@@ -378,10 +380,15 @@ def main(args_list=None):
 
     if not args.dry_run:
         print(
-            "\nScraping and qualification complete. Running outreach and follow-up cycles..."
+            "\nScraping and qualification complete. Running outreach, follow-up, and inbox cycles..."
         )
         outreach.run_outreach_cycle()
         follow_up.run_follow_up_cycle()
+
+        print("InboxMonitor: Checking for new venue replies...")
+        new_replies = inbox.fetch_new_replies()
+        if new_replies > 0:
+            print(f"InboxMonitor: Processed {new_replies} new replies.")
 
         print("\nPipeline run complete.")
         db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")

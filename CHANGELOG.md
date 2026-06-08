@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [1.1.49] - 2026-06-08
+### Added
+- **Phase 39: Email Inbox Integration**: Implemented automated IMAP-based reply fetching in `src/inbox_monitor.py` to monitor venue responses.
+- **Intelligent Lead Matching**: Implemented a dual-strategy matching engine that links incoming emails to existing leads using either the sender's email address or a fallback venue name search within the email body.
+- **Automated Reply Drafting**: Integrated `SentimentAnalyzer` to automatically classify incoming replies and generate AI-powered response drafts for "INTERESTED" or "INQUIRY" sentiments.
+- **Dashboard UI Update**: Added a "Fetch New Replies" button to the HITL Dashboard, allowing manual triggers for inbox synchronization.
+- **Pipeline Integration**: Wired the inbox polling cycle into the main `main.py` orchestrator, completing the autonomous feedback loop.
+
+### Fixed
+- **Test Suite Stability**: Resolved `sqlite3.OperationalError` in `tests/test_inbox_monitor.py` caused by passing `MagicMock` objects to database parameters.
+- **Argparse Conflicts**: Fixed `SystemExit` errors in `tests/test_multi_genre_discovery.py` and `tests/test_autonomous_pipeline_e2e.py` by patching `sys.argv` during pipeline execution.
+
 ## [1.1.48] - 2026-06-08
 ### Added
 - **Orchestration Optimization**: Refactored the discovery loop in `main.py` to distinguish between query-based and city-wide scrapers, ensuring efficient source traversal and reducing redundant requests.

@@ -1,54 +1,40 @@
-# HANDOFF - v1.1.48
+# HANDOFF - v1.1.49
 
 ## Session Summary
-This session finalized **Phase 37 (Hardening)** and **Phase 38 (Proxy Rotation)**, and implemented **v1.1.48 (Orchestration Optimization)**. The system is now significantly more efficient, utilizing a query-aware discovery loop that minimizes redundant requests.
+This session focused on completing Phase 39 (Email Inbox Integration) and finalizing the production hardening of the discovery scrapers (Phases 37-38). The system now features a complete autonomous feedback loop, from venue discovery to automated reply ingestion and drafting.
 
-## Key Changes
+### Key Accomplishments
+- **Email Inbox Integration (Phase 39):**
+    - Implemented `src/inbox_monitor.py` for automated IMAP-based reply fetching.
+    - Built a robust lead matching engine using a dual-strategy: primary matching by sender email and fallback matching by venue name search within the email body.
+    - Wired matched replies to `SentimentAnalyzer` to trigger automated sentiment classification and AI reply drafting.
+    - Added "Fetch New Replies" button to the Dashboard History view.
+    - Integrated inbox polling into the main `main.py` pipeline.
+- **Scraper Hardening & Proxy Rotation (Phases 37-38):**
+    - Implemented exponential backoff retry logic across all scrapers (Google Maps, Resident Advisor, Instagram).
+    - Refactored `ProxyRotator` with health tracking and intelligent blacklisting (`fails^2 * 10s`).
+    - Standardized success/failure reporting across all network-active components (Scrapers and `ContactExtractor`).
+    - Decoupled `InstagramScraper` for enrichment-only use and optimized the RA scraper to run once per city run.
+- **CI/CD & Test Stability:**
+    - Resolved critical unit test failures in `tests/test_inbox_monitor.py` related to `MagicMock` parameter binding in sqlite3.
+    - Fixed `argparse` conflicts in `tests/test_multi_genre_discovery.py` and `tests/test_autonomous_pipeline_e2e.py` by patching `sys.argv`.
+    - Hardened `src/mailer.py` to handle empty `SMTP_PORT` environment variables.
 
-### 1. Orchestration Optimization (main.py)
-- **Scraper Categorization**: Discovery loop now distinguishes between `query_scrapers` (Google Maps) and `city_scrapers` (Resident Advisor).
-- **Efficiency**: City-wide scrapers now run exactly once per city run, rather than once per search query, saving significant tokens and network bandwidth.
-- **Atomic Venue Isolation**: Every venue qualification is isolated in a `try...except` block.
+### Structural Shifts
+- **Discovery Orchestration:** The pipeline now distinguishes between `query_scrapers` (Google Maps) and `city_scrapers` (Resident Advisor). RA enrichment is performed at the city level once per run, significantly reducing redundant requests.
+- **Feedback Loop Completeness:** The system is no longer "dispatch-only." It can now ingest, classify, and draft responses to incoming human replies, preparing for Phase 45 (Negotiation Engine).
 
-### 2. Comprehensive Proxy Feedback (src/scrapers/base_scraper.py)
-- Integrated `ProxyRotator` reporting into the non-Playwright `ContactExtractor`, completing the feedback loop for all external requests.
+### System Memories Added
+- Standardized proxy health reporting across all discovery and enrichment components.
+- Implementation of neighborhood-aware Detroit search queries and Detroit-specific artist identity context.
+- Hardening of IMAP and SMTP components for restricted CI environments.
 
-### 3. Google Maps Enrichment
-- Added direct website URL extraction from search result cards in `GoogleMapsPlaywrightScraper`.
+## Current State
+- **Version:** 1.1.49
+- **Test Status:** 100% pass rate on Master Integrity Suite (74+ tests).
+- **Environment:** Production-ready for Detroit/Midwest circuit.
 
-### 4. Scraper Resilience & Isolation
-- **Exponential Backoff**: Added retry logic (3 attempts) to `GoogleMapsPlaywrightScraper`.
-- **Atomic Venue Processing**: Refactored `main.py` to isolate each venue in a `try...except` block, ensuring single failures don't abort entire runs.
-- **Bot Mitigation**: Added random rate limiting (2-5s) and user-agent rotation.
-
-### 2. Dynamic Proxy Rotation (src/scrapers/base_scraper.py)
-- **Health Tracking**: `ProxyRotator` now tracks success/failure counts per proxy.
-- **Intelligent Blacklisting**: Proxies that fail are blacklisted with exponential backoff (`fails^2 * 10s`).
-- **Feedback Loop**: Integrated feedback calls (`report_success`/`report_failure`) into all scrapers.
-
-### 3. CI/CD & Pipeline Safety
-- Added exponential backoff retry logic (3 attempts).
-- Improved selector waiting to handle dynamic Google Maps loading.
-- Isolated element parsing errors to prevent individual venue failures from crashing the scraper.
-
-### 2. Pipeline Robustness (main.py)
-- **Per-Venue Isolation**: Each venue is processed in its own `try...except` block. A failure in one venue (e.g., AI qualification error) no longer aborts the entire city run.
-- **Rate Limiting**: Added `random.uniform(2, 5)` delays between scraper calls to mimic human behavior and avoid IP bans.
-- **Validation**: Scraper results are validated for `name` and `city` before being added to the database.
-- **CLI Flags**: Added `--dry-run` (skip DB/AI) and `--city` (process single city) for better control and testing.
-
-### 3. CI/CD & Environment Fixes
-- **Mailer Fix**: `src/mailer.py` now handles empty `SMTP_PORT` strings (common in CI/CD secrets).
-- **Path Resolution**: `src/pipeline_monitor.py` now correctly adds the project root to `sys.path` when executed directly by GitHub Actions.
-- **Test Alignment**: Updated `tests/test_multi_genre_discovery.py` and `tests/test_autonomous_pipeline_e2e.py` to match the current pipeline logic and log ordering.
-- **Sync Logic Tests**: Fixed `tests/test_sync_logic.py` to use isolated test databases, preventing `OperationalError: no such table: system_logs`.
-
-## Deployment Status
-- **Staging**: Verified via `./deploy_staging.sh`. All 69 tests passed.
-- **Production**: Verified via `./deploy_production.sh`. All 69 tests passed.
-- **Version**: Bumped to **1.1.48**.
-
-## Next Steps for Successor Model
-- **Phase 39: Email Inbox Integration**: This is the next structural blocker. Implement `src/inbox_monitor.py` using IMAP to automatically fetch and match venue replies.
-- **Phase 40: Pipeline Scheduling**: Integrate `APScheduler` into the dashboard to allow recurring discovery runs.
-- **Settings UI**: Expose the new Detroit-specific and Artist-identity configuration fields in the web dashboard.
+## Immediate Next Steps
+1. **Phase 40 (Scheduling):** Integrate APScheduler into the dashboard for fully automated weekly runs.
+2. **Phase 41 (Settings):** Expose the new IMAP and Artist Identity settings in the UI.
+3. **Phase 42 (Safety):** Implement daily outreach throttles and token budget tracking.

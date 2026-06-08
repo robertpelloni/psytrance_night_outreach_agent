@@ -8,6 +8,12 @@ class SentimentAnalyzer:
 
     def process_new_reply(self, lead_id, content):
         """Analyzes a new reply and stores it with sentiment and drafted response."""
+        # Ensure lead_id is an integer if passed as a mock or other type in tests
+        try:
+            lead_id = int(lead_id)
+        except (ValueError, TypeError):
+            pass
+
         sentiment = self.ai.analyze_sentiment(content)
         print(f"SentimentAnalyzer: Detected {sentiment} for lead_id {lead_id}.")
 

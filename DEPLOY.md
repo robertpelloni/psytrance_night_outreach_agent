@@ -56,6 +56,9 @@ The following **GitHub Secrets** must be configured:
 | `SMTP_USER` | SMTP username |
 | `SMTP_PASSWORD` | SMTP password |
 | `SENDER_EMAIL` | Outbound booking email address |
+| `IMAP_SERVER` | IMAP host for fetching replies |
+| `IMAP_USER` | IMAP username |
+| `IMAP_PASSWORD` | IMAP password |
 
 The pipeline triggers on every push to **any** branch. The full outreach pipeline (`main.py`) only executes on `main` or scheduled runs to optimize API usage.
 

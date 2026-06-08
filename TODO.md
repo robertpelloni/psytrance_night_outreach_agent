@@ -115,6 +115,11 @@
 - [x] Optimize discovery orchestration (query vs city-wide) in main.py (v1.1.48)
 - [x] Integrate proxy feedback into ContactExtractor.scrape_website (v1.1.48)
 - [x] Implement website URL extraction in GoogleMapsPlaywrightScraper (v1.1.48)
+- [x] Implement IMAP inbox polling in `src/inbox_monitor.py` (v1.1.49)
+- [x] Implement dual-strategy lead matching (email + venue name) (v1.1.49)
+- [x] Integrate `SentimentAnalyzer` for automated reply drafting (v1.1.49)
+- [x] Add "Fetch New Replies" button to HITL Dashboard (v1.1.49)
+- [x] Wired inbox polling into main pipeline orchestrator (v1.1.49)
 
 ---
 
@@ -123,12 +128,11 @@
 These are the things that prevent the agent from being genuinely useful in the real world.
 
 ### Email Inbox Integration
-- [ ] Implement IMAP inbox polling (`src/inbox_monitor.py`) to fetch unread booking emails
-- [ ] Auto-match incoming emails to leads by sender address or venue name
-- [ ] Route matched emails through `SentimentAnalyzer.process_new_reply()`
+- [ ] Add dashboard notification for new replies requiring attention
+- [ ] Add an "Unmatched Replies" view for emails that can't be auto-matched
 - [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
 
-*Without this, every venue reply must be manually copy-pasted. This is the #1 usability gap.*
+*IMAP polling is implemented (v1.1.49), but UI feedback and unmatched handling are pending.*
 
 ### Scraper Reliability (Ongoing)
 - [ ] Add Google Maps Places API as a reliable fallback when Playwright selectors break

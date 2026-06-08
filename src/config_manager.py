@@ -35,6 +35,10 @@ class ConfigManager:
             "auto_approve_threshold": 9,
             "follow_up_days": 7,
             "max_follow_ups": 2,
+            "imap_server": "",
+            "imap_user": "",
+            "imap_password": "",
+            "imap_port": 993,
             "detroit_search_queries": [
                 "underground electronic music venue",
                 "warehouse venue Detroit",
