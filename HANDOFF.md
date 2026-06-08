@@ -1,11 +1,22 @@
-# HANDOFF - v1.1.46
+# HANDOFF - v1.1.48
 
 ## Session Summary
-This session focused on **Phase 37: Real-World Scraper Hardening** and **Phase 38: Dynamic Proxy Rotation**. The discovery pipeline is now production-grade, resilient to network flakiness, and capable of maintaining proxy health automatically.
+This session finalized **Phase 37 (Hardening)** and **Phase 38 (Proxy Rotation)**, and implemented **v1.1.48 (Orchestration Optimization)**. The system is now significantly more efficient, utilizing a query-aware discovery loop that minimizes redundant requests.
 
 ## Key Changes
 
-### 1. Scraper Resilience & Isolation
+### 1. Orchestration Optimization (main.py)
+- **Scraper Categorization**: Discovery loop now distinguishes between `query_scrapers` (Google Maps) and `city_scrapers` (Resident Advisor).
+- **Efficiency**: City-wide scrapers now run exactly once per city run, rather than once per search query, saving significant tokens and network bandwidth.
+- **Atomic Venue Isolation**: Every venue qualification is isolated in a `try...except` block.
+
+### 2. Comprehensive Proxy Feedback (src/scrapers/base_scraper.py)
+- Integrated `ProxyRotator` reporting into the non-Playwright `ContactExtractor`, completing the feedback loop for all external requests.
+
+### 3. Google Maps Enrichment
+- Added direct website URL extraction from search result cards in `GoogleMapsPlaywrightScraper`.
+
+### 4. Scraper Resilience & Isolation
 - **Exponential Backoff**: Added retry logic (3 attempts) to `GoogleMapsPlaywrightScraper`.
 - **Atomic Venue Processing**: Refactored `main.py` to isolate each venue in a `try...except` block, ensuring single failures don't abort entire runs.
 - **Bot Mitigation**: Added random rate limiting (2-5s) and user-agent rotation.
@@ -35,7 +46,7 @@ This session focused on **Phase 37: Real-World Scraper Hardening** and **Phase 3
 ## Deployment Status
 - **Staging**: Verified via `./deploy_staging.sh`. All 69 tests passed.
 - **Production**: Verified via `./deploy_production.sh`. All 69 tests passed.
-- **Version**: Bumped to **1.1.47**.
+- **Version**: Bumped to **1.1.48**.
 
 ## Next Steps for Successor Model
 - **Phase 39: Email Inbox Integration**: This is the next structural blocker. Implement `src/inbox_monitor.py` using IMAP to automatically fetch and match venue replies.
