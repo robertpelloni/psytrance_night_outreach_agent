@@ -28,7 +28,7 @@ python src/dashboard/app.py
 
 ## Resetting a City Cycle
 Once a city is processed, it's skipped on subsequent runs. To re-run discovery for a city:
-- Use the Dashboard System tab → "Reset All Cycles" (coming in v1.1.47)
+- Use the Dashboard System tab → "Reset All Cycles" (Phase 40)
 - Or programmatically: `db.mark_city_processed("Detroit", status="PENDING")`
 
 ## Repository Synchronization
