@@ -138,12 +138,12 @@ These are the things that prevent the agent from being genuinely useful in the r
 - [ ] Add Google Maps Places API as a reliable fallback when Playwright selectors break
 
 ### Pipeline Reset & Scheduling
-- [ ] Add `db.reset_city_cycle(city)` to allow re-running discovery for a city
-- [ ] Add "Reset All Cycles" button on dashboard
-- [ ] Integrate APScheduler for automated pipeline runs (e.g., weekly)
-- [ ] Add pipeline run history table and dashboard view
+- [x] Add `db.reset_city_cycle(city)` to allow re-running discovery for a city (v1.1.50)
+- [x] Add "Reset All Cycles" button on dashboard (System tab) (v1.1.50)
+- [x] Integrate APScheduler for automated pipeline runs (weekly) (v1.1.50)
+- [x] Add pipeline run history table and dashboard view (v1.1.50)
 
-*Currently, once a city is processed it can never be re-run. No scheduling exists.*
+*Automated scheduling and cycle management are operational (v1.1.50).*
 
 ---
 
@@ -159,8 +159,8 @@ These are the things that prevent the agent from being genuinely useful in the r
 - [ ] Add "Re-qualify" button on PENDING_QUALIFICATION leads
 
 ### Outreach Safety
-- [ ] Add daily outreach throttle (max N emails per day, default 10)
-- [ ] Add configurable delay between dispatches (e.g., 5 minutes between emails)
+- [x] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags (v1.1.50)
+- [x] Add configurable delay between dispatches (e.g., 5 minutes between emails) (v1.1.50)
 - [ ] Add OpenAI token budget tracker — estimate cost per run, warn if over budget
 - [ ] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues that asked to never be emailed again

@@ -101,15 +101,15 @@ Currently, venue replies must be manually pasted into the "Simulate Reply" form.
 - [x] Poll on configurable interval (integrated into main pipeline cycle)
 - [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
 
-### Phase 40: Pipeline Scheduling & Cycle Management (v1.1.49)
+### Phase 40: Pipeline Scheduling & Cycle Management (v1.1.50)
 The pipeline currently requires manual execution. For ongoing scene-building, it needs to run on a schedule with proper cycle management.
 
-- [ ] Integrate APScheduler into the dashboard app for automated pipeline runs
-- [ ] Add configurable schedule (e.g., "run discovery every Monday at 9am")
-- [ ] Implement `db.reset_city_cycle(city)` to allow re-running discovery for a city
-- [ ] Add a "Reset All Cycles" button on the dashboard (for starting a fresh scouting pass)
-- [ ] Add pipeline run history to the database (start time, end time, cities processed, venues found, errors)
-- [ ] Add a dashboard "Pipeline" tab showing run history and next scheduled run
+- [x] Integrate APScheduler into the dashboard app for automated pipeline runs
+- [x] Add configurable schedule (default: weekly)
+- [x] Implement `db.reset_city_cycle(city)` to allow re-running discovery for a city
+- [x] Add a "Reset All Cycles" button on the dashboard (System tab)
+- [x] Add pipeline run history to the database (start time, end time, cities processed, venues found, errors)
+- [x] Add a dashboard visualization showing run history and status
 - [ ] Add pipeline run email/Slack notification on completion
 
 ### Phase 41: Settings & Dashboard Completeness (v1.1.50)
@@ -125,11 +125,11 @@ The Settings UI doesn't expose half the config fields. The dashboard is missing 
 - [ ] Fix map default center to Detroit (42.3314, -83.0458) instead of world view
 - [ ] Add "Re-qualify" button on PENDING_QUALIFICATION leads (re-run vibe check after editing venue text)
 
-### Phase 42: Outreach Intelligence & Safety (v1.1.51)
+### Phase 42: Outreach Intelligence & Safety (v1.1.50)
 The outreach engine needs guardrails to protect sender reputation and optimize conversion.
 
-- [ ] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags
-- [ ] Add configurable delay between dispatches (e.g., 5 minutes between emails)
+- [x] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags
+- [x] Add configurable delay between dispatches (e.g., 5 minutes between emails)
 - [ ] Add OpenAI token budget tracker — estimate cost per run, log to database, warn if over budget
 - [ ] Add pitch subject line generation (currently hardcoded as "Proposal for Psytrance Night Residency")
 - [ ] Add email open/click tracking via tracking pixel or link wrapper

@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.1.50] - 2026-06-08
+### Added
+- **Phase 40: Pipeline Scheduling & Cycle Management**: Integrated `APScheduler` into the dashboard to support automated weekly discovery and outreach runs.
+- **Run History Tracking**: Added a `pipeline_runs` table and System Dashboard visualization to track start/end times, venue discovery counts, and lead generation metrics.
+- **Operational Cycle Resets**: Implemented the ability to reset city-specific processing cycles via the dashboard or CLI (`--reset` flag).
+- **Phase 42: Outreach Safety & Guardrails**: Implemented a daily outreach throttle (max 10 emails/day) and random delays between dispatches (5 minutes) to protect sender reputation.
+
+### Fixed
+- **System Stability**: Verified 100% pass rate on Master Integrity Suite in the production environment.
+- **Dependency Management**: Updated `requirements.txt` with `APScheduler`.
+
 ## [1.1.49] - 2026-06-08
 ### Added
 - **Phase 39: Email Inbox Integration**: Implemented automated IMAP-based reply fetching in `src/inbox_monitor.py` to monitor venue responses.
