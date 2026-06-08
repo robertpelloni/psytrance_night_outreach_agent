@@ -224,6 +224,39 @@ class DatabaseManager:
             row = cursor.fetchone()
             return row is not None and row[0] == 'COMPLETED'
 
+    def reset_city_cycle(self, city=None):
+        """Resets the processing cycle for a specific city or all cities."""
+        if city:
+            query = "DELETE FROM city_processing_log WHERE city = ?"
+            params = (city,)
+        else:
+            query = "DELETE FROM city_processing_log"
+            params = ()
+        with self._get_connection() as conn:
+            conn.execute(query, params)
+
+    def start_pipeline_run(self):
+        query = "INSERT INTO pipeline_runs (status) VALUES ('RUNNING')"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query)
+            return cursor.lastrowid
+
+    def end_pipeline_run(self, run_id, status, city_count=0, venues_found=0, leads_generated=0, error=None):
+        query = """
+        UPDATE pipeline_runs
+        SET status = ?, end_time = CURRENT_TIMESTAMP, city_count = ?, venues_found = ?, leads_generated = ?, error_message = ?
+        WHERE id = ?
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (status, city_count, venues_found, leads_generated, error, run_id))
+
+    def get_pipeline_history(self, limit=10):
+        query = "SELECT * FROM pipeline_runs ORDER BY start_time DESC LIMIT ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (limit,))
+            return [dict(row) for row in cursor.fetchall()]
+
     def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
         query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:

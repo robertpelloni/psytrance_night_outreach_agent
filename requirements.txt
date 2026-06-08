@@ -8,3 +8,4 @@ pytest
 pytest-mock
 pytest-cov
 geopy
+APScheduler==3.11.2

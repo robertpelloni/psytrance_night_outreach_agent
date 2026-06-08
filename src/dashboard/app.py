@@ -19,6 +19,8 @@ from src.tour_planner import TourPlanner
 from src.outreach_predictor import OutreachPredictor
 from src.outreach_engine import OutreachEngine
 from src.inbox_monitor import InboxMonitor
+from apscheduler.schedulers.background import BackgroundScheduler
+from main import main as run_pipeline
 
 app = Flask(__name__)
 # Adjust path because we are running from project root or src/dashboard
@@ -36,7 +38,25 @@ predictor = OutreachPredictor(db_path=db_path)
 outreach_engine = OutreachEngine(db_path=db_path)
 inbox_monitor = InboxMonitor(db_path=db_path)
 
+# Initialize Scheduler
+scheduler = BackgroundScheduler()
+
+def scheduled_pipeline():
+    """Wrapper to run the pipeline on a schedule."""
+    print("Scheduler: Starting automated pipeline run...")
+    try:
+        # We use a patched sys.argv to avoid conflicts with flask
+        with patch('sys.argv', ['main.py']):
+            run_pipeline()
+        print("Scheduler: Automated pipeline run completed.")
+    except Exception as e:
+        print(f"Scheduler: Pipeline run failed: {e}")
+
+# Note: We'll start the scheduler in the __main__ block
+# to avoid issues during module import/tests
+
 import json
+from unittest.mock import patch
 
 @app.route('/')
 def index():
@@ -121,11 +141,25 @@ def system_status():
     # Fetch last 10 sync logs
     sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
 
+    pipeline_history = db.get_pipeline_history()
+
     sync_stats = reliability.get_sync_health_stats()
     stale_branches = reliability.get_stale_branches()
     audit_trail = db.get_version_audit_trail()
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
+
+@app.route('/reset_cycles', methods=['POST'])
+def reset_cycles():
+    city = request.form.get('city')
+    db.reset_city_cycle(city)
+    return redirect(url_for('system_status'))
+
+@app.route('/run_pipeline_now', methods=['POST'])
+def run_pipeline_now():
+    # Trigger a run immediately via the scheduler or directly
+    scheduler.add_job(scheduled_pipeline, id='manual_run', replace_existing=True)
+    return jsonify({"status": "success", "message": "Pipeline run started in background."})
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():
@@ -260,4 +294,9 @@ def regenerate(lead_id):
     return jsonify({"pitch": new_pitch})
 
 if __name__ == '__main__':
+    # Add a weekly job for the pipeline
+    # For now, let's just make it configurable via code or later via UI
+    scheduler.add_job(scheduled_pipeline, 'interval', weeks=1, id='weekly_pipeline')
+    scheduler.start()
+
     app.run(debug=True, port=5000)

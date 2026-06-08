@@ -72,3 +72,14 @@ CREATE TABLE IF NOT EXISTS version_audit_trail (
     summary TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP,
+    status TEXT, -- RUNNING, COMPLETED, FAILED
+    city_count INTEGER DEFAULT 0,
+    venues_found INTEGER DEFAULT 0,
+    leads_generated INTEGER DEFAULT 0,
+    error_message TEXT
+);

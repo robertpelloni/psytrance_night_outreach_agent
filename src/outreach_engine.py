@@ -11,11 +11,27 @@ class OutreachEngine:
         self.config = ConfigManager()
 
     def process_approved_leads(self):
-        """Dispatches emails for leads marked as APPROVED."""
+        """Dispatches emails for leads marked as APPROVED with safety throttles."""
         print("OutreachEngine: Checking for approved leads to dispatch...")
         leads = self.db.get_leads_by_status('APPROVED')
 
+        max_daily = self.config.get("daily_outreach_limit") or 10
+        delay_min = self.config.get("outreach_delay_min") or 5
+
+        # Count how many sent today
+        sent_today_query = "SELECT COUNT(*) FROM outreach_leads WHERE pipeline_status = 'SENT' AND last_outreach_at >= date('now')"
+        with self.db._get_connection() as conn:
+            sent_today = conn.execute(sent_today_query).fetchone()[0]
+
+        if sent_today >= max_daily:
+            print(f"OutreachEngine: Daily limit reached ({sent_today}/{max_daily}). Skipping dispatch.")
+            return
+
         for lead in leads:
+            if sent_today >= max_daily:
+                print(f"OutreachEngine: Daily limit reached during loop. Stopping.")
+                break
+
             venue_id = lead['venue_id']
             # Fetch contact email
             query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
@@ -33,6 +49,12 @@ class OutreachEngine:
                     if self.mailer.send_email(email, subject, body):
                         self.db.update_lead_status(lead['id'], 'SENT')
                         print(f"Lead {lead['id']} marked as SENT.")
+                        sent_today += 1
+
+                        # Guardrail: Delay between emails
+                        if sent_today < max_daily:
+                            print(f"OutreachEngine: Sleeping for {delay_min} minutes before next dispatch...")
+                            time.sleep(delay_min * 60)
                 else:
                     print(f"No valid email found for lead {lead['id']}.")
             else:

@@ -28,6 +28,23 @@
                 btn.innerText = 'Trigger Sync Protocol';
             }
         }
+
+        async function runPipelineNow() {
+            const btn = document.getElementById('pipeline-btn');
+            btn.disabled = true;
+            btn.innerText = 'Starting...';
+
+            try {
+                const response = await fetch('/run_pipeline_now', { method: 'POST' });
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                alert('Error starting pipeline: ' + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Run Pipeline Now';
+            }
+        }
     </script>
 </head>
 <body class="container mt-5 text-bg-dark">
@@ -58,6 +75,21 @@
                 </div>
             </div>
 
+            <div class="card text-bg-secondary mb-4 shadow">
+                <div class="card-header bg-dark">Pipeline Control</div>
+                <div class="card-body">
+                    <button id="pipeline-btn" onclick="runPipelineNow()" class="btn btn-success w-100 mb-2">Run Pipeline Now</button>
+                    <hr class="border-secondary">
+                    <form action="/reset_cycles" method="post">
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="text" name="city" class="form-control bg-dark text-white border-secondary" placeholder="City Name (Optional)">
+                            <button type="submit" class="btn btn-outline-danger">Reset Cycles</button>
+                        </div>
+                        <small class="text-white-50">Clears city processing logs to allow re-scouting.</small>
+                    </form>
+                </div>
+            </div>
+
             <div class="card text-bg-secondary shadow">
                 <div class="card-header bg-dark">Sync Reliability (7d)</div>
                 <div class="card-body">
@@ -73,6 +105,53 @@
         </div>
 
         <div class="col-md-8">
+            <div class="card text-bg-dark border-secondary shadow mb-4">
+                <div class="card-header bg-dark text-white">Pipeline Run History</div>
+                <div class="card-body">
+                    <table class="table table-dark table-sm table-hover border-secondary">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Cities</th>
+                                <th>Venues</th>
+                                <th>Leads</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in pipeline_history %}
+                            <tr>
+                                <td>{{ run.id }}</td>
+                                <td><small>{{ run.start_time }}</small></td>
+                                <td>
+                                    {% if run.end_time %}
+                                        <small>{{ run.end_time }}</small>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark animate-pulse">RUNNING</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ run.city_count }}</td>
+                                <td>{{ run.venues_found }}</td>
+                                <td>{{ run.leads_generated }}</td>
+                                <td>
+                                    <span class="badge {% if run.status == 'COMPLETED' %}bg-success{% elif run.status == 'FAILED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ run.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if run.error_message %}
+                            <tr>
+                                <td colspan="7"><small class="text-danger">{{ run.error_message }}</small></td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card text-bg-dark border-secondary shadow mb-4">
                 <div class="card-header bg-secondary text-white">Sync Protocol Output</div>
                 <div class="card-body">

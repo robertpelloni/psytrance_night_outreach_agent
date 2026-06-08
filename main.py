@@ -245,6 +245,7 @@ def main(args_list=None):
     parser = argparse.ArgumentParser(description="Psytrance Night Outreach Agent")
     parser.add_argument("--dry-run", action="store_true", help="Run discovery and qualification without making AI calls or database writes.")
     parser.add_argument("--city", type=str, help="Process a specific city instead of all cities in config.")
+    parser.add_argument("--reset", action="store_true", help="Reset processing cycles for cities before starting.")
 
     if args_list is not None:
         args = parser.parse_args(args_list)
@@ -267,6 +268,16 @@ def main(args_list=None):
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
     query_scrapers, city_scrapers = load_scrapers()
+
+    run_id = None
+    if not args.dry_run:
+        if args.reset:
+            db.reset_city_cycle(args.city)
+        run_id = db.start_pipeline_run()
+
+    total_cities = 0
+    total_venues = 0
+    total_leads = 0
 
     if args.dry_run:
         print("\n!!! DRY RUN MODE ENABLED: No database writes or AI API calls will be made. !!!\n")
@@ -298,6 +309,7 @@ def main(args_list=None):
             print(f"Skipping {city} - Already processed in this cycle.")
             continue
 
+        total_cities += 1
         print(f"\n--- Processing {city} ---")
 
         # Build city-specific search queries
@@ -350,6 +362,7 @@ def main(args_list=None):
                     print(f"  Error running {scraper.__class__.__name__}: {e}")
 
         print(f"\n  Discovered {len(raw_venues)} unique venues in {city}")
+        total_venues += len(raw_venues)
 
         for v_data in raw_venues:
             try:
@@ -371,6 +384,10 @@ def main(args_list=None):
                 qualify_and_pitch(
                     v_data, v_id, db, ai, geocoder, predictor, config, analytics
                 )
+
+                # Check if lead was actually created
+                if db.lead_exists(v_id):
+                    total_leads += 1
             except Exception as e:
                 print(f"  [CRITICAL] Error processing {v_data.get('name', 'Unknown')}: {e}")
                 db.log_system_event("PIPELINE", "FAILURE", f"Error processing {v_data.get('name')}: {str(e)}")
@@ -392,6 +409,8 @@ def main(args_list=None):
 
         print("\nPipeline run complete.")
         db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")
+        if run_id:
+            db.end_pipeline_run(run_id, "COMPLETED", city_count=total_cities, venues_found=total_venues, leads_generated=total_leads)
     else:
         print("\nDry run complete. No outreach or follow-up cycles performed.")
 
