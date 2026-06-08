@@ -79,7 +79,15 @@ class ProxyRotator:
             # Exponential backoff for blacklist: 10s, 40s, 90s, 160s... (fails^2 * 10)
             wait_time = (cls._proxies[proxy_url]['fails'] ** 2) * 10
             cls._proxies[proxy_url]['blacklist_until'] = time.time() + wait_time
-            print(f"  [ProxyRotator] Proxy {proxy_url} failed {cls._proxies[proxy_url]['fails']} times. Blacklisted for {wait_time}s.")
+            msg = f"Proxy {proxy_url} failed {cls._proxies[proxy_url]['fails']} times. Blacklisted for {wait_time}s."
+            print(f"  [ProxyRotator] {msg}")
+
+            # Log to DB if possible
+            try:
+                from src.db_manager import DatabaseManager
+                DatabaseManager().log_system_event("PROXY", "FAILURE", msg)
+            except:
+                pass
 
 class UserAgentRotator:
     USER_AGENTS = [

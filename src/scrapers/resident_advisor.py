@@ -56,7 +56,7 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                     except:
                         continue
 
-                    browser.close()
+                browser.close()
                 ProxyRotator.report_success(proxy_url)
                 break # Success
             except Exception as e:
@@ -89,7 +89,6 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
 
                     page.goto(profile_url, wait_until="networkidle", timeout=30000)
                     page.wait_for_timeout(3000)
-                page.wait_for_timeout(3000)
 
                 # Extract Website (often in an 'a' with specific icon or text)
                 # RA often uses specific labels or aria-labels
@@ -115,7 +114,7 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                     if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
                         details['socials'].append(href)
 
-                    browser.close()
+                browser.close()
                 ProxyRotator.report_success(proxy_url)
                 break # Success
 
