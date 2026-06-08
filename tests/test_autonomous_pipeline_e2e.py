@@ -108,7 +108,7 @@ class E2EScraper:
         with patch('main.load_scrapers') as mock_load:
             # Simulate what the generated scraper would return
             class MockScraper:
-                def search_venues(self, city):
+                def search_venues(self, city, query=None):
                     return [{
                         'id': 'e2e-id-123',
                         'name': 'E2E Venue',
@@ -116,7 +116,8 @@ class E2EScraper:
                         'website': 'http://e2e.test',
                         'raw_about_text': 'A test venue for E2E.'
                     }]
-            mock_load.return_value = [MockScraper()]
+            # Return as (query_scrapers, city_scrapers)
+            mock_load.return_value = ([MockScraper()], [])
 
             # Run the pipeline with a temp DB
             db_path = os.path.join(self.test_dir, "database", "e2e.db")

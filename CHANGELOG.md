@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.48] - 2026-06-08
+### Added
+- **Orchestration Optimization**: Refactored the discovery loop in `main.py` to distinguish between query-based and city-wide scrapers, ensuring efficient source traversal and reducing redundant requests.
+- **Deep Proxy Feedback**: Integrated `ProxyRotator` feedback into the non-Playwright `ContactExtractor`, completing the health-tracking loop for all network requests.
+- **Google Maps Enrichment**: Enhanced `GoogleMapsPlaywrightScraper` to extract website URLs directly from search results.
+- **Enrichment-Only Separation**: Decoupled `InstagramScraper` from the discovery loop to focus on lead enrichment.
+
 ## [1.1.47] - 2026-06-08
 ### Added
 - **Multi-Scraper Production Hardening**: Extended exponential backoff retry logic and standardized error isolation to Resident Advisor and Instagram scrapers.

@@ -28,7 +28,7 @@ class TestMultiGenreDiscovery(unittest.TestCase):
         import inspect
         mock_scraper.search_venues.__signature__ = inspect.signature(search_venues)
 
-        mock_load.return_value = [mock_scraper]
+        mock_load.return_value = ([mock_scraper], [])
 
         # 3. Setup Mock DB
         mock_db = MagicMock()

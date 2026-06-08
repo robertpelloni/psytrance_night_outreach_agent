@@ -24,9 +24,9 @@ class TestVariantOptimization(unittest.TestCase):
             "Technical": {"conversion_rate": 100, "sent": 10}
         }
 
-        mock_load.return_value = [MagicMock(search_venues=lambda city, query=None: [{
+        mock_load.return_value = ([MagicMock(search_venues=lambda city, query=None: [{
             'id': 'test-v', 'name': 'Test', 'city': city, 'discovery_genre': 'techno'
-        }])]
+        }])], [])
 
         def config_get_mock(key):
             if key == "cities": return ["TestCity"]

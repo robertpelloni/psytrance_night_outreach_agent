@@ -145,6 +145,11 @@ class ContactExtractor:
 
         try:
             response = requests.get(url, headers=headers, proxies=proxies, timeout=10)
+
+            # Report success if we got a good response
+            if response.status_code == 200 and proxies:
+                ProxyRotator.report_success(proxies.get("http"))
+
             soup = BeautifulSoup(response.text, 'html.parser')
 
             emails = ContactExtractor.extract_emails(response.text)
@@ -157,6 +162,8 @@ class ContactExtractor:
             }
         except Exception as e:
             print(f"Error scraping {url}: {e}")
+            if proxies:
+                ProxyRotator.report_failure(proxies.get("http"))
             return {}
 
 class ResidentAdvisorScraper:

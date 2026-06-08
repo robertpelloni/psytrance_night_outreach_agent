@@ -36,27 +36,27 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                         continue
 
                     # Search for any links that look like venues
-                links = page.query_selector_all('a')
-                for link in links:
-                    try:
-                        href = link.get_attribute("href") or ""
-                        name = link.inner_text()
-                        if "/venues/" in href and name and len(name.strip()) > 1:
-                            # Avoid duplicates and common UI strings
-                            if name.strip() not in [v['name'] for v in venues] and len(name.strip()) < 50:
-                                venues.append({
-                                    'id': str(uuid.uuid4()),
-                                    'name': name.strip(),
-                                    'city': city,
-                                    'website': self.base_url + href if href.startswith('/') else href,
-                                    'google_rating': None,
-                                    'tags': 'resident-advisor',
-                                    'raw_about_text': f"Scraped from RA Guide: {url}. Profile link: {href}"
-                                })
-                    except:
-                        continue
+                    links = page.query_selector_all('a')
+                    for link in links:
+                        try:
+                            href = link.get_attribute("href") or ""
+                            name = link.inner_text()
+                            if "/venues/" in href and name and len(name.strip()) > 1:
+                                # Avoid duplicates and common UI strings
+                                if name.strip() not in [v['name'] for v in venues] and len(name.strip()) < 50:
+                                    venues.append({
+                                        'id': str(uuid.uuid4()),
+                                        'name': name.strip(),
+                                        'city': city,
+                                        'website': self.base_url + href if href.startswith('/') else href,
+                                        'google_rating': None,
+                                        'tags': 'resident-advisor',
+                                        'raw_about_text': f"Scraped from RA Guide: {url}. Profile link: {href}"
+                                    })
+                        except:
+                            continue
 
-                browser.close()
+                    browser.close()
                 ProxyRotator.report_success(proxy_url)
                 break # Success
             except Exception as e:
@@ -90,31 +90,31 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                     page.goto(profile_url, wait_until="networkidle", timeout=30000)
                     page.wait_for_timeout(3000)
 
-                # Extract Website (often in an 'a' with specific icon or text)
-                # RA often uses specific labels or aria-labels
-                website_el = page.query_selector('a[aria-label="Website"], a:has-text("Website")')
-                if website_el:
-                    details['website'] = website_el.get_attribute('href')
+                    # Extract Website (often in an 'a' with specific icon or text)
+                    # RA often uses specific labels or aria-labels
+                    website_el = page.query_selector('a[aria-label="Website"], a:has-text("Website")')
+                    if website_el:
+                        details['website'] = website_el.get_attribute('href')
 
-                # Extract Description
-                desc_el = page.query_selector('span[itemprop="description"], .description, .about-text')
-                if desc_el:
-                    details['description'] = desc_el.inner_text()
+                    # Extract Description
+                    desc_el = page.query_selector('span[itemprop="description"], .description, .about-text')
+                    if desc_el:
+                        details['description'] = desc_el.inner_text()
 
-                # Extract Image URL
-                img_el = page.query_selector('img[alt*="venue"], .hero img, .venue-header img')
-                if img_el:
-                    details['image_url'] = img_el.get_attribute('src')
+                    # Extract Image URL
+                    img_el = page.query_selector('img[alt*="venue"], .hero img, .venue-header img')
+                    if img_el:
+                        details['image_url'] = img_el.get_attribute('src')
 
-                # Extract Socials
-                links = page.query_selector_all('a')
-                details['socials'] = []
-                for link in links:
-                    href = link.get_attribute('href') or ""
-                    if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
-                        details['socials'].append(href)
+                    # Extract Socials
+                    links = page.query_selector_all('a')
+                    details['socials'] = []
+                    for link in links:
+                        href = link.get_attribute('href') or ""
+                        if any(domain in href for domain in ['instagram.com', 'facebook.com', 'twitter.com']):
+                            details['socials'].append(href)
 
-                browser.close()
+                    browser.close()
                 ProxyRotator.report_success(proxy_url)
                 break # Success
 

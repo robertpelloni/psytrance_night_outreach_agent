@@ -57,12 +57,12 @@ class TestProtocolE2E(unittest.TestCase):
         mock_pitch.return_value = "Test Pitch"
 
         class MockScraper:
-            def search_venues(self, city):
+            def search_venues(self, city, query=None):
                 return [{
                     'id': 'v1', 'name': 'V1', 'city': city,
                     'website': 'http://v1.test', 'raw_about_text': 'Vibe'
                 }]
-        mock_load_scrapers.return_value = [MockScraper()]
+        mock_load_scrapers.return_value = ([MockScraper()], [])
         mock_sync_run.return_value = MagicMock(returncode=0, stdout="main")
 
         # 2. Setup Database with schema

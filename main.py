@@ -4,6 +4,7 @@ import sys
 import random
 import time
 import argparse
+import inspect
 from dotenv import load_dotenv
 from src.db_manager import DatabaseManager
 from src.scrapers.base_scraper import ContactExtractor
@@ -18,16 +19,19 @@ from src.analytics import AnalyticsEngine
 
 def load_scrapers():
     """Dynamically discovers and loads all scraper classes from src/scrapers/."""
-    scrapers = []
+    query_scrapers = []
+    city_scrapers = []
     scrapers_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "src/scrapers")
     )
     if scrapers_dir not in sys.path:
         sys.path.append(scrapers_dir)
+
     for filename in os.listdir(scrapers_dir):
         if filename.endswith(".py") and filename not in [
             "__init__.py",
             "base_scraper.py",
+            "instagram.py",  # Enrichment only
         ]:
             module_name = filename[:-3]
             try:
@@ -44,10 +48,16 @@ def load_scrapers():
                             "ResidentAdvisorScraper",
                         ]
                     ):
-                        scrapers.append(cls())
+                        scraper_inst = cls()
+                        # Distinguish by signature
+                        sig = inspect.signature(scraper_inst.search_venues)
+                        if "query" in sig.parameters:
+                            query_scrapers.append(scraper_inst)
+                        else:
+                            city_scrapers.append(scraper_inst)
             except Exception as e:
                 print(f"Error loading module {module_name}: {e}")
-    return scrapers
+    return query_scrapers, city_scrapers
 
 
 def build_search_queries(city, config):
@@ -241,9 +251,9 @@ def main(args_list=None):
         # If running via pytest, sys.argv might contain pytest arguments.
         # We only want to parse if it looks like we're running main.py directly.
         if "pytest" in sys.argv[0]:
-             args = parser.parse_args([]) # Use defaults
+            args = parser.parse_args([])  # Use defaults
         else:
-             args = parser.parse_args()
+            args = parser.parse_args()
 
     load_dotenv()
     db = DatabaseManager()
@@ -254,7 +264,7 @@ def main(args_list=None):
     geocoder = GeocodingUtility()
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
-    scrapers = load_scrapers()
+    query_scrapers, city_scrapers = load_scrapers()
 
     if args.dry_run:
         print("\n!!! DRY RUN MODE ENABLED: No database writes or AI API calls will be made. !!!\n")
@@ -270,7 +280,12 @@ def main(args_list=None):
         print(f"  Artist: {artist_name}")
     if collective:
         print(f"  Collective: {collective}")
-    print(f"  Scrapers: {len(scrapers)} ({[s.__class__.__name__ for s in scrapers]})")
+    print(
+        f"  Query Scrapers: {len(query_scrapers)} ({[s.__class__.__name__ for s in query_scrapers]})"
+    )
+    print(
+        f"  City Scrapers: {len(city_scrapers)} ({[s.__class__.__name__ for s in city_scrapers]})"
+    )
     print(f"{'=' * 60}\n")
 
     cities = [args.city] if args.city else (config.get("cities") or [home_city])
@@ -290,36 +305,45 @@ def main(args_list=None):
         raw_venues = []
         seen_venue_names = set()
 
+        # 1. Run City-Wide Scrapers (Once per city)
+        for scraper in city_scrapers:
+            print(f"\n  Running city-wide discovery via {scraper.__class__.__name__}...")
+            try:
+                results = scraper.search_venues(city)
+                for r in results:
+                    if not r.get("name") or not r.get("city"):
+                        continue
+                    r["discovery_genre"] = target_genres[0]
+                    venue_key = (r["name"].strip().lower(), city.lower())
+                    if venue_key not in seen_venue_names:
+                        seen_venue_names.add(venue_key)
+                        raw_venues.append(r)
+            except Exception as e:
+                print(f"  Error running {scraper.__class__.__name__}: {e}")
+
+        # 2. Run Query-Based Scrapers
         for query, genre in search_queries:
-            # Rate limiting
+            # Rate limiting between queries
             time.sleep(random.uniform(2, 5))
 
             print(f'\n  Hunting: "{query}" (genre: {genre})')
             if not args.dry_run:
                 db.log_system_event("DISCOVERY", "START", f"Hunting: '{query}' in {city}")
 
-            for scraper in scrapers:
+            for scraper in query_scrapers:
                 try:
-                    if hasattr(scraper, "search_venues"):
-                        import inspect
+                    results = scraper.search_venues(city, query=query)
+                    for r in results:
+                        # Validation
+                        if not r.get("name") or not r.get("city"):
+                            print(f"  [Scraper Validation] Rejecting invalid result: {r}")
+                            continue
 
-                        sig = inspect.signature(scraper.search_venues)
-                        if "query" in sig.parameters:
-                            results = scraper.search_venues(city, query=query)
-                        else:
-                            results = scraper.search_venues(city)
-
-                        for r in results:
-                            # Validation
-                            if not r.get("name") or not r.get("city"):
-                                print(f"  [Scraper Validation] Rejecting invalid result: {r}")
-                                continue
-
-                            r["discovery_genre"] = genre
-                            venue_key = (r["name"].strip().lower(), city.lower())
-                            if venue_key not in seen_venue_names:
-                                seen_venue_names.add(venue_key)
-                                raw_venues.append(r)
+                        r["discovery_genre"] = genre
+                        venue_key = (r["name"].strip().lower(), city.lower())
+                        if venue_key not in seen_venue_names:
+                            seen_venue_names.add(venue_key)
+                            raw_venues.append(r)
                 except Exception as e:
                     print(f"  Error running {scraper.__class__.__name__}: {e}")
 

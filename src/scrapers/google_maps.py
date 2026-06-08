@@ -10,7 +10,12 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
 
     def search_venues(self, city, query="underground techno club"):
         venues = []
-        full_query = f"{query} in {city}"
+        # Refine query generation: avoid "Detroit in Detroit"
+        if city.lower() in query.lower():
+            full_query = query
+        else:
+            full_query = f"{query} in {city}"
+
         print(f"Scraping Google Maps for: {full_query}")
 
         max_retries = 3
@@ -78,11 +83,21 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                             except:
                                 pass
 
+                            # Attempt to extract website if visible in the card
+                            website = None
+                            try:
+                                # Common selector for website/link in Maps results
+                                web_el = el.query_selector('a[data-value="Website"]')
+                                if web_el:
+                                    website = web_el.get_attribute("href")
+                            except:
+                                pass
+
                             venues.append({
                                 'id': str(uuid.uuid4()),
                                 'name': name,
                                 'city': city,
-                                'website': None,
+                                'website': website,
                                 'google_rating': rating,
                                 'tags': query,
                                 'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",

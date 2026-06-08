@@ -112,6 +112,9 @@
 - [x] Integrate proxy feedback loop into all scrapers (v1.1.46)
 - [x] Implement exponential backoff blacklisting for proxies (v1.1.46)
 - [x] Apply production hardening (retries + isolation) to all scrapers (v1.1.47)
+- [x] Optimize discovery orchestration (query vs city-wide) in main.py (v1.1.48)
+- [x] Integrate proxy feedback into ContactExtractor.scrape_website (v1.1.48)
+- [x] Implement website URL extraction in GoogleMapsPlaywrightScraper (v1.1.48)
 
 ---
 
