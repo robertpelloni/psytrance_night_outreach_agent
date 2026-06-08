@@ -105,7 +105,8 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
     enriched_text = v_data.get("raw_about_text", "")
 
     # RA profile enrichment
-    if "ra.co/venues/" in v_data.get("website", ""):
+    website = v_data.get("website") or ""
+    if "ra.co/venues/" in website:
         from src.scrapers.resident_advisor import ResidentAdvisorWebScraper
 
         ra_enricher = ResidentAdvisorWebScraper()

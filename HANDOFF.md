@@ -1,11 +1,21 @@
-# HANDOFF - v1.1.45
+# HANDOFF - v1.1.46
 
 ## Session Summary
-This session focused on **Phase 37: Real-World Scraper Hardening** and resolving critical **CI/CD regressions**. The discovery pipeline is now significantly more resilient to network flakiness, UI selector changes, and anti-bot measures.
+This session focused on **Phase 37: Real-World Scraper Hardening** and **Phase 38: Dynamic Proxy Rotation**. The discovery pipeline is now production-grade, resilient to network flakiness, and capable of maintaining proxy health automatically.
 
 ## Key Changes
 
-### 1. Scraper Resilience (src/scrapers/google_maps.py)
+### 1. Scraper Resilience & Isolation
+- **Exponential Backoff**: Added retry logic (3 attempts) to `GoogleMapsPlaywrightScraper`.
+- **Atomic Venue Processing**: Refactored `main.py` to isolate each venue in a `try...except` block, ensuring single failures don't abort entire runs.
+- **Bot Mitigation**: Added random rate limiting (2-5s) and user-agent rotation.
+
+### 2. Dynamic Proxy Rotation (src/scrapers/base_scraper.py)
+- **Health Tracking**: `ProxyRotator` now tracks success/failure counts per proxy.
+- **Intelligent Blacklisting**: Proxies that fail are blacklisted with exponential backoff (`fails^2 * 10s`).
+- **Feedback Loop**: Integrated feedback calls (`report_success`/`report_failure`) into all scrapers.
+
+### 3. CI/CD & Pipeline Safety
 - Added exponential backoff retry logic (3 attempts).
 - Improved selector waiting to handle dynamic Google Maps loading.
 - Isolated element parsing errors to prevent individual venue failures from crashing the scraper.
@@ -28,6 +38,6 @@ This session focused on **Phase 37: Real-World Scraper Hardening** and resolving
 - **Version**: Bumped to **1.1.45**.
 
 ## Next Steps for Successor Model
-- **Phase 38: Email Inbox Integration**: This is the next structural blocker. Implement `src/inbox_monitor.py` using IMAP to automatically fetch and match venue replies.
-- **Phase 39: Pipeline Scheduling**: Integrate `APScheduler` into the dashboard to allow recurring discovery runs.
+- **Phase 39: Email Inbox Integration**: This is the next structural blocker. Implement `src/inbox_monitor.py` using IMAP to automatically fetch and match venue replies.
+- **Phase 40: Pipeline Scheduling**: Integrate `APScheduler` into the dashboard to allow recurring discovery runs.
 - **Settings UI**: Expose the new Detroit-specific and Artist-identity configuration fields in the web dashboard.
