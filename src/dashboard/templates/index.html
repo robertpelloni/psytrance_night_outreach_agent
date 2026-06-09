@@ -50,6 +50,18 @@
             }
         }
 
+        async function markBooked(leadId) {
+            if (!confirm('Are you sure you want to mark this venue as BOOKED?')) return;
+            const response = await fetch(`/mark_booked/${leadId}`, { method: 'POST' });
+            if (response.ok) location.reload();
+        }
+
+        async function markLost(leadId) {
+            if (!confirm('Are you sure you want to mark this lead as LOST?')) return;
+            const response = await fetch(`/mark_lost/${leadId}`, { method: 'POST' });
+            if (response.ok) location.reload();
+        }
+
         async function requalify(leadId) {
             const btn = document.getElementById(`requalify-btn-${leadId}`);
             const originalText = btn.innerText;
@@ -100,9 +112,9 @@
 <body class="container mt-5 text-bg-dark">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>
-            Psytrance Outreach:
             {% if view == 'history' %}History
             {% elif view == 'qualification' %}Qualification
+            {% elif view == 'booked' %}Booked Tracker
             {% else %}Pending Leads{% endif %}
         </h1>
         <div class="d-flex gap-3 align-items-center">
@@ -120,6 +132,7 @@
                 <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending</a>
                 <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}">Filter</a>
                 <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">History</a>
+                <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}">Booked</a>
             </div>
         </div>
     </div>
@@ -134,7 +147,12 @@
                         <small class="text-secondary">({{ lead.city }})</small>
                     </h5>
                     <div>
-                        <span class="badge {% if lead.pipeline_status == 'SENT' %}bg-success{% elif lead.pipeline_status == 'REJECTED' %}bg-danger{% else %}bg-info{% endif %}">
+                        {% if lead.negotiation_status %}
+                        <span class="badge bg-info border border-light" data-bs-toggle="tooltip" title="Current negotiation state.">
+                            {{ lead.negotiation_status }}
+                        </span>
+                        {% endif %}
+                        <span class="badge {% if lead.pipeline_status == 'SENT' or lead.pipeline_status == 'BOOKED' %}bg-success{% elif lead.pipeline_status == 'REJECTED' or lead.pipeline_status == 'LOST' %}bg-danger{% else %}bg-info{% endif %}">
                             {{ lead.pipeline_status }}
                         </span>
                         <span class="badge {% if lead.vibe_score >= 8 %}bg-success{% else %}bg-primary{% endif %}"
@@ -262,7 +280,14 @@
                                     <small class="text-info d-block mb-1">AI Drafted Reply:</small>
                                     <form action="/send_reply/{{ reply.id }}" method="post">
                                         <textarea name="reply_content" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" rows="5">{{ reply.draft_response }}</textarea>
-                                        <button type="submit" class="btn btn-sm btn-info">Send Edited Reply</button>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <button type="submit" class="btn btn-sm btn-info">Send Edited Reply</button>
+
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-success" onclick="markBooked({{ lead.id }})">Mark as Booked</button>
+                                                <button type="button" class="btn btn-outline-danger" onclick="markLost({{ lead.id }})">Mark as Lost</button>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
                                 {% endif %}

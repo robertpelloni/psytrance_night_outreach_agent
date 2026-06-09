@@ -28,8 +28,8 @@ class DatabaseManager:
                 print(f"Warning: schema.sql not found at {schema_path}")
 
     def _apply_migrations(self, conn):
-        """Phase 43: Add missing columns to venues table if they don't exist."""
-        new_columns = [
+        """Phase 43 & 45: Add missing columns to venues and outreach_leads tables."""
+        venue_cols = [
             ("address", "TEXT"),
             ("phone", "TEXT"),
             ("venue_type", "TEXT"),
@@ -40,15 +40,29 @@ class DatabaseManager:
         ]
 
         cursor = conn.execute("PRAGMA table_info(venues)")
-        existing_columns = [row[1] for row in cursor.fetchall()]
+        existing_venue_cols = [row[1] for row in cursor.fetchall()]
 
-        for col_name, col_type in new_columns:
-            if col_name not in existing_columns:
+        for col_name, col_type in venue_cols:
+            if col_name not in existing_venue_cols:
                 try:
                     conn.execute(f"ALTER TABLE venues ADD COLUMN {col_name} {col_type}")
                     print(f"Migration: Added column '{col_name}' to 'venues' table.")
                 except sqlite3.OperationalError as e:
-                    print(f"Migration error on '{col_name}': {e}")
+                    print(f"Migration error on 'venues.{col_name}': {e}")
+
+        # Phase 45: Negotiation Status for leads
+        lead_cols = [
+            ("negotiation_status", "TEXT DEFAULT 'INITIAL'")
+        ]
+        cursor = conn.execute("PRAGMA table_info(outreach_leads)")
+        existing_lead_cols = [row[1] for row in cursor.fetchall()]
+        for col_name, col_type in lead_cols:
+            if col_name not in existing_lead_cols:
+                try:
+                    conn.execute(f"ALTER TABLE outreach_leads ADD COLUMN {col_name} {col_type}")
+                    print(f"Migration: Added column '{col_name}' to 'outreach_leads' table.")
+                except sqlite3.OperationalError as e:
+                    print(f"Migration error on 'outreach_leads.{col_name}': {e}")
 
     def add_venue(self, venue_data):
         query = """
@@ -169,21 +183,30 @@ class DatabaseManager:
             ))
 
     def update_lead_status(self, lead_id, status, pitch=None):
+        query_parts = ["pipeline_status = ?"]
+        params = [status]
+
         if status == 'SENT':
-            query = "UPDATE outreach_leads SET pipeline_status = ?, last_outreach_at = CURRENT_TIMESTAMP WHERE id = ?"
-            params = (status, lead_id)
-            if pitch:
-                query = "UPDATE outreach_leads SET pipeline_status = ?, generated_pitch = ?, last_outreach_at = CURRENT_TIMESTAMP WHERE id = ?"
-                params = (status, pitch, lead_id)
-        elif pitch:
-            query = "UPDATE outreach_leads SET pipeline_status = ?, generated_pitch = ? WHERE id = ?"
-            params = (status, pitch, lead_id)
-        else:
-            query = "UPDATE outreach_leads SET pipeline_status = ? WHERE id = ?"
-            params = (status, lead_id)
+            query_parts.append("last_outreach_at = CURRENT_TIMESTAMP")
+
+        if status in ['BOOKED', 'LOST']:
+             query_parts.append("negotiation_status = ?")
+             params.append(status)
+
+        if pitch:
+            query_parts.append("generated_pitch = ?")
+            params.append(pitch)
+
+        params.append(lead_id)
+        query = f"UPDATE outreach_leads SET {', '.join(query_parts)} WHERE id = ?"
 
         with self._get_connection() as conn:
             conn.execute(query, params)
+
+    def update_negotiation_status(self, lead_id, status):
+        query = "UPDATE outreach_leads SET negotiation_status = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (status, lead_id))
 
     def get_pending_leads(self):
         query = """
@@ -202,10 +225,10 @@ class DatabaseManager:
 
     def get_lead_history(self):
         query = """
-        SELECT l.id, v.name, v.city, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre, l.pitch_variant
+        SELECT l.id, v.id as venue_id, v.name, v.city, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre, l.pitch_variant, l.negotiation_status
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
-        WHERE l.pipeline_status IN ('SENT', 'REJECTED')
+        WHERE l.pipeline_status IN ('SENT', 'REJECTED', 'BOOKED', 'LOST')
         ORDER BY l.id DESC
         """
         with self._get_connection() as conn:
@@ -246,13 +269,13 @@ class DatabaseManager:
 
     def get_leads_eligible_for_follow_up(self, days_wait, max_follow_ups):
         # last_outreach_at is compared against CURRENT_TIMESTAMP - days_wait
-        # EXCLUSION: Skip leads that have received a human reply (any reply in lead_replies)
+        # EXCLUSION: Skip leads that have received a human reply (unless it is OOO)
         query = """
         SELECT * FROM outreach_leads
         WHERE pipeline_status = 'SENT'
         AND follow_up_count < ?
         AND last_outreach_at < datetime('now', '-' || ? || ' days')
-        AND id NOT IN (SELECT DISTINCT lead_id FROM lead_replies)
+        AND id NOT IN (SELECT DISTINCT lead_id FROM lead_replies WHERE sentiment NOT IN ('OOO', 'UNKNOWN'))
         """
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
@@ -318,6 +341,12 @@ class DatabaseManager:
         query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
             conn.execute(query, (lead_id, content, sentiment, draft_response))
+
+        # Update negotiation status on new reply
+        if sentiment in ['INTERESTED', 'INQUIRY']:
+            self.update_negotiation_status(lead_id, 'REPLIED')
+        elif sentiment == 'REJECTED':
+            self.update_negotiation_status(lead_id, 'LOST')
 
     def get_lead_replies(self, lead_id):
         query = "SELECT * FROM lead_replies WHERE lead_id = ? ORDER BY received_at DESC"

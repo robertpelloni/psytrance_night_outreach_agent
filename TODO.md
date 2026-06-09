@@ -189,11 +189,11 @@ These are the things that prevent the agent from being genuinely useful in the r
 ## 🟢 Medium Priority (Post-Campaign Improvements)
 
 ### Reply Automation
-- [ ] Add auto-response for OOO replies (queue re-attempt after OOO end date)
-- [ ] Add "rate inquiry" auto-draft with configurable rate card
-- [ ] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST)
-- [ ] Add BOOKED and LOST pipeline statuses
-- [ ] Add "Mark as Booked" workflow on dashboard with date/confirmation fields
+- [x] Add auto-response for OOO replies (v1.1.54)
+- [x] Add "rate inquiry" auto-draft with configurable rate card (v1.1.54)
+- [x] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST) (v1.1.54)
+- [x] Add BOOKED and LOST pipeline statuses (v1.1.54)
+- [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
 
 ### Analytics & Reporting
 - [ ] Add venue outreach timeline visualization

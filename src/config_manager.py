@@ -37,6 +37,8 @@ class ConfigManager:
             "outreach_delay_min": 5,
             "follow_up_days": 7,
             "max_follow_ups": 2,
+            "rate_card": "Our standard performance fee is negotiable based on the event scale and production requirements.",
+            "availability_ranges": "Currently available for bookings throughout the next 3 months, with a preference for Friday and Saturday nights.",
             "imap_server": "",
             "imap_user": "",
             "imap_password": "",

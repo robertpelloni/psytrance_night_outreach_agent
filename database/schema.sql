@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     last_outreach_at TIMESTAMP,
     follow_up_count INTEGER DEFAULT 0,
     success_probability REAL,
+    negotiation_status TEXT DEFAULT 'INITIAL', -- INITIAL, REPLIED, NEGOTIATING, BOOKED, LOST
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(venue_id) REFERENCES venues(id)
 );

@@ -125,6 +125,21 @@ def history():
         lead['replies'] = db.get_lead_replies(lead['id'])
     return render_template('index.html', leads=leads, view='history')
 
+@app.route('/booked')
+def booked_tracker():
+    leads = db.get_leads_by_status('BOOKED')
+    return render_template('index.html', leads=leads, view='booked')
+
+@app.route('/mark_booked/<int:lead_id>', methods=['POST'])
+def mark_booked(lead_id):
+    db.update_lead_status(lead_id, 'BOOKED')
+    return redirect(request.referrer or url_for('history'))
+
+@app.route('/mark_lost/<int:lead_id>', methods=['POST'])
+def mark_lost(lead_id):
+    db.update_lead_status(lead_id, 'LOST')
+    return redirect(request.referrer or url_for('history'))
+
 @app.route('/sources')
 def sources():
     scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
@@ -272,6 +287,8 @@ def settings():
             "outreach_delay_min": int(request.form.get('outreach_delay_min', 5)),
             "follow_up_days": int(request.form.get('follow_up_days', 7)),
             "max_follow_ups": int(request.form.get('max_follow_ups', 2)),
+            "rate_card": request.form.get('rate_card'),
+            "availability_ranges": request.form.get('availability_ranges'),
             "imap_server": request.form.get('imap_server'),
             "imap_user": request.form.get('imap_user'),
             "imap_password": request.form.get('imap_password'),

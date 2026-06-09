@@ -167,13 +167,13 @@ Bootstrap the system with known Detroit venues and community knowledge.
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 Expand the reply handling from draft-only to semi-automated negotiation.
 
-- [ ] Add auto-response for OOO replies (queue re-attempt after OOO end date)
-- [ ] Add "rate inquiry" auto-draft with configurable rate card
-- [ ] Add "availability inquiry" auto-draft with available date ranges
-- [ ] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST)
-- [ ] Add BOOKED and LOST pipeline statuses
-- [ ] Add "Mark as Booked" workflow on dashboard with date/confirmation fields
-- [ ] Add booking tracker: venue, date, deal terms, status
+- [x] Add auto-response for OOO replies (v1.1.54)
+- [x] Add "rate inquiry" auto-draft with configurable rate card (v1.1.54)
+- [x] Add "availability inquiry" auto-draft with available date ranges (v1.1.54)
+- [x] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST) (v1.1.54)
+- [x] Add BOOKED and LOST pipeline statuses (v1.1.54)
+- [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
+- [x] Add booking tracker: venue, date, deal terms, status (v1.1.54)
 
 ### Phase 46: Reporting & Scene Analytics (v1.1.55)
 Turn the data into actionable intelligence for scene-building.

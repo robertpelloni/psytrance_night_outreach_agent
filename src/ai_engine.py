@@ -363,13 +363,20 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
             return None
 
     def generate_reply_draft(
-        self, venue_name, lead_reply, original_pitch, genre="psytrance"
+        self, venue_name, lead_reply, original_pitch, genre="psytrance", rate_card=None, availability=None
     ):
         """Generates a professional draft response to a venue's reply."""
         if not self.client:
             return "Thank you for your reply! Let's discuss further."
         identity = self._get_identity_context()
         identity_note = f"\nOur identity: {identity}" if identity else ""
+
+        negotiation_context = ""
+        if rate_card:
+            negotiation_context += f"\n- Our Rate/Fee Info: {rate_card}"
+        if availability:
+            negotiation_context += f"\n- Our Availability Info: {availability}"
+
         prompt = f"""
 Draft a professional and persuasive response to a booking manager at {venue_name}.
 
@@ -377,10 +384,12 @@ They replied to our initial pitch with: "{lead_reply}"
 
 Our original pitch was: "{original_pitch[:1000]}..."
 {identity_note}
+{negotiation_context}
 
 Goal:
 - If they are interested, suggest a next step (e.g., a short call, a test night, or meeting at the venue).
 - If they have a question (INQUIRY), answer it politely and knowledgeably based on the {genre} context.
+- If they ask about rates or availability, use the provided negotiation context to inform your answer.
 - Maintain a friendly, professional, and underground-authentic vibe.
 - If relevant, reference the Detroit scene and our commitment to building community.
 """

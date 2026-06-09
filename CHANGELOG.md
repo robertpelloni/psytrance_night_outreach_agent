@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.54] - 2026-06-09
+### Added
+- **Phase 45: Reply Automation & Negotiation Engine**: Implemented a negotiation state machine to track lead progress (INITIAL, REPLIED, NEGOTIATING, BOOKED, LOST).
+- **OOO Auto-Response**: Integrated automated detection and re-queuing for "Out of Office" (OOO) replies, ensuring outreach isn't permanently stalled by temporary unavailability.
+- **Negotiation Context**: Added `rate_card` and `availability_ranges` to the configuration, enabling the AI to draft context-aware responses to fee and scheduling inquiries.
+- **Negotiation UI**: Overhauled the HITL Dashboard with "Mark as Booked/Lost" buttons, a dedicated Booked Tracker view, and visibility for the current negotiation status.
+
 ## [1.1.53] - 2026-06-09
 ### Added
 - **Performance Documentation**: Created `PERFORMANCE.md` to establish the v1.1.46 technical performance baseline (100% stability).
