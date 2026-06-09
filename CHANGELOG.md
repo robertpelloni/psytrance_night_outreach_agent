@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.53] - 2026-06-09
+### Added
+- **Performance Documentation**: Created `PERFORMANCE.md` to establish the v1.1.46 technical performance baseline (100% stability).
+- **Governance Updates**: Updated `MEMORY.md`, `TODO.md`, and `ROADMAP.md` to incorporate the stability report and schedule a dev-team review.
+
 ## [1.1.52] - 2026-06-09
 ### Added
 - **Phase 43: Data Model & Persistence Improvements**: Expanded `venues` table with new columns: `address`, `phone`, `venue_type`, `capacity`, `neighborhood`, `source`, and `discovered_at`.

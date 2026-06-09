@@ -120,6 +120,7 @@
 - [x] Integrate `SentimentAnalyzer` for automated reply drafting (v1.1.49)
 - [x] Add "Fetch New Replies" button to HITL Dashboard (v1.1.49)
 - [x] Wired inbox polling into main pipeline orchestrator (v1.1.49)
+- [ ] Schedule v1.1.46 Performance Review meeting with development team
 
 ---
 
