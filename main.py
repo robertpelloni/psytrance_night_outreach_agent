@@ -246,6 +246,7 @@ def main(args_list=None):
     parser.add_argument("--dry-run", action="store_true", help="Run discovery and qualification without making AI calls or database writes.")
     parser.add_argument("--city", type=str, help="Process a specific city instead of all cities in config.")
     parser.add_argument("--reset", action="store_true", help="Reset processing cycles for cities before starting.")
+    parser.add_argument("--seed", action="store_true", help="Seed the database with known Detroit venues.")
 
     if args_list is not None:
         args = parser.parse_args(args_list)
@@ -268,6 +269,21 @@ def main(args_list=None):
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
     query_scrapers, city_scrapers = load_scrapers()
+
+    if args.seed:
+        seed_path = "database/detroit_venues_seed.json"
+        if os.path.exists(seed_path):
+            import json
+            with open(seed_path, "r") as f:
+                seed_data = json.load(f)
+                print(f"Seeding {len(seed_data)} venues from {seed_path}...")
+                for v in seed_data:
+                    db.add_venue(v)
+            print("Seeding complete.")
+        else:
+            print(f"Seed file not found: {seed_path}")
+        if not any([args.city, args.dry_run]):
+             return
 
     run_id = None
     if not args.dry_run:

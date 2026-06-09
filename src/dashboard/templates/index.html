@@ -50,6 +50,29 @@
             }
         }
 
+        async function requalify(leadId) {
+            const btn = document.getElementById(`requalify-btn-${leadId}`);
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Analyzing...';
+
+            try {
+                const response = await fetch(`/requalify/${leadId}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(`New Score: ${data.new_score}/10 - Status: ${data.new_status}`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+
         async function fetchReplies() {
             const btn = document.getElementById('fetch-replies-btn');
             const originalText = btn.innerText;
@@ -76,7 +99,12 @@
 </head>
 <body class="container mt-5 text-bg-dark">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Psytrance Outreach: {% if view == 'history' %}History{% else %}Pending Leads{% endif %}</h1>
+        <h1>
+            Psytrance Outreach:
+            {% if view == 'history' %}History
+            {% elif view == 'qualification' %}Qualification
+            {% else %}Pending Leads{% endif %}
+        </h1>
         <div class="d-flex gap-3 align-items-center">
             {% if view == 'history' %}
             <button id="fetch-replies-btn" onclick="fetchReplies()" class="btn btn-info text-nowrap">Fetch New Replies</button>
@@ -90,6 +118,7 @@
             </div>
             <div class="btn-group ms-2">
                 <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending</a>
+                <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}">Filter</a>
                 <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">History</a>
             </div>
         </div>
@@ -100,7 +129,10 @@
         <div class="col-12 mb-4">
             <div class="card text-bg-secondary">
                 <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
-                    <h5 class="mb-0">{{ lead.name }} ({{ lead.city }})</h5>
+                    <h5 class="mb-0">
+                        <a href="/venue/{{ lead.venue_id }}" class="text-white text-decoration-none hover-info">{{ lead.name }}</a>
+                        <small class="text-secondary">({{ lead.city }})</small>
+                    </h5>
                     <div>
                         <span class="badge {% if lead.pipeline_status == 'SENT' %}bg-success{% elif lead.pipeline_status == 'REJECTED' %}bg-danger{% else %}bg-info{% endif %}">
                             {{ lead.pipeline_status }}
@@ -134,6 +166,12 @@
                 </div>
                 <div class="card-body">
                     <p class="card-text"><strong>Why:</strong> {{ lead.qualification_justification }}</p>
+
+                    {% if view == 'qualification' %}
+                    <div class="mb-3">
+                        <button id="requalify-btn-{{ lead.id }}" onclick="requalify({{ lead.id }})" class="btn btn-outline-info btn-sm">Re-run AI Vibe Check</button>
+                    </div>
+                    {% endif %}
 
                     {% if lead.visual_description %}
                     <div class="mb-3 d-flex gap-3 align-items-start bg-black p-3 rounded border border-secondary">

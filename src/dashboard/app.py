@@ -45,9 +45,8 @@ def scheduled_pipeline():
     """Wrapper to run the pipeline on a schedule."""
     print("Scheduler: Starting automated pipeline run...")
     try:
-        # We use a patched sys.argv to avoid conflicts with flask
-        with patch('sys.argv', ['main.py']):
-            run_pipeline()
+        # Pass empty list to avoid reading sys.argv which contains Flask args
+        run_pipeline([])
         print("Scheduler: Automated pipeline run completed.")
     except Exception as e:
         print(f"Scheduler: Pipeline run failed: {e}")
@@ -56,7 +55,6 @@ def scheduled_pipeline():
 # to avoid issues during module import/tests
 
 import json
-from unittest.mock import patch
 
 @app.route('/')
 def index():
@@ -71,6 +69,53 @@ def index():
             except:
                 lead['traits_dict'] = {}
     return render_template('index.html', leads=leads, view='pending')
+
+@app.route('/venue/<string:venue_id>')
+def venue_detail(venue_id):
+    venue = db.get_venue(venue_id)
+    if not venue: return "Venue not found", 404
+
+    # Get all leads for this venue (usually just one, but schema allows more conceptually)
+    query = "SELECT * FROM outreach_leads WHERE venue_id = ?"
+    with db._get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        leads = [dict(row) for row in conn.execute(query, (venue_id,)).fetchall()]
+
+    # Get all replies for these leads
+    for lead in leads:
+        lead['replies'] = db.get_lead_replies(lead['id'])
+
+    # Get contacts
+    query = "SELECT * FROM venue_contacts WHERE venue_id = ?"
+    with db._get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        contacts = [dict(row) for row in conn.execute(query, (venue_id,)).fetchall()]
+
+    if venue.get('extracted_traits'):
+        try:
+            venue['traits_dict'] = json.loads(venue['extracted_traits'])
+        except:
+            venue['traits_dict'] = {}
+    else:
+        venue['traits_dict'] = {}
+
+    return render_template('venue_detail.html', venue=venue, leads=leads, contacts=contacts)
+
+@app.route('/pending_qualification')
+def pending_qualification():
+    leads = db.get_leads_by_status('PENDING_QUALIFICATION')
+    for lead in leads:
+        venue = db.get_venue(lead['venue_id'])
+        lead['name'] = venue['name']
+        lead['city'] = venue['city']
+        lead['image_url'] = venue.get('image_url')
+        lead['visual_description'] = venue.get('visual_description')
+        if venue.get('extracted_traits'):
+            try:
+                lead['traits_dict'] = json.loads(venue['extracted_traits'])
+            except:
+                lead['traits_dict'] = {}
+    return render_template('index.html', leads=leads, view='qualification')
 
 @app.route('/history')
 def history():
@@ -200,12 +245,40 @@ def simulate_reply(lead_id):
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'POST':
+        # Parse media library
+        media_library = []
+        names = request.form.getlist('media_name[]')
+        urls = request.form.getlist('media_url[]')
+        tags_list = request.form.getlist('media_tags[]')
+        for i in range(len(names)):
+            if names[i] and urls[i]:
+                media_library.append({
+                    "name": names[i],
+                    "url": urls[i],
+                    "tags": [t.strip() for t in tags_list[i].split(',')] if tags_list[i] else []
+                })
+
         new_config = {
             "cities": [c.strip() for f in request.form.getlist('cities') for c in f.split(',')],
             "target_genres": [g.strip() for f in request.form.getlist('genres') for g in f.split(',')],
             "epk_link": request.form.get('epk_link'),
             "mix_link": request.form.get('mix_link'),
-            "vibe_threshold": int(request.form.get('vibe_threshold', 7))
+            "artist_name": request.form.get('artist_name'),
+            "collective_name": request.form.get('collective_name'),
+            "home_city": request.form.get('home_city', 'Detroit'),
+            "vibe_threshold": int(request.form.get('vibe_threshold', 6)),
+            "auto_approve_threshold": int(request.form.get('auto_approve_threshold', 9)),
+            "daily_outreach_limit": int(request.form.get('daily_outreach_limit', 10)),
+            "outreach_delay_min": int(request.form.get('outreach_delay_min', 5)),
+            "follow_up_days": int(request.form.get('follow_up_days', 7)),
+            "max_follow_ups": int(request.form.get('max_follow_ups', 2)),
+            "imap_server": request.form.get('imap_server'),
+            "imap_user": request.form.get('imap_user'),
+            "imap_password": request.form.get('imap_password'),
+            "imap_port": int(request.form.get('imap_port', 993)),
+            "detroit_search_queries": [q.strip() for f in request.form.getlist('detroit_queries') for q in f.split('\n') if q.strip()],
+            "detroit_neighborhoods": [n.strip() for f in request.form.getlist('detroit_hoods') for n in f.split('\n') if n.strip()],
+            "media_library": media_library
         }
         config_mgr.save_config(new_config)
         return redirect(url_for('settings'))
@@ -273,6 +346,48 @@ def send_reply(reply_id):
             return redirect(url_for('history'))
 
     return "Error sending reply", 500
+
+@app.route('/requalify/<int:lead_id>', methods=['POST'])
+def requalify(lead_id):
+    lead = db.get_lead(lead_id)
+    if not lead: return jsonify({"error": "Lead not found"}), 404
+    venue = db.get_venue(lead['venue_id'])
+    if not venue: return jsonify({"error": "Venue not found"}), 404
+
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+
+    # Re-run vibe check
+    vibe_result = ai.vibe_check(
+        venue['name'],
+        venue.get('raw_about_text', ''),
+        genre=lead.get('qualified_genre', primary_genre),
+        rating=venue.get('google_rating')
+    )
+
+    # Update status if threshold met
+    vibe_threshold = config_mgr.get("vibe_threshold") or 6
+    new_status = 'PENDING_REVIEW' if vibe_result['vibe_score'] >= vibe_threshold else 'PENDING_QUALIFICATION'
+
+    # Generate pitch if newly qualified
+    pitch = lead['generated_pitch']
+    if new_status == 'PENDING_REVIEW' and not pitch:
+        traits = venue.get('extracted_traits', '{}')
+        pitch = ai.generate_pitch(
+            venue['name'],
+            vibe_result['justification'],
+            epk_link=config_mgr.get("epk_link"),
+            mix_link=config_mgr.get("mix_link"),
+            traits=traits,
+            media_library=config_mgr.get("media_library"),
+            genre=lead.get('qualified_genre', primary_genre)
+        )
+
+    # Update lead
+    query = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ?, generated_pitch = ? WHERE id = ?"
+    with db._get_connection() as conn:
+        conn.execute(query, (vibe_result['vibe_score'], vibe_result['justification'], new_status, pitch, lead_id))
+
+    return jsonify({"status": "success", "new_score": vibe_result['vibe_score'], "new_status": new_status})
 
 @app.route('/regenerate/<int:lead_id>', methods=['POST'])
 def regenerate(lead_id):

@@ -112,20 +112,20 @@ The pipeline currently requires manual execution. For ongoing scene-building, it
 - [x] Add a dashboard visualization showing run history and status
 - [ ] Add pipeline run email/Slack notification on completion
 
-### Phase 41: Settings & Dashboard Completeness (v1.1.50)
+### Phase 41: Settings & Dashboard Completeness (v1.1.51)
 The Settings UI doesn't expose half the config fields. The dashboard is missing key workflows.
 
-- [ ] Add Artist Identity section to Settings UI (artist_name, collective_name, home_city)
-- [ ] Add Media Library management to Settings UI (add/edit/remove tagged media)
-- [ ] Add Detroit Search Queries editor to Settings UI
-- [ ] Add Detroit Neighborhoods editor to Settings UI
-- [ ] Add auto_approve_threshold, follow_up_days, max_follow_ups to Settings UI
-- [ ] Add "PENDING_QUALIFICATION" view to dashboard (venues that scored below threshold but exist)
-- [ ] Add venue detail page with full venue info, all contacts, all leads, and reply history
-- [ ] Fix map default center to Detroit (42.3314, -83.0458) instead of world view
-- [ ] Add "Re-qualify" button on PENDING_QUALIFICATION leads (re-run vibe check after editing venue text)
+- [x] Add Artist Identity section to Settings UI (artist_name, collective_name, home_city)
+- [x] Add Media Library management to Settings UI (add/edit/remove tagged media)
+- [x] Add Detroit Search Queries editor to Settings UI
+- [x] Add Detroit Neighborhoods editor to Settings UI
+- [x] Add auto_approve_threshold, follow_up_days, max_follow_ups to Settings UI
+- [x] Add "PENDING_QUALIFICATION" view to dashboard (venues that scored below threshold but exist)
+- [x] Add venue detail page with full venue info, all contacts, all leads, and reply history
+- [x] Fix map default center to Detroit (42.3314, -83.0458) instead of world view
+- [x] Add "Re-qualify" button on PENDING_QUALIFICATION leads (re-run vibe check after editing venue text)
 
-### Phase 42: Outreach Intelligence & Safety (v1.1.50)
+### Phase 42: Outreach Intelligence & Safety (v1.1.51)
 The outreach engine needs guardrails to protect sender reputation and optimize conversion.
 
 - [x] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags
@@ -152,11 +152,11 @@ The database schema has several gaps that limit real-world use.
 - [ ] Add `pipeline_runs` table for tracking run history
 - [ ] Add migration system for safe schema upgrades without data loss
 
-### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.53)
+### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.51)
 Bootstrap the system with known Detroit venues and community knowledge.
 
-- [ ] Create `database/detroit_venues_seed.json` with 20-30 known Detroit-area venues (TV Lounge, Marble Bar, Spot Lite, El Club, Hasrat, New Dodge Lounge, etc.)
-- [ ] Add seed import command: `python main.py --seed` to load seed data
+- [x] Create `database/detroit_venues_seed.json` with 20-30 known Detroit-area venues (TV Lounge, Marble Bar, Spot Lite, El Club, Hasrat, New Dodge Lounge, etc.)
+- [x] Add seed import command: `python main.py --seed` to load seed data
 - [ ] Add "Add Venue Manually" form to dashboard (for venues found by word-of-mouth)
 - [ ] Add venue notes/annotations system (free-text notes attached to any venue)
 - [ ] Add Facebook Events scraper for Detroit-area event discovery

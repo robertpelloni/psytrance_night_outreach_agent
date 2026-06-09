@@ -1,0 +1,47 @@
+[
+    {
+        "id": "detroit-v-1",
+        "name": "TV Lounge",
+        "city": "Detroit",
+        "website": "https://www.tvloungedetroit.com/",
+        "google_rating": 4.5,
+        "tags": "techno, underground, house",
+        "raw_about_text": "An intimate venue known for its techno and house music events, TV Lounge is a cornerstone of the Detroit electronic music scene with indoor and outdoor stages."
+    },
+    {
+        "id": "detroit-v-2",
+        "name": "Marble Bar",
+        "city": "Detroit",
+        "website": "https://www.marblebardetroit.com/",
+        "google_rating": 4.6,
+        "tags": "techno, electronic, underground",
+        "raw_about_text": "Marble Bar is a popular electronic music destination in Detroit featuring a large outdoor patio and a dark, moody interior stage perfect for underground events."
+    },
+    {
+        "id": "detroit-v-3",
+        "name": "Spot Lite Detroit",
+        "city": "Detroit",
+        "website": "https://www.spotlitedetroit.com/",
+        "google_rating": 4.7,
+        "tags": "art space, electronic, detroit",
+        "raw_about_text": "Spot Lite is a multi-purpose creative space combining a bar, record store, and event venue, hosting diverse electronic music events and art exhibitions."
+    },
+    {
+        "id": "detroit-v-4",
+        "name": "El Club",
+        "city": "Detroit",
+        "website": "https://www.elclubdetroit.com/",
+        "google_rating": 4.4,
+        "tags": "live music, electronic, southwest detroit",
+        "raw_about_text": "El Club is a vibrant music venue in Southwest Detroit that hosts a wide range of genres including cutting-edge electronic music and community-focused events."
+    },
+    {
+        "id": "detroit-v-5",
+        "name": "Leland City Club",
+        "city": "Detroit",
+        "website": "https://www.lelandcityclub.net/",
+        "google_rating": 4.2,
+        "tags": "industrial, dark, techno",
+        "raw_about_text": "Located in the historic Leland Hotel, Leland City Club is a legendary industrial/goth/techno venue known for its dark atmosphere and late-night underground parties."
+    }
+]

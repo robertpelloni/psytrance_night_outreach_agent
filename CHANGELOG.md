@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.51] - 2026-06-08
+### Fixed
+- **Architectural Cleanup**: Removed `unittest.mock` usage from production dashboard code. Refactored `scheduled_pipeline` to use explicit argument passing for the `main()` orchestrator.
+- **UI UX**: Updated default map view to center on Detroit (`42.3314, -83.0458`) for improved relevance to the current Midwest focus.
+
 ## [1.1.50] - 2026-06-08
 ### Added
 - **Phase 40: Pipeline Scheduling & Cycle Management**: Integrated `APScheduler` into the dashboard to support automated weekly discovery and outreach runs.

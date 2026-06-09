@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ venue.name }} - Detail</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5 text-bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Venue: {{ venue.name }}</h1>
+        <a href="/" class="btn btn-outline-primary">Back to Dashboard</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-bg-secondary mb-4 shadow">
+                {% if venue.image_url %}
+                <img src="{{ venue.image_url }}" class="card-img-top" alt="{{ venue.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ venue.name }}</h5>
+                    <p class="card-text"><small>{{ venue.city }}</small></p>
+                    <p><strong>Website:</strong> <a href="{{ venue.website }}" target="_blank" class="text-info">{{ venue.website }}</a></p>
+                    <p><strong>Rating:</strong> {{ venue.google_rating or 'N/A' }} ⭐</p>
+                    <p><strong>Location:</strong> {{ venue.latitude or '?' }}, {{ venue.longitude or '?' }}</p>
+                </div>
+            </div>
+
+            <div class="card text-bg-secondary mb-4 shadow">
+                <div class="card-header bg-dark">Contacts</div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for contact in contacts %}
+                        <li class="list-group-item text-bg-secondary border-secondary">
+                            <div><strong>Email:</strong> {{ contact.email or 'N/A' }}</div>
+                            <div><strong>IG:</strong> {{ contact.instagram_handle or 'N/A' }}</div>
+                            <div><strong>Phone:</strong> {{ contact.phone or 'N/A' }}</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card text-bg-dark border-secondary shadow mb-4">
+                <div class="card-header bg-secondary text-white">Extracted Traits</div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for key, val in venue.traits_dict.items() %}
+                        <span class="badge border border-info text-info">{{ key.replace('_', ' ').capitalize() }}: {{ val }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mb-3">Outreach History</h4>
+            {% for lead in leads %}
+            <div class="card text-bg-secondary mb-4 shadow">
+                <div class="card-header bg-dark d-flex justify-content-between">
+                    <span>Lead ID: {{ lead.id }}</span>
+                    <span class="badge bg-info">{{ lead.pipeline_status }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Qualification Justification:</strong><br>{{ lead.qualification_justification }}</p>
+                    <hr class="border-secondary">
+                    <p><strong>Pitch Used:</strong></p>
+                    <pre class="bg-dark text-white p-3 rounded small" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
+
+                    {% if lead.replies %}
+                    <h6 class="mt-4">Replies:</h6>
+                    {% for reply in lead.replies %}
+                    <div class="alert alert-dark border-secondary mb-2 small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-info">{{ reply.received_at }}</small>
+                            <span class="badge bg-secondary">{{ reply.sentiment }}</span>
+                        </div>
+                        {{ reply.content }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

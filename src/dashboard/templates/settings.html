@@ -10,42 +10,157 @@
         <a href="/" class="btn btn-outline-primary">Back to Dashboard</a>
     </div>
 
-    <form action="/settings" method="post" class="card text-bg-secondary p-4 shadow">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Target Cities (comma separated)</label>
-                <input type="text" name="cities" class="form-control bg-dark text-white border-secondary" value="{{ config.cities | join(', ') }}">
-                <div class="form-text text-light">Pipeline will hunt for venues in these cities.</div>
+    <form action="/settings" method="post" class="card text-bg-secondary p-4 shadow mb-5">
+        <!-- 1. Artist Identity -->
+        <h4 class="mb-3 text-info">Artist Identity</h4>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Artist Name</label>
+                <input type="text" name="artist_name" class="form-control bg-dark text-white border-secondary" value="{{ config.artist_name }}">
             </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Target Genres (comma separated)</label>
-                <input type="text" name="genres" class="form-control bg-dark text-white border-secondary" value="{{ config.target_genres | join(', ') }}">
-                <div class="form-text text-info">The first genre listed is the <strong>Active Genre</strong> for the autonomous hunt.</div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Collective Name</label>
+                <input type="text" name="collective_name" class="form-control bg-dark text-white border-secondary" value="{{ config.collective_name }}">
             </div>
-        </div>
-
-        <hr class="border-secondary my-4">
-
-        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Home City</label>
+                <input type="text" name="home_city" class="form-control bg-dark text-white border-secondary" value="{{ config.home_city }}">
+            </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Electronic Press Kit (EPK) Link</label>
                 <input type="url" name="epk_link" class="form-control bg-dark text-white border-secondary" value="{{ config.epk_link }}">
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Showcase Mix Link (SoundCloud/Mixcloud)</label>
+                <label class="form-label">Showcase Mix Link</label>
                 <input type="url" name="mix_link" class="form-control bg-dark text-white border-secondary" value="{{ config.mix_link }}">
             </div>
         </div>
 
-        <div class="mb-3 w-25">
-            <label class="form-label">Vibe Score Threshold (1-10)</label>
-            <input type="number" name="vibe_threshold" class="form-control bg-dark text-white border-secondary" min="1" max="10" value="{{ config.vibe_threshold }}">
-            <div class="form-text text-light">Leads below this score are auto-filtered.</div>
+        <!-- 2. Discovery Scope -->
+        <h4 class="mb-3 text-info">Discovery Scope</h4>
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Target Cities (comma separated)</label>
+                <input type="text" name="cities" class="form-control bg-dark text-white border-secondary" value="{{ config.cities | join(', ') }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Target Genres (comma separated)</label>
+                <input type="text" name="genres" class="form-control bg-dark text-white border-secondary" value="{{ config.target_genres | join(', ') }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Detroit Search Queries (one per line)</label>
+                <textarea name="detroit_queries" class="form-control bg-dark text-white border-secondary" rows="5">{{ config.detroit_search_queries | join('\n') }}</textarea>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Detroit Neighborhoods (one per line)</label>
+                <textarea name="detroit_hoods" class="form-control bg-dark text-white border-secondary" rows="5">{{ config.detroit_neighborhoods | join('\n') }}</textarea>
+            </div>
         </div>
 
-        <div class="mt-4">
-            <button type="submit" class="btn btn-success px-5">Save Configurations</button>
+        <!-- 3. Automation Thresholds & Safety -->
+        <h4 class="mb-3 text-info">Automation & Safety</h4>
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Vibe Threshold (Qualification)</label>
+                <input type="number" name="vibe_threshold" class="form-control bg-dark text-white border-secondary" min="1" max="10" value="{{ config.vibe_threshold }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Auto-Approve Threshold</label>
+                <input type="number" name="auto_approve_threshold" class="form-control bg-dark text-white border-secondary" min="1" max="10" value="{{ config.auto_approve_threshold }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Daily Outreach Limit</label>
+                <input type="number" name="daily_outreach_limit" class="form-control bg-dark text-white border-secondary" value="{{ config.daily_outreach_limit }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Outreach Delay (Min)</label>
+                <input type="number" name="outreach_delay_min" class="form-control bg-dark text-white border-secondary" value="{{ config.outreach_delay_min }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Follow-up Wait (Days)</label>
+                <input type="number" name="follow_up_days" class="form-control bg-dark text-white border-secondary" value="{{ config.follow_up_days }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Max Follow-ups</label>
+                <input type="number" name="max_follow_ups" class="form-control bg-dark text-white border-secondary" value="{{ config.max_follow_ups }}">
+            </div>
+        </div>
+
+        <!-- 4. IMAP Settings -->
+        <h4 class="mb-3 text-info">Inbox Monitoring (IMAP)</h4>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Server</label>
+                <input type="text" name="imap_server" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_server }}">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">User</label>
+                <input type="text" name="imap_user" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_user }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="imap_password" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_password }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Port</label>
+                <input type="number" name="imap_port" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_port }}">
+            </div>
+        </div>
+
+        <!-- 5. Media Library -->
+        <h4 class="mb-3 text-info">Media Library</h4>
+        <div id="media-library-container">
+            {% for item in config.media_library %}
+            <div class="row mb-3 media-item">
+                <div class="col-md-3">
+                    <input type="text" name="media_name[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Name" value="{{ item.name }}">
+                </div>
+                <div class="col-md-4">
+                    <input type="url" name="media_url[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="URL" value="{{ item.url }}">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="media_tags[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Tags (comma separated)" value="{{ item.tags | join(', ') }}">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-sm btn-danger remove-media">×</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-media" class="btn btn-sm btn-outline-info mt-2">Add Media Item</button>
+
+        <div class="mt-5 text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5 shadow">Save All Configurations</button>
         </div>
     </form>
+
+    <script>
+        document.getElementById('add-media').addEventListener('click', function() {
+            const container = document.getElementById('media-library-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'row mb-3 media-item';
+            newItem.innerHTML = `
+                <div class="col-md-3">
+                    <input type="text" name="media_name[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Name">
+                </div>
+                <div class="col-md-4">
+                    <input type="url" name="media_url[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="URL">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="media_tags[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Tags (comma separated)">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-sm btn-danger remove-media">×</button>
+                </div>
+            `;
+            container.appendChild(newItem);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('remove-media')) {
+                e.target.closest('.media-item').remove();
+            }
+        });
+    </script>
 </body>
 </html>
