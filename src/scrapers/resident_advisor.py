@@ -51,7 +51,8 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
                                         'website': self.base_url + href if href.startswith('/') else href,
                                         'google_rating': None,
                                         'tags': 'resident-advisor',
-                                        'raw_about_text': f"Scraped from RA Guide: {url}. Profile link: {href}"
+                                        'raw_about_text': f"Scraped from RA Guide: {url}. Profile link: {href}",
+                                        'source': 'resident_advisor'
                                     })
                         except:
                             continue

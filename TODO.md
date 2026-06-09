@@ -172,16 +172,16 @@ These are the things that prevent the agent from being genuinely useful in the r
 - [ ] Add venue notes/annotations system
 
 ### Data Model Gaps
-- [ ] Add `address` column to `venues` table
-- [ ] Add `phone` column to `venues` table
-- [ ] Add `venue_type` column (warehouse, club, bar, art_space, diy, lounge)
-- [ ] Add `capacity` column to `venues` table
-- [ ] Add `neighborhood` column to `venues` table
-- [ ] Add `source` column to `venues` (google_maps, resident_advisor, instagram, manual)
-- [ ] Add `discovered_at` timestamp to `venues`
+- [x] Add `address` column to `venues` table (v1.1.52)
+- [x] Add `phone` column to `venues` table (v1.1.52)
+- [x] Add `venue_type` column (warehouse, club, bar, art_space, diy, lounge) (v1.1.52)
+- [x] Add `capacity` column to `venues` table (v1.1.52)
+- [x] Add `neighborhood` column to `venues` table (v1.1.52)
+- [x] Add `source` column to `venues` (google_maps, resident_advisor, instagram, manual) (v1.1.52)
+- [x] Add `discovered_at` timestamp to `venues` (v1.1.52)
 - [ ] Add database indexes on frequently queried columns (city, pipeline_status, vibe_score)
-- [ ] Add `pipeline_runs` table for tracking run history
-- [ ] Add schema migration system for safe upgrades
+- [x] Add `pipeline_runs` table for tracking run history (v1.1.52)
+- [x] Add schema migration system for safe upgrades (v1.1.52)
 
 ---
 

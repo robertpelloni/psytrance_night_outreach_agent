@@ -20,6 +20,12 @@
                     <h5 class="card-title">{{ venue.name }}</h5>
                     <p class="card-text"><small>{{ venue.city }}</small></p>
                     <p><strong>Website:</strong> <a href="{{ venue.website }}" target="_blank" class="text-info">{{ venue.website }}</a></p>
+                    <p><strong>Address:</strong> {{ venue.address or 'N/A' }}</p>
+                    <p><strong>Phone:</strong> {{ venue.phone or 'N/A' }}</p>
+                    <p><strong>Type:</strong> <span class="badge bg-primary">{{ venue.venue_type or 'Unknown' }}</span></p>
+                    <p><strong>Capacity:</strong> {{ venue.capacity or 'N/A' }}</p>
+                    <p><strong>Neighborhood:</strong> {{ venue.neighborhood or 'N/A' }}</p>
+                    <p><strong>Source:</strong> <small class="text-white-50">{{ venue.source or 'Manual' }}</small></p>
                     <p><strong>Rating:</strong> {{ venue.google_rating or 'N/A' }} ⭐</p>
                     <p><strong>Location:</strong> {{ venue.latitude or '?' }}, {{ venue.longitude or '?' }}</p>
                 </div>

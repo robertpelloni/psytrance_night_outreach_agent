@@ -87,7 +87,7 @@ class TestProtocolE2E(unittest.TestCase):
             with patch('src.outreach_engine.DatabaseManager', return_value=test_db):
                 with patch('src.follow_up_engine.DatabaseManager', return_value=test_db):
                     with patch('src.geocoding.GeocodingUtility.geocode_venue', return_value=(52.5, 13.4)):
-                         main.main()
+                         main.main([])
 
         # 5. Verify Integration Results
         print("[E2E] Verifying integration results...")

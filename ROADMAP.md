@@ -140,17 +140,17 @@ The outreach engine needs guardrails to protect sender reputation and optimize c
 ### Phase 43: Data Model & Persistence Improvements (v1.1.52)
 The database schema has several gaps that limit real-world use.
 
-- [ ] Add `address` column to `venues` table
-- [ ] Add `phone` column to `venues` table (currently only in venue_contacts)
-- [ ] Add `venue_type` column (warehouse, club, bar, art_space, diy, lounge)
-- [ ] Add `capacity` column to `venues` table
-- [ ] Add `neighborhood` column to `venues` table for Detroit-area filtering
-- [ ] Add `source` column to `venues` (google_maps, resident_advisor, instagram, manual, ai_generated)
-- [ ] Add `discovered_at` timestamp to `venues`
+- [x] Add `address` column to `venues` table
+- [x] Add `phone` column to `venues` table
+- [x] Add `venue_type` column (warehouse, club, bar, art_space, diy, lounge)
+- [x] Add `capacity` column to `venues` table
+- [x] Add `neighborhood` column to `venues` table for Detroit-area filtering
+- [x] Add `source` column to `venues` (google_maps, resident_advisor, instagram, manual, ai_generated)
+- [x] Add `discovered_at` timestamp to `venues`
 - [ ] Add `last_verified_at` to `venue_contacts` (track when contact info was last confirmed)
 - [ ] Add database indexes on frequently queried columns (city, pipeline_status, vibe_score)
-- [ ] Add `pipeline_runs` table for tracking run history
-- [ ] Add migration system for safe schema upgrades without data loss
+- [x] Add `pipeline_runs` table for tracking run history
+- [x] Add migration system for safe schema upgrades without data loss
 
 ### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.51)
 Bootstrap the system with known Detroit venues and community knowledge.

@@ -101,7 +101,8 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                                 'google_rating': rating,
                                 'tags': query,
                                 'raw_about_text': f"Scraped from Google Maps for {full_query}. Rating: {rating if rating else 'N/A'}",
-                                'image_url': image_url
+                                'image_url': image_url,
+                                'source': 'google_maps'
                             })
                         except Exception as e:
                             print(f"Error parsing element: {e}")

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.52] - 2026-06-09
+### Added
+- **Phase 43: Data Model & Persistence Improvements**: Expanded `venues` table with new columns: `address`, `phone`, `venue_type`, `capacity`, `neighborhood`, `source`, and `discovered_at`.
+- **Automated Schema Migrations**: Implemented a migration utility in `DatabaseManager` to automatically update existing databases with new columns.
+- **AI-Driven Data Enrichment**: Updated `AIEngine.extract_venue_traits` to automatically parse venue type, capacity, and neighborhood from venue descriptions.
+- **Venue Detail UI Enhancement**: Updated the dashboard Venue Detail page to display the new extended metadata.
+- **Source Tracking**: All primary scrapers (Google Maps, Resident Advisor) now tag the discovery source of each venue.
+
 ## [1.1.51] - 2026-06-08
 ### Fixed
 - **Architectural Cleanup**: Removed `unittest.mock` usage from production dashboard code. Refactored `scheduled_pipeline` to use explicit argument passing for the `main()` orchestrator.

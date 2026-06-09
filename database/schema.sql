@@ -10,7 +10,14 @@ CREATE TABLE IF NOT EXISTS venues (
     latitude REAL,
     longitude REAL,
     image_url TEXT,
-    visual_description TEXT
+    visual_description TEXT,
+    address TEXT,
+    phone TEXT,
+    venue_type TEXT,
+    capacity INTEGER,
+    neighborhood TEXT,
+    source TEXT,
+    discovered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS venue_contacts (

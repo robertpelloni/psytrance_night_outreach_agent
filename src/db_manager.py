@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import json
 
 class DatabaseManager:
     def __init__(self, db_path=None):
@@ -21,13 +22,38 @@ class DatabaseManager:
             if os.path.exists(schema_path):
                 with open(schema_path, 'r') as f:
                     conn.executescript(f.read())
+                # Phase 43: Apply migrations for new columns
+                self._apply_migrations(conn)
             else:
                 print(f"Warning: schema.sql not found at {schema_path}")
 
+    def _apply_migrations(self, conn):
+        """Phase 43: Add missing columns to venues table if they don't exist."""
+        new_columns = [
+            ("address", "TEXT"),
+            ("phone", "TEXT"),
+            ("venue_type", "TEXT"),
+            ("capacity", "INTEGER"),
+            ("neighborhood", "TEXT"),
+            ("source", "TEXT"),
+            ("discovered_at", "TIMESTAMP")
+        ]
+
+        cursor = conn.execute("PRAGMA table_info(venues)")
+        existing_columns = [row[1] for row in cursor.fetchall()]
+
+        for col_name, col_type in new_columns:
+            if col_name not in existing_columns:
+                try:
+                    conn.execute(f"ALTER TABLE venues ADD COLUMN {col_name} {col_type}")
+                    print(f"Migration: Added column '{col_name}' to 'venues' table.")
+                except sqlite3.OperationalError as e:
+                    print(f"Migration error on '{col_name}': {e}")
+
     def add_venue(self, venue_data):
         query = """
-        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude, image_url, visual_description)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude, image_url, visual_description, address, phone, venue_type, capacity, neighborhood, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         # Ensure we don't insert NULL for website if we want UNIQUE constraint to be effective
         # Note: SQLite treats multiple NULLs as unique, but we want to avoid duplicate names in the same city too.
@@ -40,13 +66,44 @@ class DatabaseManager:
                 venue_data.get('latitude'),
                 venue_data.get('longitude'),
                 venue_data.get('image_url'),
-                venue_data.get('visual_description')
+                venue_data.get('visual_description'),
+                venue_data.get('address'),
+                venue_data.get('phone'),
+                venue_data.get('venue_type'),
+                venue_data.get('capacity'),
+                venue_data.get('neighborhood'),
+                venue_data.get('source')
             ))
 
     def update_venue_traits(self, venue_id, traits_json):
         query = "UPDATE venues SET extracted_traits = ? WHERE id = ?"
         with self._get_connection() as conn:
             conn.execute(query, (traits_json, venue_id))
+
+        # Phase 43: Update new columns from extracted traits if they exist
+        try:
+            traits = json.loads(traits_json)
+            update_fields = []
+            params = []
+
+            field_map = {
+                'venue_type': 'venue_type',
+                'capacity': 'capacity',
+                'neighborhood': 'neighborhood'
+            }
+
+            for trait_key, col_name in field_map.items():
+                if trait_key in traits and traits[trait_key]:
+                    update_fields.append(f"{col_name} = ?")
+                    params.append(traits[trait_key])
+
+            if update_fields:
+                params.append(venue_id)
+                update_query = f"UPDATE venues SET {', '.join(update_fields)} WHERE id = ?"
+                with self._get_connection() as conn:
+                    conn.execute(update_query, params)
+        except Exception as e:
+            print(f"Error updating extended venue fields from traits: {e}")
 
     def update_venue_location(self, venue_id, lat, lon):
         query = "UPDATE venues SET latitude = ?, longitude = ? WHERE id = ?"

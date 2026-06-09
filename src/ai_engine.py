@@ -136,6 +136,9 @@ Focus on:
 3. atmosphere: Keywords (e.g., 'intimate', 'industrial', 'warehouse', 'outdoor', 'DIY').
 4. music_policy: Primary genres mentioned.
 5. detroit_relevance: Any Detroit-specific signals (e.g., 'techno heritage', 'Motor City', 'underground').
+6. venue_type: Categorize as 'club', 'bar', 'warehouse', 'art_space', 'diy', or 'lounge'.
+7. capacity: Estimated capacity as an integer if mentioned, otherwise null.
+8. neighborhood: Detroit neighborhood name if mentioned (e.g., 'Corktown', 'Midtown').
 
 Text: "{raw_text[:2000]}"
 
