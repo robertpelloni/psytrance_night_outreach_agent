@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.55] - 2026-06-09
+### Added
+- **CI/CD Performance Integration**: Updated `deploy_production.sh` to mandate verification of the technical performance report (`PERFORMANCE.md`) before deployment.
+- **QA Sign-off Protocol**: Created `src/qa_signoff.py` and integrated it into the production deployment pipeline to ensure a final human-auditable quality gate.
+
 ## [1.1.54] - 2026-06-09
 ### Added
 - **Phase 45: Reply Automation & Negotiation Engine**: Implemented a negotiation state machine to track lead progress (INITIAL, REPLIED, NEGOTIATING, BOOKED, LOST).

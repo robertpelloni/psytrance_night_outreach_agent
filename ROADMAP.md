@@ -175,7 +175,7 @@ Expand the reply handling from draft-only to semi-automated negotiation.
 - [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
 - [x] Add booking tracker: venue, date, deal terms, status (v1.1.54)
 
-### Phase 46: Reporting & Scene Analytics (v1.1.55)
+### Phase 46: Reporting & Scene Analytics (v1.1.56)
 Turn the data into actionable intelligence for scene-building.
 
 - [ ] Add venue outreach timeline visualization (first contact → replies → booked)

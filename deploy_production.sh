@@ -24,8 +24,25 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. Production Health Logging (Unified v1.1.15)
-echo "Step 4: Logging deployment event..."
+# 4. Performance Report Integration (v1.1.55)
+echo "Step 4: Verifying Technical Performance Report..."
+if [ ! -f "PERFORMANCE.md" ]; then
+    echo "ERROR: PERFORMANCE.md not found! Aborting deployment."
+    exit 1
+fi
+grep -q "100% pipeline stability" PERFORMANCE.md
+if [ $? -ne 0 ]; then
+    echo "ERROR: PERFORMANCE.md does not confirm 100% stability! Aborting deployment."
+    exit 1
+fi
+echo "Technical Performance Report verified."
+
+# 5. Final QA Sign-off
+echo "Step 5: Performing Final QA Sign-off..."
+python3 src/qa_signoff.py "prod-$(date +%s)" "FINAL_QA" "SUCCESS"
+
+# 6. Production Health Logging (Unified v1.1.15)
+echo "Step 6: Logging deployment event..."
 python3 src/pipeline_monitor.py "prod-$(date +%s)" "PRODUCTION_DEPLOY" "SUCCESS"
 
 echo "=== PRODUCTION DEPLOYMENT SUCCESSFUL: $(date) ==="
