@@ -1,41 +1,49 @@
-# HANDOFF - v1.1.49
+# HANDOFF - v1.1.52
 
 ## Session Summary
-This session focused on completing Phase 39 (Email Inbox Integration) and finalizing the production hardening of the discovery scrapers (Phases 37-38). The system now features a complete autonomous feedback loop, from venue discovery to automated reply ingestion and drafting.
+This session successfully transitioned the project to a fully autonomous, production-grade outreach system (Milestone v1.1.50 - v1.1.52). We completed multiple major roadmap phases, focusing on scheduling, safety, UI completeness, and data model persistence.
 
 ### Key Accomplishments
-- **Email Inbox Integration (Phase 39):**
-    - Implemented `src/inbox_monitor.py` for automated IMAP-based reply fetching.
-    - Built a robust lead matching engine using a dual-strategy: primary matching by sender email and fallback matching by venue name search within the email body.
-    - Wired matched replies to `SentimentAnalyzer` to trigger automated sentiment classification and AI reply drafting.
-    - Added "Fetch New Replies" button to the Dashboard History view.
-    - Integrated inbox polling into the main `main.py` pipeline.
-- **Scraper Hardening & Proxy Rotation (Phases 37-38):**
-    - Implemented exponential backoff retry logic across all scrapers (Google Maps, Resident Advisor, Instagram).
-    - Refactored `ProxyRotator` with health tracking and intelligent blacklisting (`fails^2 * 10s`).
-    - Standardized success/failure reporting across all network-active components (Scrapers and `ContactExtractor`).
-    - Decoupled `InstagramScraper` for enrichment-only use and optimized the RA scraper to run once per city run.
-- **CI/CD & Test Stability:**
-    - Resolved critical unit test failures in `tests/test_inbox_monitor.py` related to `MagicMock` parameter binding in sqlite3.
-    - Fixed `argparse` conflicts in `tests/test_multi_genre_discovery.py` and `tests/test_autonomous_pipeline_e2e.py` by patching `sys.argv`.
-    - Hardened `src/mailer.py` to handle empty `SMTP_PORT` environment variables.
+- **Phase 40: Pipeline Scheduling (v1.1.50):**
+    - Integrated `APScheduler` into `src/dashboard/app.py` for automated weekly discovery and outreach runs.
+    - Implemented `pipeline_runs` tracking and a history visualization in the System Dashboard.
+    - Added operational cycle resets (`--reset` / "Reset Cycles" button) to allow re-scouting.
+- **Phase 41: Dashboard & Settings Overhaul (v1.1.51):**
+    - Fully expanded the Settings UI to manage Artist Identity, Discovery Scope, IMAP, and Media Library.
+    - Implemented a detailed "Venue Detail" page with full contact aggregation, trait visualization, and outreach history.
+    - Added "Pending Qualification" filter and "Re-run AI Vibe Check" workflow.
+    - Defaulted dashboard map to Detroit coordinates for immediate scene relevance.
+- **Phase 42: Outreach Safety Guardrails (v1.1.50):**
+    - Implemented daily outreach throttling (`daily_outreach_limit`) and random inter-email delays (`outreach_delay_min`) to protect sender reputation.
+- **Phase 43: Data Model & Persistence (v1.1.52):**
+    - Expanded `venues` schema with `address`, `phone`, `venue_type`, `capacity`, `neighborhood`, and `source`.
+    - Implemented an automated database migration utility in `DatabaseManager` for seamless schema upgrades.
+    - Enhanced `AIEngine` to extract these extended fields from raw descriptions.
+    - Tagged discovery source (Google Maps, Resident Advisor) for lead traceability.
+- **Phase 44: Detroit Seeding (v1.1.50):**
+    - Created `database/detroit_venues_seed.json` with cornerstone Detroit venues.
+    - Implemented `--seed` CLI flag for database bootstrapping.
+- **Architectural Cleanup (v1.1.51):**
+    - Removed `unittest.mock` usage from production logic.
+    - Refactored `main.py` entry point for robust argument passing.
 
 ### Structural Shifts
-- **Discovery Orchestration:** The pipeline now distinguishes between `query_scrapers` (Google Maps) and `city_scrapers` (Resident Advisor). RA enrichment is performed at the city level once per run, significantly reducing redundant requests.
-- **Feedback Loop Completeness:** The system is no longer "dispatch-only." It can now ingest, classify, and draft responses to incoming human replies, preparing for Phase 45 (Negotiation Engine).
+- **Full Autonomy:** The system is now a complete "set-and-forget" agent. It schedules its own runs, discover venues, qualifies them via vision/text AI, sends throttled outreach, monitors the inbox for replies, and drafts follow-ups.
+- **Schema Resilience:** The addition of the migration engine allows for agile data model evolution without breaking existing local databases.
 
 ### System Memories Added
-- Standardized proxy health reporting across all discovery and enrichment components.
-- Implementation of neighborhood-aware Detroit search queries and Detroit-specific artist identity context.
-- Hardening of IMAP and SMTP components for restricted CI environments.
+- Automated pipeline scheduling with `APScheduler` and run history persistence.
+- Outreach safety guardrails (daily limits/delays) for domain protection.
+- Extended venue data modeling (type, capacity, neighborhood) driven by AI extraction.
+- Dynamic discovery source tagging and Detroit-centric UI defaults.
 
 ## Current State
-- **Version:** 1.1.49
-- **Test Status:** 100% pass rate on Master Integrity Suite (74+ tests).
-- **QA Sign-off:** Final stability verification (v1.1.49) completed and logged in `system_logs` (Run ID: qa-signoff-v1.1.49).
-- **Environment:** Production-ready for Detroit/Midwest circuit.
+- **Version:** 1.1.52
+- **Test Status:** 100% pass rate on Master Integrity Suite (76 tests), including E2E and Protocol tests.
+- **QA Sign-off:** Unified autonomous cycle verified as stable.
+- **Environment:** Optimized for Detroit/Midwest circuit.
 
 ## Immediate Next Steps
-1. **Phase 40 (Scheduling):** Integrate APScheduler into the dashboard for fully automated weekly runs.
-2. **Phase 41 (Settings):** Expose the new IMAP and Artist Identity settings in the UI.
-3. **Phase 42 (Safety):** Implement daily outreach throttles and token budget tracking.
+1. **Phase 45 (Negotiation Engine):** Expand reply handling to include automated "rate inquiry" and "availability" drafts.
+2. **Phase 46 (Analytics):** Implement conversion funnel visualizations and scene health reporting.
+3. **Phase 47 (Multi-Artist):** Support profiles for collectives or multiple artists within the same dashboard.
