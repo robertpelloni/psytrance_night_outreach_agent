@@ -31,6 +31,51 @@ class AnalyticsEngine:
 
         return stats
 
+    def get_conversion_funnel(self):
+        """Calculates conversion metrics for each stage of the pipeline."""
+        funnel = {}
+        with self._get_connection() as conn:
+            # 1. Discovered (Total Venues)
+            res = conn.execute("SELECT count(*) FROM venues").fetchone()
+            funnel['discovered'] = res[0]
+
+            # 2. Qualified (Vibe Score >= threshold, usually PENDING_REVIEW or beyond)
+            res = conn.execute("SELECT count(*) FROM outreach_leads WHERE vibe_score >= 6").fetchone()
+            funnel['qualified'] = res[0]
+
+            # 3. Pitched (SENT status)
+            res = conn.execute("SELECT count(*) FROM outreach_leads WHERE pipeline_status IN ('SENT', 'BOOKED', 'LOST')").fetchone()
+            funnel['pitched'] = res[0]
+
+            # 4. Replied (Has at least one reply)
+            res = conn.execute("SELECT count(DISTINCT lead_id) FROM lead_replies").fetchone()
+            funnel['replied'] = res[0]
+
+            # 5. Booked (BOOKED status)
+            res = conn.execute("SELECT count(*) FROM outreach_leads WHERE pipeline_status = 'BOOKED'").fetchone()
+            funnel['booked'] = res[0]
+
+        return funnel
+
+    def get_scene_health(self):
+        """Calculates key performance indicators for the overall outreach effort."""
+        kpis = {}
+        with self._get_connection() as conn:
+            # Response Rate: Replied / Pitched
+            pitched = conn.execute("SELECT count(*) FROM outreach_leads WHERE pipeline_status IN ('SENT', 'BOOKED', 'LOST')").fetchone()[0]
+            replied = conn.execute("SELECT count(DISTINCT lead_id) FROM lead_replies").fetchone()[0]
+            kpis['response_rate'] = round((replied / pitched * 100), 1) if pitched > 0 else 0
+
+            # Booking Rate: Booked / Replied
+            booked = conn.execute("SELECT count(*) FROM outreach_leads WHERE pipeline_status = 'BOOKED'").fetchone()[0]
+            kpis['booking_rate'] = round((booked / replied * 100), 1) if replied > 0 else 0
+
+            # Interested Rate: Leads with at least one INTERESTED reply / Pitched
+            interested = conn.execute("SELECT count(DISTINCT lead_id) FROM lead_replies WHERE sentiment = 'INTERESTED'").fetchone()[0]
+            kpis['interested_rate'] = round((interested / pitched * 100), 1) if pitched > 0 else 0
+
+        return kpis
+
     def get_approval_rate(self):
         with self._get_connection() as conn:
             # Approval Rate = (SENT + APPROVED) / (SENT + APPROVED + REJECTED)
@@ -139,3 +184,49 @@ class AnalyticsEngine:
                     "conversion_rate": conv_rate
                 }
             return stats
+
+    def get_venue_warmth(self, venue_id):
+        """
+        Calculates a 'warmth' score (0-100) based on interaction recency and sentiment.
+        """
+        warmth = 0
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+
+            # Fetch lead and replies
+            lead = conn.execute("SELECT * FROM outreach_leads WHERE venue_id = ?", (venue_id,)).fetchone()
+            if not lead: return 0
+
+            replies = conn.execute("SELECT * FROM lead_replies WHERE lead_id = ? ORDER BY received_at DESC", (lead['id'],)).fetchall()
+
+            if not replies:
+                # Cold: If sent but no reply, check recency
+                if lead['pipeline_status'] == 'SENT':
+                    warmth = 20
+                return warmth
+
+            # Base warmth for having a reply
+            warmth = 40
+
+            # Most recent sentiment bonus
+            latest = replies[0]
+            if latest['sentiment'] == 'INTERESTED':
+                warmth += 40
+            elif latest['sentiment'] == 'INQUIRY':
+                warmth += 20
+            elif latest['sentiment'] == 'REJECTED':
+                warmth = 5
+                return warmth
+
+            # Recency bonus (within 7 days)
+            import datetime
+            try:
+                # SQL format is YYYY-MM-DD HH:MM:SS
+                received_at = datetime.datetime.strptime(latest['received_at'], "%Y-%m-%d %H:%M:%S")
+                delta = datetime.datetime.now() - received_at
+                if delta.days < 7:
+                    warmth += 20
+            except:
+                pass
+
+        return min(warmth, 100)

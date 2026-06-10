@@ -120,7 +120,11 @@
 - [x] Integrate `SentimentAnalyzer` for automated reply drafting (v1.1.49)
 - [x] Add "Fetch New Replies" button to HITL Dashboard (v1.1.49)
 - [x] Wired inbox polling into main pipeline orchestrator (v1.1.49)
-- [ ] Schedule v1.1.46 Performance Review meeting with development team
+- [x] Conducted v1.1.46 Performance Review (v1.1.58)
+- [x] Implement Advanced Reporting & Scene Analytics (Phase 46) (v1.1.58)
+- [x] Add Conversion Funnel Visualization (v1.1.58)
+- [x] Add Scene Health KPIs (Response, Interest, Booking Rates) (v1.1.58)
+- [x] Add Venue Warmth Scoring (v1.1.58)
 
 ---
 
@@ -197,10 +201,10 @@ These are the things that prevent the agent from being genuinely useful in the r
 
 ### Analytics & Reporting
 - [ ] Add venue outreach timeline visualization
-- [ ] Add conversion funnel (discovered → qualified → pitched → replied → booked)
-- [ ] Add "scene health" dashboard: total venues, response rate, booking rate
+- [x] Add conversion funnel (discovered → qualified → pitched → replied → booked) (v1.1.58)
+- [x] Add "scene health" dashboard: total venues, response rate, booking rate (v1.1.58)
 - [ ] Add monthly/weekly email digest of pipeline activity
-- [ ] Add venue "warmth" score based on interaction recency and sentiment
+- [x] Add venue "warmth" score based on interaction recency and sentiment (v1.1.58)
 - [ ] Export leads/contacts to CSV
 
 ### Additional Scrapers

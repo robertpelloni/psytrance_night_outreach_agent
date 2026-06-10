@@ -84,11 +84,7 @@ Further strengthen bot mitigation by tracking proxy health and rotating based on
 - [x] Apply production hardening (retries + isolation) to RA and Instagram scrapers
 - [x] Optimized discovery loop to separate query-based vs. city-based scrapers (v1.1.48)
 - [x] Verified 100% stability across Master Integrity Suite (v1.1.46 Report)
-- [ ] Conduct v1.1.46 Performance Review meeting
-
----
-
-## Upcoming Phases
+- [x] Conduct v1.1.46 Performance Review meeting
 
 ### Phase 39: Email Inbox Integration (v1.1.49)
 Currently, venue replies must be manually pasted into the "Simulate Reply" form. This is the single biggest usability gap — in production, replies arrive in the booking inbox and must be ingested automatically.
@@ -166,7 +162,6 @@ Bootstrap the system with known Detroit venues and community knowledge.
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 Expand the reply handling from draft-only to semi-automated negotiation.
-
 - [x] Add auto-response for OOO replies (v1.1.54)
 - [x] Add "rate inquiry" auto-draft with configurable rate card (v1.1.54)
 - [x] Add "availability inquiry" auto-draft with available date ranges (v1.1.54)
@@ -175,18 +170,22 @@ Expand the reply handling from draft-only to semi-automated negotiation.
 - [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
 - [x] Add booking tracker: venue, date, deal terms, status (v1.1.54)
 
-### Phase 46: Reporting & Scene Analytics (v1.1.56)
+### Phase 46: Reporting & Scene Analytics (v1.1.58)
 Turn the data into actionable intelligence for scene-building.
-
+- [x] Add conversion funnel visualization (discovered → qualified → pitched → replied → booked)
+- [x] Add "scene health" dashboard: total venues contacted, response rate, booking rate
+- [x] Add venue "warmth" score based on interaction recency and sentiment
+- [x] Implemented Analytics Engine backend with automated health KPIs
 - [ ] Add venue outreach timeline visualization (first contact → replies → booked)
-- [ ] Add conversion funnel visualization (discovered → qualified → pitched → replied → booked)
-- [ ] Add "scene health" dashboard: total venues contacted, response rate, booking rate, average time-to-first-reply
 - [ ] Add monthly/weekly email digest of pipeline activity
-- [ ] Add venue "warmth" score based on interaction recency and sentiment
 - [ ] Export leads/contacts to CSV for use in other tools
 - [ ] Add venue comparison view (side-by-side for decision making between similar venues)
 
-### Phase 47: Multi-Artist & Collaboration (v1.1.56)
+---
+
+## Upcoming Phases
+
+### Phase 47: Multi-Artist & Collaboration (v1.1.58)
 Enable the system to support multiple artists or a collective.
 
 - [ ] Add artist profiles table (name, bio, genres, links, rate card)

@@ -39,12 +39,17 @@
 - Vision-enriched qualification using GPT-4o-vision for aesthetic vetting.
 - Epsilon-greedy A/B pitch variant optimization (Professional/Underground/Technical).
 
-## Known Gaps (as of v1.1.46)
-- **No email inbox integration** — replies must be manually simulated (Phase 39).
-- **No pipeline scheduling** or automated city cycle reset mechanism (Phase 40).
-- **Settings UI incompleteness** — does not yet expose artist identity or Detroit-specific config (Phase 41).
-- **Map Default** — defaults to world view instead of Detroit (42.3314, -83.0458).
-- **Outreach Safety** — no daily throttle or OpenAI token budget tracking (Phase 42).
-- **Data Model Gaps** — missing venue address, capacity, and neighborhood columns (Phase 43).
-- **Pipeline Lifecycle** — no BOOKED or LOST statuses or automated negotiation machine (Phase 45).
-- **Schema Migrations** — no system for safe database upgrades.
+## Autonomous Feedback Loop (v1.1.58)
+- **Email Inbox Integration**: Implemented IMAP-based reply fetching in `src/inbox_monitor.py` (Phase 39).
+- **Automated Negotiation**: Implemented a state machine (INITIAL -> REPLIED -> NEGOTIATING -> BOOKED/LOST) with OOO detection and auto-requeue (Phase 45).
+- **Pipeline Scheduling**: Integrated `APScheduler` for weekly discovery and outreach cycles with run history tracking (Phase 40).
+- **Outreach Safety**: Implemented daily dispatch throttles (10/day) and random jitter (5m) to protect sender reputation (Phase 42).
+- **Advanced Analytics**: Implemented conversion funnels (Discovered -> Qualified -> Pitched -> Replied -> Booked) and "Venue Warmth" scoring (Phase 46).
+- **Data Persistence**: Expanded `venues` table with technical metadata (capacity, type, neighborhood) and implemented auto-migrations in `DatabaseManager` (Phase 43).
+- **UX Optimization**: Centered dashboard map on Detroit (v1.1.51) and overhauled Settings UI for Detroit-specific search phrases and artist identity.
+
+## Known Gaps (as of v1.1.58)
+- **OpenAI Token Budgeting**: No automated cost estimation or alerting per pipeline run (Phase 42).
+- **Bounce Handling**: No automated SMTP bounce detection to mark leads as BOUNCED (Phase 39).
+- **Visual Analytics**: Missing outreach timeline visualization and side-by-side venue comparison (Phase 46).
+- **Multi-Artist Support**: Collective-level artist profiles and shared dashboard access pending (Phase 47).

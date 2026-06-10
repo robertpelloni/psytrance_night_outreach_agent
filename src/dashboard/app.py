@@ -99,7 +99,8 @@ def venue_detail(venue_id):
     else:
         venue['traits_dict'] = {}
 
-    return render_template('venue_detail.html', venue=venue, leads=leads, contacts=contacts)
+    warmth = analytics.get_venue_warmth(venue_id)
+    return render_template('venue_detail.html', venue=venue, leads=leads, contacts=contacts, warmth=warmth)
 
 @app.route('/pending_qualification')
 def pending_qualification():
@@ -151,7 +152,9 @@ def show_analytics():
     stats = analytics.get_summary_stats()
     approval_rate = analytics.get_approval_rate()
     variant_stats = analytics.get_variant_stats()
-    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats)
+    funnel = analytics.get_conversion_funnel()
+    health = analytics.get_scene_health()
+    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats, funnel=funnel, health=health)
 
 @app.route('/map')
 def show_map():

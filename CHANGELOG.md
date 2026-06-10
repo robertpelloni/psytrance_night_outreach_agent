@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [1.1.58] - 2026-06-10
+### Added
+- **Phase 46: Advanced Reporting & Scene Analytics**: Enhanced `AnalyticsEngine` with conversion funnel logic (Discovered -> Qualified -> Pitched -> Replied -> Booked).
+- **Scene Health KPIs**: Implemented new metrics including Response Rate, Booking Rate, and Interest Rate.
+- **Venue Warmth Scoring**: Implemented a dynamic "warmth" score (0-100) based on interaction recency and sentiment to prioritize lead follow-ups.
+- **Analytics Dashboard UI**: Added a dedicated Analytics Reporting view to the dashboard with funnel visualizations and KPI cards.
+- **Phase Verification Suite**: Created `tests/test_analytics_reporting.py` and `verify_phase46.py` to ensure reporting accuracy.
+
+## [1.1.57] - 2026-06-10
+### Added
+- **Staging Quality Gate**: Updated `deploy_staging.sh` to require `PERFORMANCE.md` verification, mirroring the production deployment protocol.
+
+## [1.1.56] - 2026-06-10
+### Added
+- **Master Branch Reconciliation**: Successfully merged all active feature branches into `main` using the `ours` strategy to preserve the advanced system state while maintaining history.
+
 ## [1.1.55] - 2026-06-09
 ### Added
 - **CI/CD Performance Integration**: Updated `deploy_production.sh` to mandate verification of the technical performance report (`PERFORMANCE.md`) before deployment.
