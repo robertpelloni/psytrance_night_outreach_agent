@@ -32,10 +32,23 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 4. Health Reporting (Unified v1.1.15)
+# 4. Performance Report Verification (v1.1.57)
+echo "Step 4: Verifying Technical Performance Report..."
+if [ ! -f "PERFORMANCE.md" ]; then
+    echo "ERROR: PERFORMANCE.md not found! Aborting deployment."
+    exit 1
+fi
+grep -q "100% pipeline stability" PERFORMANCE.md
+if [ $? -ne 0 ]; then
+    echo "ERROR: PERFORMANCE.md does not confirm 100% stability! Aborting deployment."
+    exit 1
+fi
+echo "Technical Performance Report verified."
+
+# 5. Health Reporting (Unified v1.1.15)
 echo "Step 4: Logging staging deployment event..."
 python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_DEPLOY" "SUCCESS"
 
-# 5. Final Validation Summary
+# 6. Final Validation Summary
 echo "=== STAGING DEPLOYMENT SUCCESSFUL: $(date) ==="
 echo "System is verified for staging at $DB_PATH."
