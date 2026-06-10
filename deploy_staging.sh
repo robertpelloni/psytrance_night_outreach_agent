@@ -46,7 +46,7 @@ fi
 echo "Technical Performance Report verified."
 
 # 5. Health Reporting (Unified v1.1.15)
-echo "Step 4: Logging staging deployment event..."
+echo "Step 5: Logging staging deployment event..."
 python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_DEPLOY" "SUCCESS"
 
 # 6. Final Validation Summary

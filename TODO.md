@@ -126,6 +126,7 @@
 - [x] Add Scene Health KPIs (Response, Interest, Booking Rates) (v1.1.58)
 - [x] Add Venue Warmth Scoring (v1.1.58)
 - [x] Conducted v1.1.46 Performance Review with QA team (v1.1.58)
+- [ ] Schedule v1.1.46 Performance Review with Operations team
 
 ---
 
