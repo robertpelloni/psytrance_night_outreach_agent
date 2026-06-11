@@ -1,13 +1,5 @@
 # CHANGELOG
 
-## [1.1.59] - 2026-06-11
-### Added
-- **Phase 47: Multi-Artist & Collective Support**: Introduced the `artists` table and lead association, allowing for artist-specific outreach profiles.
-- **Artist Profile Management**: Added a new UI in Settings for managing collective member profiles (Name, Bio, EPK, Mixes, Rate Cards).
-- **Multi-Artist Outreach Logic**: Updated `AIEngine` to inject artist-specific context and links into vibe checks, pitches, and follow-ups based on the selected profile.
-- **Analytics Expansion**: Added CSV export functionality for leads and an interactive Outreach Activity Timeline (Chart.js) to the Analytics dashboard.
-- **Automated Schema Migrations**: Enhanced `DatabaseManager` to automatically create the `artists` table and migrate existing leads with the `artist_id` column.
-
 ## [1.1.58] - 2026-06-10
 ### Added
 - **Phase 46: Advanced Reporting & Scene Analytics**: Enhanced `AnalyticsEngine` with conversion funnel logic (Discovered -> Qualified -> Pitched -> Replied -> Booked).
