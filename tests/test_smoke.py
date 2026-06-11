@@ -32,6 +32,7 @@ class SmokeTest(unittest.TestCase):
     @patch('src.ai_engine.OpenAI')
     @patch('src.mailer.smtplib.SMTP')
     @patch('src.config_manager.ConfigManager.load_config')
+    @patch('src.outreach_engine.time.sleep')
     @patch.dict(os.environ, {
         "OPENAI_API_KEY": "fake-key",
         "SMTP_SERVER": "smtp.test",
@@ -39,7 +40,7 @@ class SmokeTest(unittest.TestCase):
         "SMTP_PASSWORD": "test",
         "SENDER_EMAIL": "test@test.com"
     })
-    def test_full_system_flow(self, mock_load_config, mock_smtp, mock_openai):
+    def test_full_system_flow(self, mock_sleep, mock_load_config, mock_smtp, mock_openai):
         mock_load_config.return_value = {
             "cities": ["Test City"],
             "vibe_threshold": 7,
