@@ -29,13 +29,20 @@
         async function regeneratePitch(leadId) {
             const btn = document.getElementById(`regen-btn-${leadId}`);
             const textarea = document.getElementById(`pitch-${leadId}`);
+            const artistSelect = document.getElementById(`artist-select-${leadId}`);
             const originalText = btn.innerText;
 
             btn.disabled = true;
             btn.innerText = 'Regenerating...';
 
+            const artistId = artistSelect ? artistSelect.value : null;
+
             try {
-                const response = await fetch(`/regenerate/${leadId}`, { method: 'POST' });
+                const response = await fetch(`/regenerate/${leadId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ artist_id: artistId })
+                });
                 const data = await response.json();
                 if (data.pitch) {
                     textarea.value = data.pitch;
@@ -236,13 +243,23 @@
                             </div>
                             {% endif %}
 
-                            <div class="d-flex justify-content-between align-items-end mb-2">
-                                <label class="form-label mb-0"><strong>Customized Pitch:</strong></label>
-                                <button type="button" id="regen-btn-{{ lead.id }}"
-                                        onclick="regeneratePitch({{ lead.id }})"
-                                        class="btn btn-sm btn-outline-info">
-                                    Regenerate AI Pitch
-                                </button>
+                            <div class="row align-items-end mb-2">
+                                <div class="col-md-6">
+                                    <label class="form-label mb-0"><strong>Select Billed Artist:</strong></label>
+                                    <select name="artist_id" id="artist-select-{{ lead.id }}" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="regeneratePitch({{ lead.id }})">
+                                        <option value="">(Default Profile)</option>
+                                        {% for artist in artists %}
+                                        <option value="{{ artist.id }}">{{ artist.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button type="button" id="regen-btn-{{ lead.id }}"
+                                            onclick="regeneratePitch({{ lead.id }})"
+                                            class="btn btn-sm btn-outline-info">
+                                        Regenerate AI Pitch
+                                    </button>
+                                </div>
                             </div>
                             <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
                             <div class="mt-2">

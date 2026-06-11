@@ -8,32 +8,57 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def _get_identity_context(self):
-        """Loads artist identity from config for use in prompts."""
+    def _get_identity_context(self, artist_id=None):
+        """Loads artist identity from config or database for use in prompts."""
         try:
             from src.config_manager import ConfigManager
+            from src.db_manager import DatabaseManager
 
             cfg = ConfigManager()
-            artist = cfg.get("artist_name") or ""
+            db = DatabaseManager()
+
+            # Default from config
+            artist_name = cfg.get("artist_name") or ""
             collective = cfg.get("collective_name") or ""
             home = cfg.get("home_city") or "Detroit"
+            bio = ""
+            epk = cfg.get("epk_link") or ""
+            mix = cfg.get("mix_link") or ""
+
+            # Overwrite if specific artist_id provided
+            if artist_id:
+                artist_data = db.get_artist(artist_id)
+                if artist_data:
+                    artist_name = artist_data['name']
+                    bio = artist_data.get('bio', '')
+                    epk = artist_data.get('epk_link', '')
+                    mix = artist_data.get('mix_link', '')
+
             parts = []
-            if artist:
-                parts.append(f"Artist/DJ Name: {artist}")
+            if artist_name:
+                parts.append(f"Artist/DJ Name: {artist_name}")
             if collective:
                 parts.append(f"Collective: {collective}")
             parts.append(f"Home City: {home}")
-            return " | ".join(parts) if parts else ""
-        except Exception:
-            return ""
+            if bio:
+                parts.append(f"Bio: {bio}")
 
-    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None):
+            return {
+                "context": " | ".join(parts) if parts else "",
+                "artist_name": artist_name,
+                "epk_link": epk,
+                "mix_link": mix
+            }
+        except Exception:
+            return {"context": "", "artist_name": "", "epk_link": "", "mix_link": ""}
+
+    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None, artist_id=None):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
 
         rating_context = f"Google Rating: {rating}/5" if rating else ""
-        identity = self._get_identity_context()
+        identity = self._get_identity_context(artist_id=artist_id)["context"]
         identity_note = f"\nOutreach Identity: {identity}" if identity else ""
 
         prompt = f"""
@@ -93,10 +118,10 @@ Output JSON format:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance"):
+    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance", artist_id=None):
         if not self.client:
             return f"Just following up on our previous email regarding a {genre} night!"
-        identity = self._get_identity_context()
+        identity = self._get_identity_context(artist_id=artist_id)["context"]
         identity_note = f"\nOur identity: {identity}" if identity else ""
         prompt = f"""
 Write a short, polite follow-up email to a booking manager at {venue_name}.
@@ -252,20 +277,27 @@ Output JSON format:
         media_library=None,
         genre="psytrance",
         variant="Professional",
+        artist_id=None,
     ):
         if not self.client:
             return "Hey, we would love to play at your venue!"
 
-        identity = self._get_identity_context()
-        selected_media = mix_link
+        id_data = self._get_identity_context(artist_id=artist_id)
+        identity = id_data["context"]
+
+        # Use artist-specific links if provided
+        final_epk = epk_link or id_data["epk_link"]
+        final_mix = mix_link or id_data["mix_link"]
+
+        selected_media = final_mix
         if media_library and traits:
             selected_media = (
-                self.select_contextual_media(traits, media_library) or mix_link
+                self.select_contextual_media(traits, media_library) or final_mix
             )
 
         links_context = ""
-        if epk_link:
-            links_context += f"- Link to our Electronic Press Kit (EPK): {epk_link}\n"
+        if final_epk:
+            links_context += f"- Link to our Electronic Press Kit (EPK): {final_epk}\n"
         if selected_media:
             links_context += f"- Our showcase mix/visuals: {selected_media}\n"
 
@@ -363,12 +395,12 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
             return None
 
     def generate_reply_draft(
-        self, venue_name, lead_reply, original_pitch, genre="psytrance", rate_card=None, availability=None
+        self, venue_name, lead_reply, original_pitch, genre="psytrance", rate_card=None, availability=None, artist_id=None
     ):
         """Generates a professional draft response to a venue's reply."""
         if not self.client:
             return "Thank you for your reply! Let's discuss further."
-        identity = self._get_identity_context()
+        identity = self._get_identity_context(artist_id=artist_id)["context"]
         identity_note = f"\nOur identity: {identity}" if identity else ""
 
         negotiation_context = ""

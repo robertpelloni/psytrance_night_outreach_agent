@@ -43,8 +43,21 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     follow_up_count INTEGER DEFAULT 0,
     success_probability REAL,
     negotiation_status TEXT DEFAULT 'INITIAL', -- INITIAL, REPLIED, NEGOTIATING, BOOKED, LOST
+    artist_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(venue_id) REFERENCES venues(id)
+    FOREIGN KEY(venue_id) REFERENCES venues(id),
+    FOREIGN KEY(artist_id) REFERENCES artists(id)
+);
+
+CREATE TABLE IF NOT EXISTS artists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    bio TEXT,
+    genres TEXT, -- Comma-separated
+    epk_link TEXT,
+    mix_link TEXT,
+    rate_card TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS city_processing_log (

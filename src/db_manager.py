@@ -28,7 +28,21 @@ class DatabaseManager:
                 print(f"Warning: schema.sql not found at {schema_path}")
 
     def _apply_migrations(self, conn):
-        """Phase 43 & 45: Add missing columns to venues and outreach_leads tables."""
+        """Phase 43, 45 & 47: Add missing columns and tables for schema evolution."""
+        # Phase 47: Artists Table
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS artists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            bio TEXT,
+            genres TEXT, -- Comma-separated
+            epk_link TEXT,
+            mix_link TEXT,
+            rate_card TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
         venue_cols = [
             ("address", "TEXT"),
             ("phone", "TEXT"),
@@ -50,9 +64,10 @@ class DatabaseManager:
                 except sqlite3.OperationalError as e:
                     print(f"Migration error on 'venues.{col_name}': {e}")
 
-        # Phase 45: Negotiation Status for leads
+        # Phase 45 & 47: Negotiation Status and Artist ID for leads
         lead_cols = [
-            ("negotiation_status", "TEXT DEFAULT 'INITIAL'")
+            ("negotiation_status", "TEXT DEFAULT 'INITIAL'"),
+            ("artist_id", "INTEGER")
         ]
         cursor = conn.execute("PRAGMA table_info(outreach_leads)")
         existing_lead_cols = [row[1] for row in cursor.fetchall()]
@@ -336,6 +351,62 @@ class DatabaseManager:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
+
+    # Phase 47: Artist Management Methods
+    def add_artist(self, artist_data):
+        query = """
+        INSERT OR REPLACE INTO artists (name, bio, genres, epk_link, mix_link, rate_card)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (
+                artist_data['name'], artist_data.get('bio'),
+                artist_data.get('genres'), artist_data.get('epk_link'),
+                artist_data.get('mix_link'), artist_data.get('rate_card')
+            ))
+            return cursor.lastrowid
+
+    def update_artist(self, artist_id, artist_data):
+        query = """
+        UPDATE artists
+        SET name = ?, bio = ?, genres = ?, epk_link = ?, mix_link = ?, rate_card = ?
+        WHERE id = ?
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (
+                artist_data['name'], artist_data.get('bio'),
+                artist_data.get('genres'), artist_data.get('epk_link'),
+                artist_data.get('mix_link'), artist_data.get('rate_card'),
+                artist_id
+            ))
+
+    def get_artist(self, artist_id):
+        query = "SELECT * FROM artists WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (artist_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def get_artist_by_name(self, name):
+        query = "SELECT * FROM artists WHERE name = ?"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (name,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def list_artists(self):
+        query = "SELECT * FROM artists ORDER BY name ASC"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def delete_artist(self, artist_id):
+        query = "DELETE FROM artists WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (artist_id,))
 
     def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
         query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"

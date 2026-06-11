@@ -59,6 +59,7 @@ import json
 @app.route('/')
 def index():
     leads = db.get_pending_leads()
+    artists = db.list_artists()
     for lead in leads:
         # success_probability is now fetched from the database in get_pending_leads
         lead['success_prob'] = lead.get('success_probability')
@@ -68,7 +69,7 @@ def index():
                 lead['traits_dict'] = json.loads(lead['extracted_traits'])
             except:
                 lead['traits_dict'] = {}
-    return render_template('index.html', leads=leads, view='pending')
+    return render_template('index.html', leads=leads, artists=artists, view='pending')
 
 @app.route('/venue/<string:venue_id>')
 def venue_detail(venue_id):
@@ -154,7 +155,18 @@ def show_analytics():
     variant_stats = analytics.get_variant_stats()
     funnel = analytics.get_conversion_funnel()
     health = analytics.get_scene_health()
-    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats, funnel=funnel, health=health)
+    timeline = analytics.get_outreach_timeline()
+    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats, funnel=funnel, health=health, timeline=timeline)
+
+@app.route('/export_leads')
+def export_leads():
+    from flask import Response
+    csv_data = analytics.export_leads_csv()
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=outreach_leads.csv"}
+    )
 
 @app.route('/map')
 def show_map():
@@ -304,7 +316,27 @@ def settings():
         return redirect(url_for('settings'))
 
     current_config = config_mgr.load_config()
-    return render_template('settings.html', config=current_config)
+    artists = db.list_artists()
+    return render_template('settings.html', config=current_config, artists=artists)
+
+@app.route('/artists/add', methods=['POST'])
+def add_artist():
+    artist_data = {
+        "name": request.form.get('name'),
+        "bio": request.form.get('bio'),
+        "genres": request.form.get('genres'),
+        "epk_link": request.form.get('epk_link'),
+        "mix_link": request.form.get('mix_link'),
+        "rate_card": request.form.get('rate_card')
+    }
+    if artist_data['name']:
+        db.add_artist(artist_data)
+    return redirect(url_for('settings'))
+
+@app.route('/artists/delete/<int:artist_id>', methods=['POST'])
+def delete_artist(artist_id):
+    db.delete_artist(artist_id)
+    return redirect(url_for('settings'))
 
 @app.route('/add_source', methods=['POST'])
 def add_source():
@@ -318,7 +350,14 @@ def add_source():
 @app.route('/approve/<int:lead_id>', methods=['POST'])
 def approve(lead_id):
     pitch = request.form.get('pitch')
+    artist_id = request.form.get('artist_id')
+
+    # Update lead status and optionally artist_id
     db.update_lead_status(lead_id, 'APPROVED', pitch=pitch)
+    if artist_id:
+        with db._get_connection() as conn:
+            conn.execute("UPDATE outreach_leads SET artist_id = ? WHERE id = ?", (artist_id, lead_id))
+
     lead = db.get_lead(lead_id)
 
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
@@ -416,6 +455,8 @@ def regenerate(lead_id):
     venue = db.get_venue(lead['venue_id'])
     if not venue: return jsonify({"error": "Venue not found"}), 404
 
+    artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
+
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
     new_pitch = ai.generate_pitch(
         venue['name'],
@@ -424,7 +465,8 @@ def regenerate(lead_id):
         mix_link=config_mgr.get("mix_link"),
         traits=venue.get('extracted_traits'),
         media_library=config_mgr.get("media_library"),
-        genre=primary_genre
+        genre=primary_genre,
+        artist_id=artist_id
     )
     return jsonify({"pitch": new_pitch})
 

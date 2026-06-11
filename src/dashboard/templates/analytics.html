@@ -11,7 +11,10 @@
 <body class="container mt-5 text-bg-dark">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <h1>Outreach Analytics</h1>
-        <a href="/" class="btn btn-outline-primary">Back to Dashboard</a>
+        <div class="btn-group">
+            <a href="/export_leads" class="btn btn-outline-success">Export CSV</a>
+            <a href="/" class="btn btn-outline-primary">Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="row g-4 mb-5">
@@ -54,6 +57,17 @@
     </div>
 
     <div class="row mb-5">
+        <div class="col-md-12 mb-5">
+            <div class="card text-bg-dark border-secondary">
+                <div class="card-header bg-dark text-white border-secondary">
+                    <h5>Outreach Activity Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="timelineChart" style="max-height: 200px;"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="col-md-12">
             <div class="card text-bg-dark border-secondary shadow mb-5">
                 <div class="card-header bg-dark text-white border-secondary">
@@ -153,6 +167,43 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('timelineChart');
+        const timelineData = {{ timeline | tojson }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timelineData.map(d => d.date),
+                datasets: [{
+                    label: 'Outreach Emails Sent',
+                    data: timelineData.map(d => d.count),
+                    borderColor: '#0dcaf0',
+                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#6c757d' },
+                        grid: { color: '#343a40' }
+                    },
+                    x: {
+                        ticks: { color: '#6c757d' },
+                        grid: { color: '#343a40' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
+    </script>
 
     <div class="row">
         <div class="col-md-6 mb-4">

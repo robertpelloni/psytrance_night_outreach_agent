@@ -230,3 +230,47 @@ class AnalyticsEngine:
                 pass
 
         return min(warmth, 100)
+
+    def export_leads_csv(self):
+        """Generates a CSV string of all leads and their contact info."""
+        import csv
+        import io
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Venue Name', 'City', 'Status', 'Vibe Score', 'Genre', 'Variant', 'Email', 'IG', 'Last Outreach', 'Warmth'])
+
+        query = """
+        SELECT v.name, v.city, l.pipeline_status, l.vibe_score, l.qualified_genre, l.pitch_variant,
+               c.email, c.instagram_handle, l.last_outreach_at, v.id as venue_id
+        FROM outreach_leads l
+        JOIN venues v ON l.venue_id = v.id
+        LEFT JOIN venue_contacts c ON v.id = c.venue_id
+        ORDER BY l.created_at DESC
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+            for row in rows:
+                warmth = self.get_venue_warmth(row['venue_id'])
+                writer.writerow([
+                    row['name'], row['city'], row['pipeline_status'],
+                    row['vibe_score'], row['qualified_genre'], row['pitch_variant'],
+                    row['email'], row['instagram_handle'], row['last_outreach_at'], warmth
+                ])
+
+        return output.getvalue()
+
+    def get_outreach_timeline(self):
+        """Returns data for a timeline visualization of outreach activity."""
+        query = """
+        SELECT date(last_outreach_at) as outreach_date, count(*) as count
+        FROM outreach_leads
+        WHERE last_outreach_at IS NOT NULL
+        GROUP BY outreach_date
+        ORDER BY outreach_date ASC
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+            return [{"date": row['outreach_date'], "count": row['count']} for row in rows]
