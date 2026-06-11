@@ -189,6 +189,7 @@ These are the things that prevent the agent from being genuinely useful in the r
 - [ ] Add database indexes on frequently queried columns (city, pipeline_status, vibe_score)
 - [x] Add `pipeline_runs` table for tracking run history (v1.1.52)
 - [x] Add schema migration system for safe upgrades (v1.1.52)
+- [ ] Schedule v1.1.46 Performance Review meeting with dev team
 
 ---
 

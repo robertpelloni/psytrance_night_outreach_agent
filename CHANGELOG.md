@@ -88,7 +88,7 @@
 - **Intelligent Blacklisting**: Proxies that fail are temporarily blacklisted with an exponential backoff wait time (`fails^2 * 10s`).
 - **Scraper Feedback Loop**: Integrated `report_success` and `report_failure` methods across all Playwright scrapers (Google Maps, RA, Instagram) to drive rotation logic.
 - **Resilient Fallback**: If all proxies are blacklisted, the system automatically selects the one that will expire soonest.
-- **Technical Performance Report**: Released `PERFORMANCE.md` documenting 100% pipeline stability milestone.
+- **Stability Milestone**: Achieved 100% pipeline stability documented in `PERFORMANCE.md`.
 
 ## [1.1.45] - 2026-06-07
 ### Added

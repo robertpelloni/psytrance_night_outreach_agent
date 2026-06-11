@@ -78,10 +78,10 @@ The pipeline triggers on every push to **any** branch. The full outreach pipelin
 ### 3. Production Environment (Live Deployment)
 - **Trigger**: Push to the `main` branch.
 - **Workflow**: `.github/workflows/production.yml`
-- **Actions**: Master Integrity Suite (all tests), **PERFORMANCE.md verification**, deployment event logging.
+- **Actions**: Master Integrity Suite (all tests), **PERFORMANCE.md stability verification**, deployment event logging.
 - **Manual Command**: `./deploy_production.sh`
 
-> **Note on Performance Verification:** Every production deployment automatically verifies that `PERFORMANCE.md` confirms 100% pipeline stability before proceeding.
+> **Stability Gate:** Every production deployment automatically verifies that `PERFORMANCE.md` confirms 100% pipeline stability before proceeding.
 
 ## Live Pilot Validation
 
