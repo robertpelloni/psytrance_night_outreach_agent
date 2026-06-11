@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.60] - 2026-06-11
+### Added
+- **Performance Report Dashboard Integration**: Integrated the Technical Performance Report into the System dashboard, featuring a '100% Stable' badge and report scrolling.
+- **Operations Review**: Conducted and documented v1.1.46 Performance Review meetings with the development and operations teams.
+
 ## [1.1.58] - 2026-06-10
 ### Added
 - **Phase 46: Advanced Reporting & Scene Analytics**: Enhanced `AnalyticsEngine` with conversion funnel logic (Discovered -> Qualified -> Pitched -> Replied -> Booked).

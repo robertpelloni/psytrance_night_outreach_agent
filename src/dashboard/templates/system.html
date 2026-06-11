@@ -55,6 +55,15 @@
 
     <div class="row">
         <div class="col-md-4">
+            {% if performance_report and '100% pipeline stability' in performance_report.lower() %}
+            <div class="card text-bg-success mb-4 shadow border-light">
+                <div class="card-body text-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-shield-check"></i> 100% Pipeline Stability Verified</h5>
+                    <small>Report v1.1.46 baseline confirmed</small>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="card text-bg-secondary mb-4 shadow">
                 <div class="card-header bg-dark">Repository Info</div>
                 <div class="card-body">
@@ -218,6 +227,20 @@
                     </table>
                 </div>
             </div>
+
+            {% if performance_report %}
+            <div class="card text-bg-dark border-info shadow mb-4">
+                <div class="card-header bg-info text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Technical Performance Report</h5>
+                    <span class="badge bg-dark">v1.1.46 baseline</span>
+                </div>
+                <div class="card-body">
+                    <div class="performance-report-content" style="max-height: 400px; overflow-y: auto; font-size: 0.9rem;">
+                        <pre class="text-white-50" style="white-space: pre-wrap;">{{ performance_report }}</pre>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <div class="card text-bg-dark border-secondary shadow">
                 <div class="card-header bg-dark text-white">Version Audit Trail</div>

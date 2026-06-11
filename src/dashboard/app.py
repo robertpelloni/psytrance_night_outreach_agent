@@ -201,6 +201,13 @@ def dispatch_tour(cluster_index):
 @app.route('/system')
 def system_status():
     stats = analytics.get_summary_stats()
+
+    performance_report = None
+    perf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../PERFORMANCE.md'))
+    if os.path.exists(perf_path):
+        with open(perf_path, 'r') as f:
+            performance_report = f.read()
+
     version = "unknown"
     version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../VERSION.md'))
     if os.path.exists(version_path):
@@ -222,7 +229,7 @@ def system_status():
     stale_branches = reliability.get_stale_branches()
     audit_trail = db.get_version_audit_trail()
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail, performance_report=performance_report)
 
 @app.route('/reset_cycles', methods=['POST'])
 def reset_cycles():
