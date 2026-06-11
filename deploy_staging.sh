@@ -45,10 +45,14 @@ if [ $? -ne 0 ]; then
 fi
 echo "Technical Performance Report verified."
 
-# 5. Health Reporting (Unified v1.1.15)
-echo "Step 5: Logging staging deployment event..."
+# 5. Final QA Sign-off (v1.1.61)
+echo "Step 5: Performing Final QA Sign-off..."
+python3 src/qa_signoff.py "staging-$(date +%s)" "FINAL_QA" "SUCCESS"
+
+# 6. Health Reporting (Unified v1.1.15)
+echo "Step 6: Logging staging deployment event..."
 python3 src/pipeline_monitor.py "staging-$(date +%s)" "STAGING_DEPLOY" "SUCCESS"
 
-# 6. Final Validation Summary
+# 7. Final Validation Summary
 echo "=== STAGING DEPLOYMENT SUCCESSFUL: $(date) ==="
 echo "System is verified for staging at $DB_PATH."

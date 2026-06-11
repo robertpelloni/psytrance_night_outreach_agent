@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [1.1.61] - 2026-06-11
+### Added
+- **Staging Pipeline Hardening**: Integrated Final QA Sign-off into the staging deployment pipeline (`deploy_staging.sh`), ensuring environment parity with production quality gates.
+- **Automated Validation**: Verified deployment logic, including Technical Performance Report verification and QA logging, via end-to-end sandbox execution.
+
 ## [1.1.60] - 2026-06-11
 ### Added
 - **Performance Report Dashboard Integration**: Integrated the Technical Performance Report into the System dashboard, featuring a '100% Stable' badge and report scrolling.
