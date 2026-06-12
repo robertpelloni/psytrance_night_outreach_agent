@@ -1,13 +1,13 @@
 # CHANGELOG
 
-## [1.1.62] - 2026-06-12
+## [1.1.62] - 2026-06-11
 ### Added
-- **Multi-Artist Collective Architecture (Phase 47):** Transitioned from a single-identity model to a collective model with an `artists` table and identity-aware AI pitching.
-- **AI Token Usage Tracking:** Implemented automated tracking and logging of OpenAI token usage (prompt, completion, total) for all AI calls. Added "AI Usage (7d)" visualization to the System dashboard.
-- **Unmatched Reply Management:** Implemented an "Unmatched Replies" system to capture and store incoming emails that cannot be automatically linked to a lead. Added manual assignment UI in the History view.
-- **SMTP Bounce Detection:** Integrated automated detection for delivery failure notifications (bounces), with automatic lead status updates to 'BOUNCED'.
-- **Hardened Scraper Integration:** Confirmed `GoogleMapsPlaywrightScraper` and `ResidentAdvisorWebScraper` as primary engines with proxy rotation and error retries.
-- **Verification Suites:** Added `tests/test_ai_usage.py`, `tests/test_bounce_detection.py`, and `tests/test_multi_artist.py` to the Master Integrity Suite.
+- **AI Token Usage Tracking**: Implemented automated tracking and logging of OpenAI token usage (prompt, completion, total) for all AI calls.
+- **AI Usage Dashboard**: Added a new visualization in the System dashboard showing 7-day token consumption per model.
+- **Unmatched Reply Management**: Implemented an "Unmatched Replies" system to capture and store incoming emails that cannot be automatically linked to a lead.
+- **Manual Match UI**: Added a UI in the History view for manually assigning unmatched replies to leads.
+- **SMTP Bounce Detection**: Integrated automated detection for delivery failure notifications (bounces), with automatic lead status updates to 'BOUNCED'.
+- **Verification Suites**: Added `tests/test_ai_usage.py` and `tests/test_bounce_detection.py` to the Master Integrity Suite.
 
 ## [1.1.61] - 2026-06-11
 ### Added

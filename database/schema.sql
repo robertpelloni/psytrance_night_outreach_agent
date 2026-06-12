@@ -104,3 +104,20 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
     leads_generated INTEGER DEFAULT 0,
     error_message TEXT
 );
+
+CREATE TABLE IF NOT EXISTS ai_usage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model TEXT,
+    prompt_tokens INTEGER,
+    completion_tokens INTEGER,
+    total_tokens INTEGER,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS unmatched_replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender TEXT,
+    subject TEXT,
+    content TEXT,
+    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

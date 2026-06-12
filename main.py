@@ -251,10 +251,9 @@ def main(args_list=None):
     if args_list is not None:
         args = parser.parse_args(args_list)
     else:
-        # If running via pytest or unittest, sys.argv might contain runner arguments.
+        # If running via pytest, sys.argv might contain pytest arguments.
         # We only want to parse if it looks like we're running main.py directly.
-        is_testing = any(t in sys.argv[0] for t in ["pytest", "unittest", "python -m unittest"])
-        if is_testing:
+        if "pytest" in sys.argv[0]:
             args = parser.parse_args([])  # Use defaults
         else:
             args = parser.parse_args()
