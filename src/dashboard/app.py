@@ -224,7 +224,13 @@ def system_status():
     audit_trail = db.get_version_audit_trail()
     ai_usage = db.get_ai_usage_stats(days=7)
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail, ai_usage=ai_usage)
+    performance_report = None
+    perf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../PERFORMANCE.md'))
+    if os.path.exists(perf_path):
+        with open(perf_path, 'r') as f:
+            performance_report = f.read()
+
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail, ai_usage=ai_usage, performance_report=performance_report)
 
 @app.route('/reset_cycles', methods=['POST'])
 def reset_cycles():
