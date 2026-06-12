@@ -176,7 +176,7 @@ Turn the data into actionable intelligence for scene-building.
 - [x] Add "scene health" dashboard: total venues contacted, response rate, booking rate
 - [x] Add venue "warmth" score based on interaction recency and sentiment
 - [x] Implemented Analytics Engine backend with automated health KPIs
-- [ ] Add venue outreach timeline visualization (first contact → replies → booked)
+- [x] Add venue outreach timeline visualization (v1.1.59) (first contact → replies → booked)
 - [ ] Add monthly/weekly email digest of pipeline activity
 - [ ] Export leads/contacts to CSV for use in other tools
 - [ ] Add venue comparison view (side-by-side for decision making between similar venues)
@@ -185,14 +185,6 @@ Turn the data into actionable intelligence for scene-building.
 
 ## Upcoming Phases
 
-### Phase 47: Multi-Artist & Collaboration (v1.1.58)
-Enable the system to support multiple artists or a collective.
-
-- [ ] Add artist profiles table (name, bio, genres, links, rate card)
-- [ ] Allow pitches to reference specific artists from the collective
-- [ ] Add "billed artist" field to leads (which artist the pitch is for)
-- [ ] Add collaborative filtering: if Artist A gets rejected at a venue, suggest Artist B with a different style
-- [ ] Add shared dashboard login for collective members
 - [ ] Add per-artist analytics (response rates, booking rates by artist)
 
 ---
@@ -200,3 +192,21 @@ Enable the system to support multiple artists or a collective.
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
+
+### Phase 47: Multi-Artist & Collaboration (v1.1.59)
+Enable the system to support multiple artists or a collective.
+
+- [x] Add artist profiles table (name, bio, genres, links, rate card) (v1.1.59)
+- [x] Allow pitches to reference specific artists from the collective (v1.1.59)
+- [x] Add "billed artist" field to leads (which artist the pitch is for) (v1.1.59)
+- [ ] Add collaborative filtering: if Artist A gets rejected at a venue, suggest Artist B with a different style
+- [ ] Add shared dashboard login for collective members
+- [x] Add per-artist analytics (response rates, booking rates by artist) (v1.1.59)
+
+### Phase 48: AI Usage & Token Tracking (v1.1.62)
+Instrument the AI engine for operational transparency and cost forecasting.
+
+- [x] Log OpenAI token usage (prompt, completion, total) per API call (v1.1.62)
+- [x] Persist daily usage metrics to a dedicated database table (v1.1.62)
+- [x] Add "AI Usage (7d)" visualization to the System dashboard (v1.1.62)
+- [ ] Implement per-run and per-day token budget alerts

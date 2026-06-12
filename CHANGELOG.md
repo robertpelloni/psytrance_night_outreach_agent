@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [1.1.62] - 2026-06-11
+## [1.1.63] - 2026-06-11
 ### Added
 - **AI Token Usage Tracking**: Implemented automated tracking and logging of OpenAI token usage (prompt, completion, total) for all AI calls.
 - **AI Usage Dashboard**: Added a new visualization in the System dashboard showing 7-day token consumption per model.

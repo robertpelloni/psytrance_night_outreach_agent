@@ -47,7 +47,7 @@ class TestVariantOptimization(unittest.TestCase):
                                 with patch('src.outreach_engine.OutreachEngine.run_outreach_cycle'):
                                     with patch('src.follow_up_engine.FollowUpEngine.run_follow_up_cycle'):
                                         with patch('src.outreach_predictor.OutreachPredictor.predict_success_probability'):
-                                            run_pipeline()
+                                            run_pipeline([])
 
         # Verify Technical was chosen (exploitation)
         # Find the call where add_lead was called

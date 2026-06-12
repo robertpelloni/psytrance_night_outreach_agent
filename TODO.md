@@ -207,12 +207,12 @@ These are the things that prevent the agent from being genuinely useful in the r
 - [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
 
 ### Analytics & Reporting
-- [ ] Add venue outreach timeline visualization
+- [x] Add venue outreach timeline visualization (v1.1.59)
 - [x] Add conversion funnel (discovered → qualified → pitched → replied → booked) (v1.1.58)
 - [x] Add "scene health" dashboard: total venues, response rate, booking rate (v1.1.58)
 - [ ] Add monthly/weekly email digest of pipeline activity
 - [x] Add venue "warmth" score based on interaction recency and sentiment (v1.1.58)
-- [ ] Export leads/contacts to CSV
+- [x] Export leads/contacts to CSV (v1.1.59)
 
 ### Additional Scrapers
 - [ ] Add Facebook Events scraper for Detroit-area event discovery
