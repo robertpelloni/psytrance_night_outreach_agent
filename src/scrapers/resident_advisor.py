@@ -1,5 +1,6 @@
 from .base_scraper import ResidentAdvisorScraper, UserAgentRotator, ProxyRotator
 import uuid
+import time
 from playwright.sync_api import sync_playwright
 
 class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
