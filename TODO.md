@@ -128,6 +128,9 @@
 - [x] Add Venue Warmth Scoring (v1.1.58)
 - [x] Conducted v1.1.46 Performance Review with QA team (v1.1.58)
 - [x] Schedule v1.1.46 Performance Review with Operations team (v1.1.60)
+- [x] Implement Unmatched Replies view and manual matching (v1.1.62)
+- [x] Implement SMTP Bounce Detection and automatic lead marking (v1.1.62)
+- [x] Implement AI Token Usage Tracking and Dashboard (v1.1.62)
 
 ---
 
@@ -137,10 +140,10 @@ These are the things that prevent the agent from being genuinely useful in the r
 
 ### Email Inbox Integration
 - [ ] Add dashboard notification for new replies requiring attention
-- [ ] Add an "Unmatched Replies" view for emails that can't be auto-matched
-- [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
+- [x] Add an "Unmatched Replies" view for emails that can't be auto-matched (v1.1.62)
+- [x] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED (v1.1.62)
 
-*IMAP polling is implemented (v1.1.49), but UI feedback and unmatched handling are pending.*
+*IMAP polling is implemented (v1.1.49).*
 
 ### Scraper Reliability (Ongoing)
 - [ ] Add Google Maps Places API as a reliable fallback when Playwright selectors break
@@ -169,7 +172,7 @@ These are the things that prevent the agent from being genuinely useful in the r
 ### Outreach Safety
 - [x] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags (v1.1.50)
 - [x] Add configurable delay between dispatches (e.g., 5 minutes between emails) (v1.1.50)
-- [ ] Add OpenAI token budget tracker — estimate cost per run, warn if over budget
+- [x] Add OpenAI token budget tracker (v1.1.62)
 - [ ] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues that asked to never be emailed again
 

@@ -79,6 +79,29 @@ class DatabaseManager:
                 except sqlite3.OperationalError as e:
                     print(f"Migration error on 'outreach_leads.{col_name}': {e}")
 
+        # Phase 48: AI Usage Tracking
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS ai_usage (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            model TEXT,
+            prompt_tokens INTEGER,
+            completion_tokens INTEGER,
+            total_tokens INTEGER,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        # Phase 48: Unmatched Replies
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS unmatched_replies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT,
+            subject TEXT,
+            content TEXT,
+            received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
     def add_venue(self, venue_data):
         query = """
         INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude, image_url, visual_description, address, phone, venue_type, capacity, neighborhood, source)
@@ -204,7 +227,7 @@ class DatabaseManager:
         if status == 'SENT':
             query_parts.append("last_outreach_at = CURRENT_TIMESTAMP")
 
-        if status in ['BOOKED', 'LOST']:
+        if status in ['BOOKED', 'LOST', 'BOUNCED']:
              query_parts.append("negotiation_status = ?")
              params.append(status)
 
@@ -351,6 +374,40 @@ class DatabaseManager:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
+
+    def log_ai_usage(self, model, prompt_tokens, completion_tokens, total_tokens):
+        query = "INSERT INTO ai_usage (model, prompt_tokens, completion_tokens, total_tokens) VALUES (?, ?, ?, ?)"
+        with self._get_connection() as conn:
+            conn.execute(query, (model, prompt_tokens, completion_tokens, total_tokens))
+
+    def get_ai_usage_stats(self, days=7):
+        query = """
+        SELECT model, SUM(prompt_tokens) as prompt, SUM(completion_tokens) as completion, SUM(total_tokens) as total
+        FROM ai_usage
+        WHERE timestamp >= datetime('now', '-' || ? || ' days')
+        GROUP BY model
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (days,))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def add_unmatched_reply(self, sender, subject, content):
+        query = "INSERT INTO unmatched_replies (sender, subject, content) VALUES (?, ?, ?)"
+        with self._get_connection() as conn:
+            conn.execute(query, (sender, subject, content))
+
+    def get_unmatched_replies(self):
+        query = "SELECT * FROM unmatched_replies ORDER BY received_at DESC"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def delete_unmatched_reply(self, reply_id):
+        query = "DELETE FROM unmatched_replies WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (reply_id,))
 
     # Phase 47: Artist Management Methods
     def add_artist(self, artist_data):

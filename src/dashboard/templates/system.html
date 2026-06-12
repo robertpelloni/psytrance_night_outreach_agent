@@ -99,7 +99,7 @@
                 </div>
             </div>
 
-            <div class="card text-bg-secondary shadow">
+            <div class="card text-bg-secondary mb-4 shadow">
                 <div class="card-header bg-dark">Sync Reliability (7d)</div>
                 <div class="card-body">
                     <h2 class="text-center {% if sync_stats.success_rate >= 90 %}text-success{% else %}text-warning{% endif %}">
@@ -109,6 +109,31 @@
                     <hr class="border-secondary">
                     <p><strong>Total Syncs:</strong> {{ sync_stats.total_syncs }}</p>
                     <p><strong>Failures:</strong> <span class="text-danger">{{ sync_stats.failures }}</span></p>
+                </div>
+            </div>
+
+            <div class="card text-bg-secondary shadow">
+                <div class="card-header bg-dark">AI Usage (7d)</div>
+                <div class="card-body">
+                    {% for row in ai_usage %}
+                    <div class="mb-3">
+                        <h6><code>{{ row.model }}</code></h6>
+                        <div class="d-flex justify-content-between small">
+                            <span>Prompt:</span>
+                            <span>{{ row.prompt }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Completion:</span>
+                            <span>{{ row.completion }}</span>
+                        </div>
+                        <div class="progress bg-dark mt-1" style="height: 4px;">
+                            <div class="progress-bar bg-info" style="width: {{ (row.prompt / row.total * 100)|int if row.total > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not ai_usage %}
+                    <p class="text-white-50 small text-center">No AI usage recorded.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

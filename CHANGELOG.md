@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.62] - 2026-06-11
+### Added
+- **AI Token Usage Tracking**: Implemented automated tracking and logging of OpenAI token usage (prompt, completion, total) for all AI calls.
+- **AI Usage Dashboard**: Added a new visualization in the System dashboard showing 7-day token consumption per model.
+- **Unmatched Reply Management**: Implemented an "Unmatched Replies" system to capture and store incoming emails that cannot be automatically linked to a lead.
+- **Manual Match UI**: Added a UI in the History view for manually assigning unmatched replies to leads.
+- **SMTP Bounce Detection**: Integrated automated detection for delivery failure notifications (bounces), with automatic lead status updates to 'BOUNCED'.
+- **Verification Suites**: Added `tests/test_ai_usage.py` and `tests/test_bounce_detection.py` to the Master Integrity Suite.
+
 ## [1.1.61] - 2026-06-11
 ### Added
 - **Staging Pipeline Hardening**: Integrated Final QA Sign-off into the staging deployment pipeline (`deploy_staging.sh`), ensuring environment parity with production quality gates.

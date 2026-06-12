@@ -125,7 +125,8 @@ def history():
     # Attach replies to each lead for the history view
     for lead in leads:
         lead['replies'] = db.get_lead_replies(lead['id'])
-    return render_template('index.html', leads=leads, view='history')
+    unmatched = db.get_unmatched_replies()
+    return render_template('index.html', leads=leads, unmatched=unmatched, view='history')
 
 @app.route('/booked')
 def booked_tracker():
@@ -221,8 +222,9 @@ def system_status():
     sync_stats = reliability.get_sync_health_stats()
     stale_branches = reliability.get_stale_branches()
     audit_trail = db.get_version_audit_trail()
+    ai_usage = db.get_ai_usage_stats(days=7)
 
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail)
+    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail, ai_usage=ai_usage)
 
 @app.route('/reset_cycles', methods=['POST'])
 def reset_cycles():
@@ -248,6 +250,23 @@ def run_sync():
         "status": status,
         "output": result.stdout + result.stderr
     })
+
+@app.route('/match_unmatched/<int:reply_id>', methods=['POST'])
+def match_unmatched(reply_id):
+    lead_id = request.form.get('lead_id')
+    if lead_id:
+        with db._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            unmatched = conn.execute("SELECT * FROM unmatched_replies WHERE id = ?", (reply_id,)).fetchone()
+            if unmatched:
+                sentiment_analyzer.process_new_reply(lead_id, f"Subject: {unmatched['subject']}\n\n{unmatched['content']}")
+                db.delete_unmatched_reply(reply_id)
+    return redirect(url_for('history'))
+
+@app.route('/delete_unmatched/<int:reply_id>', methods=['POST'])
+def delete_unmatched(reply_id):
+    db.delete_unmatched_reply(reply_id)
+    return redirect(url_for('history'))
 
 @app.route('/fetch_replies', methods=['POST'])
 def fetch_replies():

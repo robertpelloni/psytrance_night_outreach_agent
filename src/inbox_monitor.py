@@ -114,6 +114,11 @@ class InboxMonitor:
         if not lead:
             lead = self._match_lead_by_venue_name(subject, body)
 
+        # 3. Bounce Detection
+        if self._is_bounce(sender_email, subject, body):
+            self._handle_bounce(subject, body, uid)
+            return True
+
         if lead:
             print(f"  Matched to lead_id: {lead['id']} (Venue: {lead['name']})")
             # Route to SentimentAnalyzer
@@ -121,8 +126,9 @@ class InboxMonitor:
             self.db.log_system_event("INBOX", "MATCH_SUCCESS", f"UID {uid} matched to lead {lead['id']}")
             return True
         else:
-            print(f"  Could not match email to any active lead.")
-            self.db.log_system_event("INBOX", "MATCH_FAILURE", f"UID {uid} from {sender_email} unmatched")
+            print(f"  Could not match email to any active lead. Storing as unmatched.")
+            self.db.add_unmatched_reply(sender_email, subject, body)
+            self.db.log_system_event("INBOX", "MATCH_FAILURE", f"UID {uid} from {sender_email} unmatched (Stored)")
             return False
 
     def _decode_header_value(self, value):
@@ -180,6 +186,50 @@ class InboxMonitor:
             if lead['name'].lower() in combined_text:
                 return lead
         return None
+
+    def _is_bounce(self, sender, subject, body):
+        """Detects if an email is an SMTP bounce/delivery failure."""
+        bounce_senders = ["mailer-daemon@", "postmaster@", "noreply@"]
+        bounce_keywords = [
+            "delivery status notification",
+            "delivery failure",
+            "undelivered mail",
+            "returned mail",
+            "message not delivered",
+            "address not found",
+            "mailbox unavailable"
+        ]
+
+        sender_lower = sender.lower()
+        if any(b in sender_lower for b in bounce_senders):
+            return True
+
+        subject_lower = subject.lower()
+        if any(k in subject_lower for k in bounce_keywords):
+            return True
+
+        return False
+
+    def _handle_bounce(self, subject, body, uid):
+        """Extracts the original recipient from a bounce and marks the lead."""
+        import re
+        # Try to find an email address in the body that matches an active lead
+        emails = re.findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", body.lower())
+
+        matched_lead = None
+        for email_addr in emails:
+            lead = self._match_lead_by_email(email_addr)
+            if lead:
+                matched_lead = lead
+                break
+
+        if matched_lead:
+            print(f"  Bounce detected for lead {matched_lead['id']} ({email_addr})")
+            self.db.update_lead_status(matched_lead['id'], 'BOUNCED')
+            self.db.log_system_event("INBOX", "BOUNCE_DETECTED", f"UID {uid} marked lead {matched_lead['id']} as BOUNCED")
+        else:
+            print(f"  Bounce detected but could not identify lead.")
+            self.db.log_system_event("INBOX", "BOUNCE_UNMATCHED", f"UID {uid} bounce from postmaster unmatched")
 
 def email_sqlite_row_factory(cursor, row):
     d = {}

@@ -8,6 +8,21 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
+    def _log_usage(self, response):
+        """Logs OpenAI token usage to the database."""
+        try:
+            from src.db_manager import DatabaseManager
+            db = DatabaseManager()
+            usage = response.usage
+            db.log_ai_usage(
+                response.model,
+                usage.prompt_tokens,
+                usage.completion_tokens,
+                usage.total_tokens
+            )
+        except Exception as e:
+            print(f"Error logging AI usage: {e}")
+
     def _get_identity_context(self, artist_id=None):
         """Loads artist identity from config or database for use in prompts."""
         try:
@@ -108,6 +123,7 @@ Output JSON format:
                 ],
                 response_format={"type": "json_object"},
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return (
                 json.loads(content)
@@ -143,6 +159,7 @@ to see our proposal. Reference the Detroit scene if it feels natural.
                     {"role": "user", "content": prompt},
                 ],
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return content if content else "Just checking back on my previous email!"
         except Exception as e:
@@ -175,6 +192,7 @@ Return ONLY valid JSON.
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return content if content else "{}"
         except Exception as e:
@@ -208,6 +226,7 @@ Output ONLY the tag name.
                     {"role": "user", "content": prompt},
                 ],
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             tag = content.strip().upper() if content else "UNKNOWN"
             valid_tags = ["INTERESTED", "REJECTED", "INQUIRY", "OOO", "UNKNOWN"]
@@ -254,6 +273,7 @@ Output JSON format:
                 max_tokens=300,
                 response_format={"type": "json_object"},
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return (
                 json.loads(content)
@@ -365,6 +385,7 @@ Key pitch elements:
                     {"role": "user", "content": prompt},
                 ],
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return content if content else "Error generating pitch."
         except Exception as e:
@@ -387,6 +408,7 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
             response = self.client.chat.completions.create(
                 model="gpt-4o", messages=[{"role": "user", "content": prompt}]
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             result = content.strip() if content else ""
             return result if result and result.startswith("http") else None
@@ -436,6 +458,7 @@ Goal:
                     {"role": "user", "content": prompt},
                 ],
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return (
                 content
@@ -469,6 +492,7 @@ Output ONLY the resolved file content. Do not include any explanation or markdow
                     {"role": "user", "content": prompt},
                 ],
             )
+            self._log_usage(response)
             content = response.choices[0].message.content
             return content.strip() if content else None
         except Exception as e:
