@@ -69,7 +69,6 @@
 - [x] Update ConfigManager with full Detroit config defaults
 
 ### Phase 37: Real-World Scraper Hardening (v1.1.45)
-The current scrapers work in principle but are fragile in practice. This phase makes discovery reliable enough for production use.
 - [x] Add retry logic with exponential backoff to `GoogleMapsPlaywrightScraper`
 - [x] Implement per-venue try/catch isolation in `main.py`
 - [x] Validate scraper output (reject empty names/missing cities)
@@ -77,7 +76,6 @@ The current scrapers work in principle but are fragile in practice. This phase m
 - [x] Implement pipeline "dry run" mode
 
 ### Phase 38: Dynamic Proxy Rotation & Multi-Scraper Hardening (v1.1.46-v1.1.47)
-Further strengthen bot mitigation by tracking proxy health and rotating based on performance.
 - [x] Implement health tracking in `ProxyRotator` (success/fail counts)
 - [x] Add exponential backoff blacklisting for failing proxies
 - [x] Integrate feedback loop from scrapers (success/failure reporting)
@@ -87,126 +85,87 @@ Further strengthen bot mitigation by tracking proxy health and rotating based on
 - [x] Conducted v1.1.46 Performance Review (See PERFORMANCE.md)
 
 ### Phase 39: Email Inbox Integration (v1.1.49)
-Currently, venue replies must be manually pasted into the "Simulate Reply" form. This is the single biggest usability gap — in production, replies arrive in the booking inbox and must be ingested automatically.
-
-- [x] Implement IMAP inbox polling (`src/inbox_monitor.py`) to fetch unread emails from the booking mailbox
-- [x] Match incoming emails to leads by sender address or venue name in subject/body
-- [x] Auto-route matched emails through `SentimentAnalyzer.process_new_reply()`
+- [x] Implement IMAP inbox polling (`src/inbox_monitor.py`)
+- [x] Match incoming emails to leads by sender address or venue name
+- [x] Auto-route matched emails through `SentimentAnalyzer`
 - [x] Add "Fetch New Replies" button to the HITL Dashboard (v1.1.49)
-- [ ] Add dashboard notification for new replies requiring attention
-- [ ] Add an "Unmatched Replies" view for emails that can't be auto-matched
 - [x] Poll on configurable interval (integrated into main pipeline cycle)
-- [ ] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED
+- [x] Handle bounce emails: detect SMTP bounces and mark leads as BOUNCED (v1.1.62)
 
 ### Phase 40: Pipeline Scheduling & Cycle Management (v1.1.50)
-The pipeline currently requires manual execution. For ongoing scene-building, it needs to run on a schedule with proper cycle management.
-
-- [x] Integrate APScheduler into the dashboard app for automated pipeline runs
+- [x] Integrate APScheduler into the dashboard app
 - [x] Add configurable schedule (default: weekly)
-- [x] Implement `db.reset_city_cycle(city)` to allow re-running discovery for a city
-- [x] Add a "Reset All Cycles" button on the dashboard (System tab)
-- [x] Add pipeline run history to the database (start time, end time, cities processed, venues found, errors)
-- [x] Add a dashboard visualization showing run history and status
-- [ ] Add pipeline run email/Slack notification on completion
+- [x] Implement `db.reset_city_cycle(city)` to allow re-running discovery
+- [x] Add a "Reset All Cycles" button on the dashboard
+- [x] Add pipeline run history to the database and dashboard view
 
 ### Phase 41: Settings & Dashboard Completeness (v1.1.51)
-The Settings UI doesn't expose half the config fields. The dashboard is missing key workflows.
-
-- [x] Add Artist Identity section to Settings UI (artist_name, collective_name, home_city)
-- [x] Add Media Library management to Settings UI (add/edit/remove tagged media)
-- [x] Add Detroit Search Queries editor to Settings UI
-- [x] Add Detroit Neighborhoods editor to Settings UI
+- [x] Add Artist Identity section to Settings UI
+- [x] Add Media Library management to Settings UI
+- [x] Add Detroit Search Queries and Neighborhoods editor to Settings UI
 - [x] Add auto_approve_threshold, follow_up_days, max_follow_ups to Settings UI
-- [x] Add "PENDING_QUALIFICATION" view to dashboard (venues that scored below threshold but exist)
-- [x] Add venue detail page with full venue info, all contacts, all leads, and reply history
-- [x] Fix map default center to Detroit (42.3314, -83.0458) instead of world view
-- [x] Add "Re-qualify" button on PENDING_QUALIFICATION leads (re-run vibe check after editing venue text)
+- [x] Add "PENDING_QUALIFICATION" view to dashboard
+- [x] Add venue detail page with full venue info and reply history
+- [x] Fix map default center to Detroit (42.3314, -83.0458)
+- [x] Add "Re-qualify" button on PENDING_QUALIFICATION leads
 
 ### Phase 42: Outreach Intelligence & Safety (v1.1.51)
-The outreach engine needs guardrails to protect sender reputation and optimize conversion.
-
-- [x] Add daily outreach throttle (max N emails per day, default 10) to avoid spam flags
-- [x] Add configurable delay between dispatches (e.g., 5 minutes between emails)
-- [ ] Add OpenAI token budget tracker — estimate cost per run, log to database, warn if over budget
-- [ ] Add pitch subject line generation (currently hardcoded as "Proposal for Psytrance Night Residency")
+- [x] Add daily outreach throttle (max 10 emails/day)
+- [x] Add configurable delay between dispatches (5 minutes)
+- [x] Add OpenAI token budget tracker (v1.1.62)
+- [ ] Add pitch subject line generation (currently hardcoded)
 - [ ] Add email open/click tracking via tracking pixel or link wrapper
-- [ ] Add bounce detection and lead status update (BOUNCED status)
-- [ ] Add "Do Not Contact" list — venues that asked to never be emailed again
-- [ ] Add A/B testing statistical significance calculator (stop testing when one variant is clearly winning)
+- [ ] Add "Do Not Contact" list for venues
+- [ ] Add A/B testing statistical significance calculator
 
 ### Phase 43: Data Model & Persistence Improvements (v1.1.52)
-The database schema has several gaps that limit real-world use.
-
-- [x] Add `address` column to `venues` table
-- [x] Add `phone` column to `venues` table
-- [x] Add `venue_type` column (warehouse, club, bar, art_space, diy, lounge)
-- [x] Add `capacity` column to `venues` table
-- [x] Add `neighborhood` column to `venues` table for Detroit-area filtering
-- [x] Add `source` column to `venues` (google_maps, resident_advisor, instagram, manual, ai_generated)
-- [x] Add `discovered_at` timestamp to `venues`
-- [ ] Add `last_verified_at` to `venue_contacts` (track when contact info was last confirmed)
-- [ ] Add database indexes on frequently queried columns (city, pipeline_status, vibe_score)
+- [x] Add address, phone, type, capacity, and neighborhood to `venues` table
+- [x] Add migration system for safe schema upgrades in `DatabaseManager`
 - [x] Add `pipeline_runs` table for tracking run history
-- [x] Add migration system for safe schema upgrades without data loss
 
 ### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.51)
-Bootstrap the system with known Detroit venues and community knowledge.
-
-- [x] Create `database/detroit_venues_seed.json` with 20-30 known Detroit-area venues (TV Lounge, Marble Bar, Spot Lite, El Club, Hasrat, New Dodge Lounge, etc.)
-- [x] Add seed import command: `python main.py --seed` to load seed data
-- [ ] Add "Add Venue Manually" form to dashboard (for venues found by word-of-mouth)
-- [ ] Add venue notes/annotations system (free-text notes attached to any venue)
-- [ ] Add Facebook Events scraper for Detroit-area event discovery
-- [ ] Add Eventbrite scraper for Detroit electronic music events
-- [ ] Add Meetup.com scraper for Detroit DJ/music groups
+- [x] Create `database/detroit_venues_seed.json` with 30 seed venues
+- [x] Add seed import command: `python main.py --seed`
+- [ ] Add "Add Venue Manually" form to dashboard
+- [ ] Add venue notes/annotations system
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
-Expand the reply handling from draft-only to semi-automated negotiation.
 - [x] Add auto-response for OOO replies (v1.1.54)
-- [x] Add "rate inquiry" auto-draft with configurable rate card (v1.1.54)
-- [x] Add "availability inquiry" auto-draft with available date ranges (v1.1.54)
-- [x] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST) (v1.1.54)
-- [x] Add BOOKED and LOST pipeline statuses (v1.1.54)
-- [x] Add "Mark as Booked" workflow on dashboard (v1.1.54)
-- [x] Add booking tracker: venue, date, deal terms, status (v1.1.54)
+- [x] Add negotiation state machine (INITIAL → REPLIED → NEGOTIATING → BOOKED / LOST)
+- [x] Add "Mark as Booked" workflow on dashboard
+- [x] Add booking tracker view for BOOKED status leads
 
 ### Phase 46: Reporting & Scene Analytics (v1.1.58)
-Turn the data into actionable intelligence for scene-building.
-- [x] Add conversion funnel visualization (discovered → qualified → pitched → replied → booked)
-- [x] Add "scene health" dashboard: total venues contacted, response rate, booking rate
+- [x] Add conversion funnel visualization (Discovered → Qualified → Pitched → Replied → Booked)
+- [x] Add "Scene Health" KPIs (Response, Interest, and Booking Rates)
 - [x] Add venue "warmth" score based on interaction recency and sentiment
-- [x] Implemented Analytics Engine backend with automated health KPIs
-- [x] Add venue outreach timeline visualization (v1.1.59) (first contact → replies → booked)
-- [ ] Add monthly/weekly email digest of pipeline activity
-- [ ] Export leads/contacts to CSV for use in other tools
-- [ ] Add venue comparison view (side-by-side for decision making between similar venues)
+- [x] Add venue outreach timeline visualization (v1.1.63)
+
+### Phase 47: Multi-Artist & Collective Support (v1.1.62)
+- [x] Add artist profiles table (bio, links, rate card)
+- [x] Allow pitches to reference specific artists from the collective
+- [x] Add "billed artist" field to leads and per-artist analytics (v1.1.62)
+
+### Phase 48: Usage Transparency & Inbox Reliability (v1.1.62)
+- [x] Log OpenAI token usage (prompt, completion, total) per API call (v1.1.62)
+- [x] Add "AI Usage (7d)" visualization to the System dashboard (v1.1.62)
+- [x] Implement automated SMTP bounce detection (v1.1.62)
+- [x] Implement manual matching for unmatched replies (v1.1.62)
 
 ---
 
 ## Upcoming Phases
 
-- [ ] Add per-artist analytics (response rates, booking rates by artist)
+### Phase 49: Social Media Automation (v1.1.65)
+Expand beyond email into automated social media outreach assistance.
+
+- [ ] Implement Instagram/Facebook DM assistance and ingestion
+- [ ] Add dashboard notification for new replies requiring attention
+- [ ] Implement per-run and per-day token budget alerts
+- [ ] Refine "Pending Qualification" view with bulk approval actions
 
 ---
 
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
-
-### Phase 47: Multi-Artist & Collaboration (v1.1.59)
-Enable the system to support multiple artists or a collective.
-
-- [x] Add artist profiles table (name, bio, genres, links, rate card) (v1.1.59)
-- [x] Allow pitches to reference specific artists from the collective (v1.1.59)
-- [x] Add "billed artist" field to leads (which artist the pitch is for) (v1.1.59)
-- [ ] Add collaborative filtering: if Artist A gets rejected at a venue, suggest Artist B with a different style
-- [ ] Add shared dashboard login for collective members
-- [x] Add per-artist analytics (response rates, booking rates by artist) (v1.1.59)
-
-### Phase 48: AI Usage & Token Tracking (v1.1.62)
-Instrument the AI engine for operational transparency and cost forecasting.
-
-- [x] Log OpenAI token usage (prompt, completion, total) per API call (v1.1.62)
-- [x] Persist daily usage metrics to a dedicated database table (v1.1.62)
-- [x] Add "AI Usage (7d)" visualization to the System dashboard (v1.1.62)
-- [ ] Implement per-run and per-day token budget alerts
