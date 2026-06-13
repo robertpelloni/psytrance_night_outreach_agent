@@ -11,7 +11,7 @@
 
 ## Production Hardening (v1.1.63)
 - **Stability Baseline**: Maintained 100% pipeline stability across 88 tests in the Master Integrity Suite; documented in `PERFORMANCE.md`. This baseline confirms the system's readiness for multi-artist production operations.
-- **CI/CD Quality Gate**: Deployment pipeline (v1.1.55) mandates stability verification (PERFORMANCE.md) and final QA sign-off for both staging and production environments.
+- **CI/CD Quality Gate**: Deployment pipeline (v1.1.55) mandates stability verification (PERFORMANCE.md) and final QA sign-off for both staging and production environments. Verified for staging v1.1.63.
 - **Scraper Resilience**: Implemented exponential backoff retry logic in `GoogleMapsPlaywrightScraper`.
 - **Dynamic Proxy Rotation**: Implemented `ProxyRotator` with health tracking, success/failure reporting, and exponential backoff blacklisting (`fails^2 * 10s`).
 - **Pipeline Isolation**: Added per-venue `try/except` blocks in `main.py` ensuring single-venue failures don't abort entire runs.
