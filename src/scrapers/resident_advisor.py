@@ -78,9 +78,6 @@ class ResidentAdvisorWebScraper(ResidentAdvisorScraper):
         max_retries = 3
         retry_delay = 2
 
-        max_retries = 3
-        retry_delay = 2
-
         for attempt in range(max_retries):
             proxy_config = ProxyRotator.get_playwright_proxy()
             proxy_url = proxy_config['server'] if proxy_config else None

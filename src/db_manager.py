@@ -22,10 +22,13 @@ class DatabaseManager:
             if os.path.exists(schema_path):
                 with open(schema_path, 'r') as f:
                     conn.executescript(f.read())
-                # Phase 43: Apply migrations for new columns
-                self._apply_migrations(conn)
             else:
                 print(f"Warning: schema.sql not found at {schema_path}")
+
+        # Phase 43: Apply migrations for new columns (always run to catch existing DBs)
+        # Re-opening connection to ensure transaction isolation if needed
+        with self._get_connection() as conn:
+            self._apply_migrations(conn)
 
     def _apply_migrations(self, conn):
         """Phase 43, 45 & 47: Add missing columns and tables for schema evolution."""
