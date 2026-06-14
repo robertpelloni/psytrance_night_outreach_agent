@@ -60,7 +60,7 @@ class InboxMonitor:
 
                 # Fetch message
                 status, msg_data = mail.uid('fetch', uid_bytes, '(RFC822)')
-                if status != 'OK':
+                if status != 'OK' or not msg_data or not msg_data[0]:
                     continue
 
                 raw_email = msg_data[0][1]

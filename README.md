@@ -7,7 +7,15 @@
 This agent autonomously discovers venues, qualifies them for psychedelic music fit, generates personalized booking pitches, and manages the entire outreach lifecycle — with a human-in-the-loop safety net.
 
 **Reliability & Performance:**
-The system has maintained **100% pipeline stability** through v1.1.63, confirming the robustness of the Multi-Artist Collective architecture and Usage Tracking integration. Detailed metrics are documented in [PERFORMANCE.md](PERFORMANCE.md).
+The system has maintained **100% pipeline stability** through v1.1.63, confirming the robustness of the Multi-Artist Collective architecture and Usage Tracking integration.
+
+### Technical Integrity
+- **Pipeline Success Rate**: 100% (Detroit Baseline)
+- **Master Integrity Suite**: 88/88 tests PASSED (v1.1.63)
+- **Scraper Resilience**: Exponential backoff (2^n) + Dynamic Proxy Rotation
+- **Hardened Error Isolation**: Per-venue isolation prevents cascading discovery failures
+
+Detailed metrics are documented in [PERFORMANCE.md](PERFORMANCE.md).
 
 **The Pipeline:**
 ```

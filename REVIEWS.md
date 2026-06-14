@@ -16,6 +16,13 @@
 | **Dev Team** | SCHEDULED | 2026-06-13 | Discussion on Phase 47/48 integration and usage logging. |
 | **Operations** | SCHEDULED | 2026-06-13 | Review of bounce detection and unmatched reply workflow. |
 
+## v1.1.63 Post-Deployment Audit
+
+| Stakeholder | Status | Date | Notes |
+| :--- | :--- | :--- | :--- |
+| **Dev Team** | SCHEDULED | 2026-06-14 | Post-rollout analysis of hardened scraper suite. |
+| **QA Team** | SCHEDULED | 2026-06-14 | Verification of stability in unified main lineage. |
+
 ## Next Scheduled Review: v1.1.65 (Post-Phase 49)
 - Focus: Social Media Automation performance & Token Budgeting accuracy.
 - Tentative Date: 2026-06-15
