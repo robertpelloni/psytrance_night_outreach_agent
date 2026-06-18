@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS lead_replies (
     sentiment TEXT, -- INTERESTED, REJECTED, INQUIRY, OOO, UNKNOWN
     draft_response TEXT,
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    requires_attention BOOLEAN DEFAULT 1,
     FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
 );
 
@@ -119,5 +120,6 @@ CREATE TABLE IF NOT EXISTS unmatched_replies (
     sender TEXT,
     subject TEXT,
     content TEXT,
-    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    requires_attention BOOLEAN DEFAULT 1
 );

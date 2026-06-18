@@ -56,6 +56,11 @@ def scheduled_pipeline():
 
 import json
 
+@app.context_processor
+def inject_attention_count():
+    count = db.get_attention_required_count()
+    return dict(attention_count=count)
+
 @app.route('/')
 def index():
     leads = db.get_pending_leads()
@@ -427,9 +432,16 @@ def send_reply(reply_id):
             # Update reply as 'SENT' or similar if we had a status,
             # for now we'll just log success
             db.log_system_event("OUTREACH", "SUCCESS", f"Sent manual reply to {email} for lead {lead['id']}")
+            db.mark_reply_handled(reply_id) # dismiss notification on send
             return redirect(url_for('history'))
 
     return "Error sending reply", 500
+
+@app.route('/dismiss_reply/<int:reply_id>', methods=['POST'])
+def dismiss_reply(reply_id):
+    is_unmatched = request.args.get('unmatched', 'false').lower() == 'true'
+    db.mark_reply_handled(reply_id, is_unmatched=is_unmatched)
+    return jsonify({"status": "success"})
 
 @app.route('/requalify/<int:lead_id>', methods=['POST'])
 def requalify(lead_id):

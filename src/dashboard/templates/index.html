@@ -57,6 +57,35 @@
             }
         }
 
+        async function dismissReply(replyId, isUnmatched) {
+            try {
+                const response = await fetch(`/dismiss_reply/${replyId}?unmatched=${isUnmatched}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    const prefix = isUnmatched ? 'unmatched' : 'lead';
+                    const badge = document.getElementById(`attention-badge-${prefix}-${replyId}`);
+                    const btn = document.getElementById(`dismiss-btn-${prefix}-${replyId}`);
+                    if (badge) badge.style.display = 'none';
+                    if (btn) btn.style.display = 'none';
+
+                    const navBadge = document.getElementById('nav-attention-badge');
+                    if (navBadge) {
+                        let currentCount = parseInt(navBadge.innerText);
+                        if (!isNaN(currentCount) && currentCount > 0) {
+                            currentCount--;
+                            if (currentCount === 0) {
+                                navBadge.style.display = 'none';
+                            } else {
+                                navBadge.innerText = currentCount;
+                            }
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Error dismissing notification: " + e);
+            }
+        }
+
         async function markBooked(leadId) {
             if (!confirm('Are you sure you want to mark this venue as BOOKED?')) return;
             const response = await fetch(`/mark_booked/${leadId}`, { method: 'POST' });
@@ -138,7 +167,12 @@
             <div class="btn-group ms-2">
                 <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending</a>
                 <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}">Filter</a>
-                <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">History</a>
+                <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    History
+                    {% if attention_count and attention_count > 0 %}
+                    <span id="nav-attention-badge" class="badge bg-danger rounded-pill ms-1">{{ attention_count }}</span>
+                    {% endif %}
+                </a>
                 <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}">Booked</a>
             </div>
         </div>
@@ -168,8 +202,11 @@
                                 <button type="submit" class="btn btn-warning">Match</button>
                             </div>
                         </form>
-                        <form action="/delete_unmatched/{{ reply.id }}" method="post" class="mt-1">
-                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Dismiss</button>
+                        <form action="/delete_unmatched/{{ reply.id }}" method="post" class="mt-1 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-outline-danger flex-grow-1">Delete</button>
+                            {% if reply.requires_attention %}
+                            <button type="button" id="dismiss-btn-unmatched-{{ reply.id }}" class="btn btn-sm btn-outline-light flex-grow-1" onclick="dismissReply({{ reply.id }}, true)">Dismiss Notify</button>
+                            {% endif %}
                         </form>
                     </div>
                 </div>
@@ -325,7 +362,13 @@
                                     <small class="text-secondary">{{ reply.received_at }}</small>
                                     <span class="badge {% if reply.sentiment == 'INTERESTED' %}bg-success{% elif reply.sentiment == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">{{ reply.sentiment }}</span>
                                 </div>
-                                <p class="mb-0 mt-1">{{ reply.content }}</p>
+                                <p class="mb-0 mt-1">
+                                    {{ reply.content }}
+                                    {% if reply.requires_attention %}
+                                    <span id="attention-badge-lead-{{ reply.id }}" class="badge bg-danger ms-2">Needs Attention</span>
+                                    <button id="dismiss-btn-lead-{{ reply.id }}" class="btn btn-sm btn-outline-light ms-2" onclick="dismissReply({{ reply.id }}, false)">Dismiss</button>
+                                    {% endif %}
+                                </p>
 
                                 {% if reply.draft_response %}
                                 <div class="mt-3 p-2 bg-black rounded border border-info">

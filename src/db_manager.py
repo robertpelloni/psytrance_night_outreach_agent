@@ -101,9 +101,30 @@ class DatabaseManager:
             sender TEXT,
             subject TEXT,
             content TEXT,
-            received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            requires_attention BOOLEAN DEFAULT 1
         )
         """)
+
+        # Add requires_attention column to existing lead_replies
+        cursor = conn.execute("PRAGMA table_info(lead_replies)")
+        existing_lead_replies_cols = [row[1] for row in cursor.fetchall()]
+        if "requires_attention" not in existing_lead_replies_cols:
+            try:
+                conn.execute("ALTER TABLE lead_replies ADD COLUMN requires_attention BOOLEAN DEFAULT 1")
+                print("Migration: Added column 'requires_attention' to 'lead_replies' table.")
+            except sqlite3.OperationalError as e:
+                print(f"Migration error on 'lead_replies.requires_attention': {e}")
+
+        # Add requires_attention column to existing unmatched_replies
+        cursor = conn.execute("PRAGMA table_info(unmatched_replies)")
+        existing_unmatched_replies_cols = [row[1] for row in cursor.fetchall()]
+        if "requires_attention" not in existing_unmatched_replies_cols:
+            try:
+                conn.execute("ALTER TABLE unmatched_replies ADD COLUMN requires_attention BOOLEAN DEFAULT 1")
+                print("Migration: Added column 'requires_attention' to 'unmatched_replies' table.")
+            except sqlite3.OperationalError as e:
+                print(f"Migration error on 'unmatched_replies.requires_attention': {e}")
 
     def add_venue(self, venue_data):
         query = """
@@ -409,6 +430,20 @@ class DatabaseManager:
 
     def delete_unmatched_reply(self, reply_id):
         query = "DELETE FROM unmatched_replies WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, (reply_id,))
+
+    def get_attention_required_count(self):
+        query_lead = "SELECT COUNT(*) FROM lead_replies WHERE requires_attention = 1"
+        query_unmatched = "SELECT COUNT(*) FROM unmatched_replies WHERE requires_attention = 1"
+        with self._get_connection() as conn:
+            lead_count = conn.execute(query_lead).fetchone()[0]
+            unmatched_count = conn.execute(query_unmatched).fetchone()[0]
+            return lead_count + unmatched_count
+
+    def mark_reply_handled(self, reply_id, is_unmatched=False):
+        table = "unmatched_replies" if is_unmatched else "lead_replies"
+        query = f"UPDATE {table} SET requires_attention = 0 WHERE id = ?"
         with self._get_connection() as conn:
             conn.execute(query, (reply_id,))
 
