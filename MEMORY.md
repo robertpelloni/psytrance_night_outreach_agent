@@ -48,8 +48,7 @@
 - **Data Persistence**: Expanded `venues` table with technical metadata (capacity, type, neighborhood) and implemented auto-migrations in `DatabaseManager` (Phase 43).
 - **UX Optimization**: Centered dashboard map on Detroit (v1.1.51) and overhauled Settings UI for Detroit-specific search phrases and artist identity.
 
-## Known Gaps (as of v1.1.58)
+## Known Gaps (as of v1.1.64)
 - **OpenAI Token Budgeting**: No automated cost estimation or alerting per pipeline run (Phase 42).
-- **Bounce Handling**: No automated SMTP bounce detection to mark leads as BOUNCED (Phase 39).
 - **Visual Analytics**: Missing outreach timeline visualization and side-by-side venue comparison (Phase 46).
 - **Multi-Artist Support**: Collective-level artist profiles and shared dashboard access pending (Phase 47).
