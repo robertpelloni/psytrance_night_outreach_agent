@@ -29,3 +29,6 @@ This session successfully executed the **Executive Protocol for Repository Synch
 1. **Phase 49: Social Media Automation:** Implement Instagram/Facebook DM assistance and ingestion.
 2. **Operational Safety:** Implement per-run and per-day OpenAI token budget alerts.
 3. **UI Refinement:** Add bulk approval actions to the "Pending Qualification" view.
+
+### Added During This Session:
+- **UI Refinement:** Successfully implemented the dashboard notification for new replies requiring attention. Added `requires_attention` boolean flag to the database and exposed it via the UI navbar and history view. Dismissal functionality completes the loop.

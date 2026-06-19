@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [1.1.64] - 2026-06-19
+### Added
+- **UI Refinement**: Implemented dashboard notifications for new replies requiring attention, including a navbar badge and individual "Needs Attention" tags with dismiss buttons in the History view.
+
 ## [1.1.63] - 2026-06-12
 ### Added
 - **Phase 48: Usage Transparency & Inbox Reliability**: Finalized integration of token usage tracking and bounce detection.
