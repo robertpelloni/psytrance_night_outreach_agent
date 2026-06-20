@@ -53,22 +53,44 @@
         {
             "name": "Forest Psy DJ Set",
             "url": "",
-            "tags": ["forest", "underground", "dark", "nighttime"]
+            "tags": [
+                "forest",
+                "underground",
+                "dark",
+                "nighttime"
+            ]
         },
         {
             "name": "Progressive Psy Morning Set",
             "url": "",
-            "tags": ["outdoor", "progressive", "morning", "chill"]
+            "tags": [
+                "outdoor",
+                "progressive",
+                "morning",
+                "chill"
+            ]
         },
         {
             "name": "Dark Prog/Techno Crossover",
             "url": "",
-            "tags": ["techno", "dark prog", "crossover", "industrial"]
+            "tags": [
+                "techno",
+                "dark prog",
+                "crossover",
+                "industrial"
+            ]
         },
         {
             "name": "Visual Projection Reel",
             "url": "",
-            "tags": ["visuals", "lasers", "projections", "psychedelic"]
+            "tags": [
+                "visuals",
+                "lasers",
+                "projections",
+                "psychedelic"
+            ]
         }
-    ]
+    ],
+    "openai_daily_budget_tokens": 100000,
+    "openai_run_budget_tokens": 20000
 }

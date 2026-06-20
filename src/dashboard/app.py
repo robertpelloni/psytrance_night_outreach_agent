@@ -222,6 +222,9 @@ def system_status():
     # Fetch last 10 sync logs
     sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
 
+    daily_budget = cfg.get('openai_daily_budget_tokens')
+    used_today = db.get_ai_usage_today()
+
     pipeline_history = db.get_pipeline_history()
 
     sync_stats = reliability.get_sync_health_stats()

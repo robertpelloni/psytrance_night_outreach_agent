@@ -138,7 +138,7 @@
 
 - [x] Add dashboard notification for new replies requiring attention
 - [ ] Add Google Maps Places API as a reliable fallback for Playwright
-- [ ] Implement per-run and per-day OpenAI token budget alerts
+- [x] Implement per-run and per-day OpenAI token budget alerts
 
 ---
 

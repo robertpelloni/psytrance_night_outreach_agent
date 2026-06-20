@@ -399,6 +399,29 @@ class DatabaseManager:
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
 
+
+    def get_ai_usage_today(self):
+        query = """
+        SELECT SUM(total_tokens) as total
+        FROM ai_usage
+        WHERE date(timestamp) = date('now')
+        """
+        with self._get_connection() as conn:
+            cursor = conn.execute(query)
+            row = cursor.fetchone()
+            return row[0] if row and row[0] else 0
+
+    def get_ai_usage_since(self, since_timestamp):
+        query = """
+        SELECT SUM(total_tokens) as total
+        FROM ai_usage
+        WHERE timestamp >= ?
+        """
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (since_timestamp,))
+            row = cursor.fetchone()
+            return row[0] if row and row[0] else 0
+
     def log_ai_usage(self, model, prompt_tokens, completion_tokens, total_tokens):
         query = "INSERT INTO ai_usage (model, prompt_tokens, completion_tokens, total_tokens) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
