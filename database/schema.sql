@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     generated_pitch TEXT,
     pipeline_status TEXT DEFAULT 'PENDING_QUALIFICATION', -- PENDING_QUALIFICATION, PENDING_REVIEW, APPROVED, REJECTED, SENT, REJECTED
     qualified_genre TEXT,
-    pitch_variant TEXT, -- A/B testing variant (e.g., 'Professional', 'Underground', 'Technical')
+    pitch_variant TEXT,
+    outreach_channel TEXT DEFAULT 'EMAIL', -- A/B testing variant (e.g., 'Professional', 'Underground', 'Technical')
     last_outreach_at TIMESTAMP,
     follow_up_count INTEGER DEFAULT 0,
     success_probability REAL,
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS lead_replies (
     draft_response TEXT,
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     requires_attention BOOLEAN DEFAULT 1,
+    source_channel TEXT DEFAULT 'EMAIL',
     FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
 );
 

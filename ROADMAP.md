@@ -159,7 +159,7 @@
 ### Phase 49: Social Media Automation (v1.1.65)
 Expand beyond email into automated social media outreach assistance.
 
-- [ ] Implement Instagram/Facebook DM assistance and ingestion
+- [x] Implement Instagram/Facebook DM assistance and ingestion
 - [x] Add dashboard notification for new replies requiring attention (v1.1.64)
 - [x] Implement per-run and per-day token budget alerts
 - [ ] Refine "Pending Qualification" view with bulk approval actions

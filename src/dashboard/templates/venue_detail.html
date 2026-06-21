@@ -86,7 +86,7 @@
                     {% for reply in lead.replies %}
                     <div class="alert alert-dark border-secondary mb-2 small">
                         <div class="d-flex justify-content-between mb-1">
-                            <small class="text-info">{{ reply.received_at }}</small>
+                            <small class="text-info">{{ reply.received_at }} {% if reply.source_channel %} | {{ reply.source_channel }}{% endif %}</small>
                             <span class="badge bg-secondary">{{ reply.sentiment }}</span>
                         </div>
                         {{ reply.content }}
