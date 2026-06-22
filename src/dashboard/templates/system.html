@@ -112,25 +112,8 @@
                 </div>
             </div>
 
-            <div class="card text-bg-secondary shadow mb-4">
-                <div class="card-header bg-dark">Daily AI Budget</div>
-                <div class="card-body text-center">
-                    {% if daily_budget %}
-                        {% set percent = (used_today / daily_budget * 100) %}
-                        <h1 class="display-4 {% if percent > 90 %}text-danger{% elif percent > 75 %}text-warning{% endif %}">{{ used_today }}</h1>
-                        <p class="lead">/ {{ daily_budget }} tokens used</p>
-                        <div class="progress mt-3">
-                          <div class="progress-bar {% if percent > 90 %}bg-danger{% elif percent > 75 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ percent }}%;" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    {% else %}
-                        <p class="text-muted">No daily budget set.</p>
-                    {% endif %}
-                </div>
-            </div>
-
             <div class="card text-bg-secondary shadow">
                 <div class="card-header bg-dark">AI Usage (7d)</div>
-
                 <div class="card-body">
                     {% for row in ai_usage %}
                     <div class="mb-3">

@@ -3,44 +3,10 @@ from openai import OpenAI
 import json
 
 
-
-class TokenBudgetExceededException(Exception):
-    pass
-
 class AIEngine:
     def __init__(self, api_key=None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
-        self.run_start_time = None
-        import datetime
-        self.run_start_time_str = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
-    def check_budget(self):
-        try:
-            from src.db_manager import DatabaseManager
-            from src.config_manager import ConfigManager
-            db = DatabaseManager()
-            cfg = ConfigManager()
-
-            daily_limit = cfg.get("openai_daily_budget_tokens")
-            run_limit = cfg.get("openai_run_budget_tokens")
-
-            if daily_limit:
-                used_today = db.get_ai_usage_today()
-                if used_today >= daily_limit:
-                    db.log_system_event("AI_ENGINE", "FAILURE", f"Daily token budget exceeded ({used_today}/{daily_limit})")
-                    raise TokenBudgetExceededException(f"Daily token budget exceeded ({used_today}/{daily_limit})")
-
-            if run_limit and self.run_start_time_str:
-                used_run = db.get_ai_usage_since(self.run_start_time_str)
-                if used_run >= run_limit:
-                    db.log_system_event("AI_ENGINE", "FAILURE", f"Run token budget exceeded ({used_run}/{run_limit})")
-                    raise TokenBudgetExceededException(f"Run token budget exceeded ({used_run}/{run_limit})")
-
-        except TokenBudgetExceededException:
-            raise
-        except Exception as e:
-            print(f"Error checking AI budget: {e}")
 
     def _log_usage(self, response):
         """Logs OpenAI token usage to the database."""
@@ -146,7 +112,6 @@ Output JSON format:
 }}
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -184,7 +149,6 @@ The follow-up should be brief, friendly, and just checking if they had a chance
 to see our proposal. Reference the Detroit scene if it feels natural.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -223,7 +187,6 @@ Text: "{raw_text[:2000]}"
 Return ONLY valid JSON.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}],
@@ -253,7 +216,6 @@ Reply Content: {reply_content}
 Output ONLY the tag name.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -297,7 +259,6 @@ Output JSON format:
 }}
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -414,7 +375,6 @@ Key pitch elements:
 - If the venue is in Detroit proper, acknowledge the city's electronic music heritage.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -445,7 +405,6 @@ Select the most appropriate media item from this library:
 Return ONLY the 'url' of the best match. If no URL is set, return empty string.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o", messages=[{"role": "user", "content": prompt}]
             )
@@ -489,7 +448,6 @@ Goal:
 - If relevant, reference the Detroit scene and our commitment to building community.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -524,7 +482,6 @@ Conflict content: {file_content_with_conflicts}
 Output ONLY the resolved file content. Do not include any explanation or markdown code blocks.
 """
         try:
-            self.check_budget()
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[

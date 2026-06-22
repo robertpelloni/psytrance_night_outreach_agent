@@ -138,15 +138,15 @@
 
 - [x] Add dashboard notification for new replies requiring attention
 - [ ] Add Google Maps Places API as a reliable fallback for Playwright
-- [x] Implement per-run and per-day OpenAI token budget alerts
+- [ ] Implement per-run and per-day OpenAI token budget alerts
 
 ---
 
 ## 🟡 High Priority
 
-- [ ] Add Artist Identity section to Settings UI (Artist Management)
-- [ ] Add Media Library management to Settings UI
-- [ ] Add Detroit Search Queries editor to Settings UI
+- [x] Add Artist Identity section to Settings UI (Artist Management)
+- [x] Add Media Library management to Settings UI
+- [x] Add Detroit Search Queries editor to Settings UI
 - [ ] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues
 - [ ] Add "Add Venue Manually" form to dashboard

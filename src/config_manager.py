@@ -37,8 +37,6 @@ class ConfigManager:
             "outreach_delay_min": 5,
             "follow_up_days": 7,
             "max_follow_ups": 2,
-            "openai_daily_budget_tokens": 100000,
-            "openai_run_budget_tokens": 20000,
             "rate_card": "Our standard performance fee is negotiable based on the event scale and production requirements.",
             "availability_ranges": "Currently available for bookings throughout the next 3 months, with a preference for Friday and Saturday nights.",
             "imap_server": "",
