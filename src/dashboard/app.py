@@ -393,7 +393,7 @@ def approve(lead_id):
 
     lead = db.get_lead(lead_id)
 
-    primary_genre = (cfg.get("target_genres") or ["psytrance"])[0]
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
@@ -453,7 +453,7 @@ def requalify(lead_id):
     venue = db.get_venue(lead['venue_id'])
     if not venue: return jsonify({"error": "Venue not found"}), 404
 
-    primary_genre = (cfg.get("target_genres") or ["psytrance"])[0]
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
     # Re-run vibe check
     vibe_result = ai.vibe_check(
@@ -464,7 +464,7 @@ def requalify(lead_id):
     )
 
     # Update status if threshold met
-    vibe_threshold = cfg.get("vibe_threshold") or 6
+    vibe_threshold = config_mgr.get("vibe_threshold") or 6
     new_status = 'PENDING_REVIEW' if vibe_result['vibe_score'] >= vibe_threshold else 'PENDING_QUALIFICATION'
 
     # Generate pitch if newly qualified
@@ -474,10 +474,10 @@ def requalify(lead_id):
         pitch = ai.generate_pitch(
             venue['name'],
             vibe_result['justification'],
-            epk_link=cfg.get("epk_link"),
-            mix_link=cfg.get("mix_link"),
+            epk_link=config_mgr.get("epk_link"),
+            mix_link=config_mgr.get("mix_link"),
             traits=traits,
-            media_library=cfg.get("media_library"),
+            media_library=config_mgr.get("media_library"),
             genre=lead.get('qualified_genre', primary_genre)
         )
 
@@ -488,62 +488,6 @@ def requalify(lead_id):
 
     return jsonify({"status": "success", "new_score": vibe_result['vibe_score'], "new_status": new_status})
 
-@app.route('/generate_dm/<int:lead_id>', methods=['POST'])
-def generate_dm(lead_id):
-    lead = db.get_lead(lead_id)
-    if not lead: return jsonify({"error": "Lead not found"}), 404
-    venue = db.get_venue(lead['venue_id'])
-    if not venue: return jsonify({"error": "Venue not found"}), 404
-
-    artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
-    primary_genre = (cfg.get("target_genres") or ["psytrance"])[0]
-
-    dm_pitch = ai.generate_dm_pitch(
-        venue['name'],
-        lead['qualification_justification'],
-        epk_link=cfg.get("epk_link"),
-        mix_link=cfg.get("mix_link"),
-        genre=primary_genre,
-        artist_id=artist_id
-    )
-    return jsonify({"dm": dm_pitch})
-
-@app.route('/log_dm_sent/<int:lead_id>', methods=['POST'])
-def log_dm_sent(lead_id):
-    try:
-        db.log_dm_sent(lead_id)
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/ingest_dm/<int:lead_id>', methods=['POST'])
-def ingest_dm(lead_id):
-    content = request.json.get('content') if request.is_json else request.form.get('content')
-    if not content: return jsonify({"error": "No content provided"}), 400
-
-    from src.sentiment_analyzer import SentimentAnalyzer
-    analyzer = SentimentAnalyzer(ai.client)
-    sentiment = analyzer.analyze_sentiment(content)
-
-    lead = db.get_lead(lead_id)
-    venue = db.get_venue(lead['venue_id'])
-    artist_id = lead.get('artist_id')
-
-    draft = ai.generate_reply_draft(
-        venue['name'],
-        content,
-        lead['generated_pitch'],
-        genre=lead['qualified_genre'],
-        artist_id=artist_id
-    )
-
-    try:
-        db.add_reply(lead_id, content, sentiment, draft, source_channel='DM')
-        db.update_lead_negotiation_from_dm(lead_id, sentiment)
-        return jsonify({"success": True, "sentiment": sentiment})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/regenerate/<int:lead_id>', methods=['POST'])
 def regenerate(lead_id):
     lead = db.get_lead(lead_id)
@@ -553,14 +497,14 @@ def regenerate(lead_id):
 
     artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
 
-    primary_genre = (cfg.get("target_genres") or ["psytrance"])[0]
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
     new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
-        epk_link=cfg.get("epk_link"),
-        mix_link=cfg.get("mix_link"),
+        epk_link=config_mgr.get("epk_link"),
+        mix_link=config_mgr.get("mix_link"),
         traits=venue.get('extracted_traits'),
-        media_library=cfg.get("media_library"),
+        media_library=config_mgr.get("media_library"),
         genre=primary_genre,
         artist_id=artist_id
     )

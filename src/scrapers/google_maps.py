@@ -8,6 +8,40 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
     def __init__(self):
         pass
 
+    def search_venues_api(self, city, full_query):
+        import os
+        import requests
+        import uuid
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        if not api_key:
+            print("  No GOOGLE_MAPS_API_KEY configured. Cannot fallback to API.")
+            return []
+
+        print(f"  Falling back to Google Places API for: {full_query}")
+        venues = []
+        try:
+            url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query={requests.utils.quote(full_query)}&key={api_key}"
+            response = requests.get(url)
+            data = response.json()
+
+            if data.get('status') == 'OK':
+                for result in data.get('results', [])[:15]:
+                    venues.append({
+                        'id': str(uuid.uuid4()),
+                        'name': result.get('name', 'Unknown Venue'),
+                        'city': city,
+                        'website': None, # Place API requires details fetch for website, keep simple
+                        'google_rating': result.get('rating'),
+                        'tags': full_query,
+                        'raw_about_text': f"Scraped from Google Places API for {full_query}.",
+                        'image_url': None,
+                        'source': 'google_maps_api'
+                    })
+        except Exception as e:
+            print(f"  Google Places API Error: {e}")
+
+        return venues
+
     def search_venues(self, city, query="underground techno club"):
         venues = []
         # Refine query generation: avoid "Detroit in Detroit"
@@ -117,5 +151,9 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                     time.sleep(retry_delay * (2 ** attempt))
                 else:
                     print(f"  Scraper failed after {max_retries} attempts.")
+
+        if not venues:
+            # Fallback to API if Playwright failed completely
+            venues = self.search_venues_api(city, full_query)
 
         return venues

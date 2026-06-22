@@ -26,73 +26,6 @@
             });
         }
 
-
-        async function generateDM(leadId) {
-            const btn = document.getElementById(`dm-btn-${leadId}`);
-            const originalText = btn.innerText;
-            const artistSelect = document.getElementById(`artist-select-${leadId}`);
-            const artistId = artistSelect ? artistSelect.value : null;
-
-            btn.disabled = true;
-            btn.innerText = 'Generating...';
-
-            try {
-                const response = await fetch(`/generate_dm/${leadId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ artist_id: artistId })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    const dmBox = document.getElementById(`dm-box-${leadId}`);
-                    dmBox.value = data.dm;
-                    document.getElementById(`dm-container-${leadId}`).classList.remove('d-none');
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = originalText;
-            }
-        }
-
-        async function logDMSent(leadId) {
-            try {
-                const response = await fetch(`/log_dm_sent/${leadId}`, { method: 'POST' });
-                if (response.ok) {
-                    alert('DM logged successfully! Lead moved to SENT.');
-                    window.location.reload();
-                } else {
-                    alert('Error logging DM.');
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            }
-        }
-
-        async function ingestDM(leadId) {
-            const content = document.getElementById(`dm-ingest-${leadId}`).value;
-            if(!content) { alert('Paste a DM first'); return; }
-
-            try {
-                const response = await fetch(`/ingest_dm/${leadId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: content })
-                });
-                if (response.ok) {
-                    alert('DM ingested and reply drafted!');
-                    window.location.reload();
-                } else {
-                    alert('Error ingesting DM.');
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            }
-        }
-
         async function regeneratePitch(leadId) {
             const btn = document.getElementById(`regen-btn-${leadId}`);
             const textarea = document.getElementById(`pitch-${leadId}`);
@@ -398,17 +331,6 @@
                                             class="btn btn-sm btn-outline-info">
                                         Regenerate AI Pitch
                                     </button>
-                        <div class="mt-3 p-3 border border-secondary rounded bg-black">
-                            <h6>Social Media / DM Outreach</h6>
-                            <button id="dm-btn-{{ lead.id }}" type="button" class="btn btn-outline-info btn-sm mb-2" onclick="generateDM({{ lead.id }})">
-                                Generate Instagram/FB DM
-                            </button>
-                            <div id="dm-container-{{ lead.id }}" class="d-none mt-2">
-                                <textarea id="dm-box-{{ lead.id }}" class="form-control bg-dark text-white border-secondary mb-2" rows="4"></textarea>
-                                <button type="button" class="btn btn-warning btn-sm" onclick="logDMSent({{ lead.id }})">I sent this DM</button>
-                            </div>
-                        </div>
-
                                 </div>
                             </div>
                             <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
@@ -437,7 +359,7 @@
                             {% for reply in lead.replies %}
                             <div class="alert {% if reply.sentiment == 'INTERESTED' %}alert-success{% elif reply.sentiment == 'REJECTED' %}alert-danger{% else %}alert-light{% endif %} bg-dark text-white border-secondary mb-2">
                                 <div class="d-flex justify-content-between">
-                                    <small class="text-secondary">{{ reply.received_at }} {% if reply.source_channel %} | <span class="text-info">{{ reply.source_channel }}</span>{% endif %}</small>
+                                    <small class="text-secondary">{{ reply.received_at }}</small>
                                     <span class="badge {% if reply.sentiment == 'INTERESTED' %}bg-success{% elif reply.sentiment == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">{{ reply.sentiment }}</span>
                                 </div>
                                 <p class="mb-0 mt-1">
@@ -463,12 +385,6 @@
                                         </div>
                                     </form>
                                 </div>
-                                <div class="mt-3 pt-3 border-top border-secondary">
-                                    <h6>Paste Incoming DM</h6>
-                                    <textarea id="dm-ingest-{{ lead.id }}" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" rows="2" placeholder="Paste Instagram/FB reply here..."></textarea>
-                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="ingestDM({{ lead.id }})">Ingest DM & Draft Reply</button>
-                                </div>
-
                                 {% endif %}
                             </div>
                             {% endfor %}

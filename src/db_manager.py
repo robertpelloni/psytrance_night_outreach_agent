@@ -82,18 +82,6 @@ class DatabaseManager:
                 except sqlite3.OperationalError as e:
                     print(f"Migration error on 'outreach_leads.{col_name}': {e}")
 
-
-        # Phase 49: Social Media Channels
-        try:
-            conn.execute("ALTER TABLE outreach_leads ADD COLUMN outreach_channel TEXT DEFAULT 'EMAIL'")
-        except sqlite3.OperationalError:
-            pass
-
-        try:
-            conn.execute("ALTER TABLE lead_replies ADD COLUMN source_channel TEXT DEFAULT 'EMAIL'")
-        except sqlite3.OperationalError:
-            pass
-
         # Phase 48: AI Usage Tracking
         conn.execute("""
         CREATE TABLE IF NOT EXISTS ai_usage (
@@ -538,10 +526,10 @@ class DatabaseManager:
         with self._get_connection() as conn:
             conn.execute(query, (artist_id,))
 
-    def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None, source_channel='EMAIL'):
-        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response, source_channel) VALUES (?, ?, ?, ?, ?)"
+    def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
+        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
-            conn.execute(query, (lead_id, content, sentiment, draft_response, source_channel))
+            conn.execute(query, (lead_id, content, sentiment, draft_response))
 
         # Update negotiation status on new reply
         if sentiment in ['INTERESTED', 'INQUIRY']:
@@ -562,23 +550,6 @@ class DatabaseManager:
         with self._get_connection() as conn:
             cursor = conn.execute(query, (lead_id,))
             return cursor.fetchone()[0] > 0
-
-
-    def log_dm_sent(self, lead_id):
-        query = "UPDATE outreach_leads SET pipeline_status = 'SENT', last_outreach_at = CURRENT_TIMESTAMP, outreach_channel = 'DM' WHERE id = ?"
-        with self._get_connection() as conn:
-            conn.execute(query, (lead_id,))
-        self.log_system_event('OUTREACH', 'SUCCESS', f"Manual DM sent to Lead {lead_id}")
-
-    def update_lead_negotiation_from_dm(self, lead_id, sentiment):
-        if sentiment in ['INTERESTED', 'INQUIRY']:
-            query = "UPDATE outreach_leads SET negotiation_status = 'REPLIED' WHERE id = ?"
-            with self._get_connection() as conn:
-                conn.execute(query, (lead_id,))
-        elif sentiment == 'REJECTED':
-            query = "UPDATE outreach_leads SET negotiation_status = 'LOST' WHERE id = ?"
-            with self._get_connection() as conn:
-                conn.execute(query, (lead_id,))
 
     def log_system_event(self, component, status, message=None):
         query = "INSERT INTO system_logs (component, status, message) VALUES (?, ?, ?)"

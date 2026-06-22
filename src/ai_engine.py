@@ -432,53 +432,6 @@ Key pitch elements:
             print(f"AI Error: {e}")
             return "Error generating pitch."
 
-
-    def generate_dm_pitch(self, venue_name, justification, epk_link=None, mix_link=None, genre="psytrance", artist_id=None):
-        self.check_budget()
-        if not self.client:
-            return "Hey, love what you guys are doing. Let's chat about a booking!"
-
-        id_data = self._get_identity_context(artist_id=artist_id)
-        identity = id_data["context"]
-        final_epk = epk_link or id_data["epk_link"]
-        final_mix = mix_link or id_data["mix_link"]
-
-        links_context = ""
-        if final_epk:
-            links_context += f"- EPK: {final_epk}\n"
-        if final_mix:
-            links_context += f"- Mix: {final_mix}\n"
-
-        prompt = f"""
-Write a short, punchy, and casual Instagram/Facebook DM to the booking manager of {venue_name}.
-
-Context: {justification}
-Our identity: {identity}
-Genre: {genre}
-
-Guidelines:
-- Keep it under 4 sentences. Very casual, like an authentic artist reaching out.
-- Do not sound like a corporate email.
-- Ask a direct question at the end to prompt a reply (e.g. "Who handles your bookings?", "Got any open slots next month?").
-- Include these links organically or at the end:
-{links_context}
-"""
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an underground electronic music artist sending a casual DM."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=150
-            )
-            self._log_usage(response)
-            content = response.choices[0].message.content
-            return content if content else "Error generating DM."
-        except Exception as e:
-            print(f"AI Error generating DM: {e}")
-            return "Error generating DM."
-
     def select_contextual_media(self, venue_traits, media_library):
         """Uses AI to pick the most relevant media from the library for a given venue."""
         if not self.client or not media_library:
