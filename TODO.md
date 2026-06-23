@@ -131,23 +131,28 @@
 - [x] Implement AI Token Usage Tracking and Dashboard (v1.1.62)
 - [x] Multi-Artist Collective Support (v1.1.62)
 - [x] Export leads/contacts to CSV (v1.1.63)
+- [x] Add dashboard notification for new replies requiring attention (v1.1.64)
+- [x] Implement per-run and per-day OpenAI token budget alerts (v1.1.65)
+- [x] Implement Instagram/Facebook DM generation and ingestion (v1.1.66)
+- [x] Add Google Maps Places API fallback for Playwright (v1.1.67)
+- [x] Generate pitch subject lines via AI (v1.1.68)
 
 ---
 
 ## 🔴 Critical (Production Blockers)
 
 - [x] Add dashboard notification for new replies requiring attention
-- [ ] Add Google Maps Places API as a reliable fallback for Playwright
-- [ ] Implement per-run and per-day OpenAI token budget alerts
+- [x] Add Google Maps Places API as a reliable fallback for Playwright (v1.1.67)
+- [x] Implement per-run and per-day OpenAI token budget alerts (v1.1.65)
 
 ---
 
 ## 🟡 High Priority
 
+- [x] Generate pitch subject lines via AI (v1.1.68)
 - [ ] Add Artist Identity section to Settings UI (Artist Management)
 - [ ] Add Media Library management to Settings UI
 - [ ] Add Detroit Search Queries editor to Settings UI
-- [x] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues
 - [ ] Add "Add Venue Manually" form to dashboard
 - [ ] Add A/B testing statistical significance calculator
