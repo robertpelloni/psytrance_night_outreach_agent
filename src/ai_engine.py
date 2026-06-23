@@ -8,6 +8,34 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
+    def check_budget(self):
+        try:
+            from src.db_manager import DatabaseManager
+            from src.config_manager import ConfigManager
+            db = DatabaseManager()
+            cfg = ConfigManager()
+
+            daily_limit = cfg.get("openai_daily_budget_tokens")
+            run_limit = cfg.get("openai_run_budget_tokens")
+
+            if daily_limit:
+                used_today = db.get_ai_usage_today()
+                if used_today >= daily_limit:
+                    db.log_system_event("AI_ENGINE", "FAILURE", f"Daily token budget exceeded ({used_today}/{daily_limit})")
+                    raise Exception(f"Daily token budget exceeded ({used_today}/{daily_limit})")
+
+            if run_limit and hasattr(self, 'run_start_time_str') and self.run_start_time_str:
+                used_run = db.get_ai_usage_since(self.run_start_time_str)
+                if used_run >= run_limit:
+                    db.log_system_event("AI_ENGINE", "FAILURE", f"Run token budget exceeded ({used_run}/{run_limit})")
+                    raise Exception(f"Run token budget exceeded ({used_run}/{run_limit})")
+
+        except Exception as e:
+            if "budget exceeded" in str(e).lower():
+                raise
+            # If db isn't set up yet or other error, just continue
+            pass
+
     def _log_usage(self, response):
         """Logs OpenAI token usage to the database."""
         try:
@@ -391,6 +419,36 @@ Key pitch elements:
         except Exception as e:
             print(f"AI Error: {e}")
             return "Error generating pitch."
+
+
+    def generate_subject_line(self, venue_name, pitch_body, genre="psytrance", artist_id=None):
+        self.check_budget()
+        if not self.client:
+            return f"Proposal for {genre.capitalize()} Night Residency"
+
+        prompt = f"""
+Based on this pitch email to {venue_name}:
+
+"{pitch_body[:1000]}..."
+
+Generate a highly compelling, professional, and authentic 4-8 word email subject line.
+Do not include quotes around the output.
+"""
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert music booking agent."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=20
+            )
+            self._log_usage(response)
+            content = response.choices[0].message.content
+            return content.strip('"\'') if content else f"Proposal for {genre.capitalize()} Night Residency"
+        except Exception as e:
+            print(f"AI Error generating subject: {e}")
+            return f"Proposal for {genre.capitalize()} Night Residency"
 
     def select_contextual_media(self, venue_traits, media_library):
         """Uses AI to pick the most relevant media from the library for a given venue."""

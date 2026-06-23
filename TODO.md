@@ -144,10 +144,10 @@
 
 ## 🟡 High Priority
 
-- [x] Add Artist Identity section to Settings UI (Artist Management)
-- [x] Add Media Library management to Settings UI
-- [x] Add Detroit Search Queries editor to Settings UI
-- [ ] Generate pitch subject lines via AI (currently hardcoded)
+- [ ] Add Artist Identity section to Settings UI (Artist Management)
+- [ ] Add Media Library management to Settings UI
+- [ ] Add Detroit Search Queries editor to Settings UI
+- [x] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues
 - [ ] Add "Add Venue Manually" form to dashboard
 - [ ] Add A/B testing statistical significance calculator
