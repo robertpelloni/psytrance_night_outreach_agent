@@ -26,10 +26,9 @@
             });
         }
 
-async function regeneratePitch(leadId) {
+        async function regeneratePitch(leadId) {
             const btn = document.getElementById(`regen-btn-${leadId}`);
             const textarea = document.getElementById(`pitch-${leadId}`);
-            const subjectInput = document.getElementById(`subject-${leadId}`);
             const artistSelect = document.getElementById(`artist-select-${leadId}`);
             const originalText = btn.innerText;
 
@@ -45,11 +44,8 @@ async function regeneratePitch(leadId) {
                     body: JSON.stringify({ artist_id: artistId })
                 });
                 const data = await response.json();
-                if (response.ok) {
+                if (data.pitch) {
                     textarea.value = data.pitch;
-                    if(subjectInput && data.subject) {
-                        subjectInput.value = data.subject;
-                    }
                 } else {
                     alert('Error regenerating pitch: ' + (data.error || 'Unknown error'));
                 }
@@ -337,11 +333,7 @@ async function regeneratePitch(leadId) {
                                     </button>
                                 </div>
                             </div>
-                                                            <div class="mb-3 mt-3">
-                                    <label class="form-label text-info small mb-1">Generated Subject Line</label>
-                                    <input type="text" id="subject-{{ lead.id }}" name="subject" class="form-control form-control-sm bg-dark text-white border-secondary fw-bold" value="{{ lead.generated_subject or 'Proposal for Psytrance Night Residency' }}">
-                                </div>
-                                <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
+                            <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
                             <div class="mt-2">
                                 <small class="text-info">
                                     <i class="bi bi-info-circle"></i> AI Contextual Match: The pitch above includes media selected based on venue traits.

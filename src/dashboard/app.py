@@ -380,20 +380,17 @@ def add_source():
 @app.route('/approve/<int:lead_id>', methods=['POST'])
 def approve(lead_id):
     pitch = request.form.get('pitch')
-    subject = request.form.get('subject')
     artist_id = request.form.get('artist_id')
 
-    # Update lead status, pitch, and subject
-    with db._get_connection() as conn:
-        conn.execute("UPDATE outreach_leads SET pipeline_status = ?, generated_pitch = ?, generated_subject = ? WHERE id = ?", ('APPROVED', pitch, subject, lead_id))
-        if artist_id:
+    # Update lead status and optionally artist_id
+    db.update_lead_status(lead_id, 'APPROVED', pitch=pitch)
+    if artist_id:
+        with db._get_connection() as conn:
             conn.execute("UPDATE outreach_leads SET artist_id = ? WHERE id = ?", (artist_id, lead_id))
 
     lead = db.get_lead(lead_id)
-    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
-    if not subject:
-        subject = lead.get('generated_subject') or f"Proposal for {primary_genre.capitalize()} Night Residency"
+    primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
@@ -401,6 +398,7 @@ def approve(lead_id):
         contact = cursor.fetchone()
     if contact and contact[0]:
         email = contact[0].split(',')[0].strip()
+        subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
         if mailer.send_email(email, subject, pitch):
             db.update_lead_status(lead_id, 'SENT')
     return redirect(url_for('index'))
@@ -497,7 +495,7 @@ def regenerate(lead_id):
     artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
 
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
-    pitch_response = ai.generate_pitch(
+    new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
         epk_link=config_mgr.get("epk_link"),
@@ -507,15 +505,7 @@ def regenerate(lead_id):
         genre=primary_genre,
         artist_id=artist_id
     )
-
-    if isinstance(pitch_response, dict):
-        new_subject = pitch_response.get("subject", "")
-        new_pitch = pitch_response.get("body", "")
-    else:
-        new_subject = ai.generate_subject_line(venue['name'], pitch_response, genre=primary_genre)
-        new_pitch = pitch_response
-
-    return jsonify({"pitch": new_pitch, "subject": new_subject})
+    return jsonify({"pitch": new_pitch})
 
 if __name__ == '__main__':
     # Add a weekly job for the pipeline

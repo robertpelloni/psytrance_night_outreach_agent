@@ -188,7 +188,6 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
 
     # Generate pitch if qualified
     pitch = ""
-    subject_line = ""
     variant = "Professional"
 
     if vibe_result["vibe_score"] >= vibe_threshold:
@@ -206,10 +205,8 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             conv = variant_stats[variant]["conversion_rate"]
             print(f"  Exploitation: Best variant '{variant}' (Conv: {conv}%).")
 
-        print(
-            f"  Generating '{variant}' pitch and subject line for {v_data['name']}..."
-        )
-        pitch_response = ai.generate_pitch(
+        print(f"  Generating '{variant}' pitch for {v_data['name']}...")
+        pitch = ai.generate_pitch(
             v_data["name"],
             vibe_result["justification"],
             epk_link=config.get("epk_link"),
@@ -219,14 +216,6 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             genre=qualify_genre,
             variant=variant,
         )
-        if isinstance(pitch_response, dict):
-            subject_line = pitch_response.get("subject", "")
-            pitch = pitch_response.get("body", "")
-        else:
-            subject_line = ai.generate_subject_line(
-                v_data["name"], pitch_response, genre=qualify_genre
-            )
-            pitch = pitch_response
         status = "PENDING_REVIEW"
     else:
         status = "PENDING_QUALIFICATION"
@@ -236,7 +225,6 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         "vibe_score": vibe_result["vibe_score"],
         "qualification_justification": vibe_result["justification"],
         "generated_pitch": pitch,
-        "generated_subject": subject_line,
         "pipeline_status": status,
         "qualified_genre": qualify_genre,
         "pitch_variant": variant,
@@ -255,26 +243,10 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
 
 def main(args_list=None):
     parser = argparse.ArgumentParser(description="Psytrance Night Outreach Agent")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Run discovery and qualification without making AI calls or database writes.",
-    )
-    parser.add_argument(
-        "--city",
-        type=str,
-        help="Process a specific city instead of all cities in config.",
-    )
-    parser.add_argument(
-        "--reset",
-        action="store_true",
-        help="Reset processing cycles for cities before starting.",
-    )
-    parser.add_argument(
-        "--seed",
-        action="store_true",
-        help="Seed the database with known Detroit venues.",
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Run discovery and qualification without making AI calls or database writes.")
+    parser.add_argument("--city", type=str, help="Process a specific city instead of all cities in config.")
+    parser.add_argument("--reset", action="store_true", help="Reset processing cycles for cities before starting.")
+    parser.add_argument("--seed", action="store_true", help="Seed the database with known Detroit venues.")
 
     if args_list is not None:
         args = parser.parse_args(args_list)
@@ -302,7 +274,6 @@ def main(args_list=None):
         seed_path = "database/detroit_venues_seed.json"
         if os.path.exists(seed_path):
             import json
-
             with open(seed_path, "r") as f:
                 seed_data = json.load(f)
                 print(f"Seeding {len(seed_data)} venues from {seed_path}...")
@@ -312,7 +283,7 @@ def main(args_list=None):
         else:
             print(f"Seed file not found: {seed_path}")
         if not any([args.city, args.dry_run]):
-            return
+             return
 
     run_id = None
     if not args.dry_run:
@@ -325,9 +296,7 @@ def main(args_list=None):
     total_leads = 0
 
     if args.dry_run:
-        print(
-            "\n!!! DRY RUN MODE ENABLED: No database writes or AI API calls will be made. !!!\n"
-        )
+        print("\n!!! DRY RUN MODE ENABLED: No database writes or AI API calls will be made. !!!\n")
 
     artist_name = config.get("artist_name") or ""
     collective = config.get("collective_name") or ""
@@ -368,9 +337,7 @@ def main(args_list=None):
 
         # 1. Run City-Wide Scrapers (Once per city)
         for scraper in city_scrapers:
-            print(
-                f"\n  Running city-wide discovery via {scraper.__class__.__name__}..."
-            )
+            print(f"\n  Running city-wide discovery via {scraper.__class__.__name__}...")
             try:
                 results = scraper.search_venues(city)
                 for r in results:
@@ -391,9 +358,7 @@ def main(args_list=None):
 
             print(f'\n  Hunting: "{query}" (genre: {genre})')
             if not args.dry_run:
-                db.log_system_event(
-                    "DISCOVERY", "START", f"Hunting: '{query}' in {city}"
-                )
+                db.log_system_event("DISCOVERY", "START", f"Hunting: '{query}' in {city}")
 
             for scraper in query_scrapers:
                 try:
@@ -401,9 +366,7 @@ def main(args_list=None):
                     for r in results:
                         # Validation
                         if not r.get("name") or not r.get("city"):
-                            print(
-                                f"  [Scraper Validation] Rejecting invalid result: {r}"
-                            )
+                            print(f"  [Scraper Validation] Rejecting invalid result: {r}")
                             continue
 
                         r["discovery_genre"] = genre
@@ -442,14 +405,8 @@ def main(args_list=None):
                 if db.lead_exists(v_id):
                     total_leads += 1
             except Exception as e:
-                print(
-                    f"  [CRITICAL] Error processing {v_data.get('name', 'Unknown')}: {e}"
-                )
-                db.log_system_event(
-                    "PIPELINE",
-                    "FAILURE",
-                    f"Error processing {v_data.get('name')}: {str(e)}",
-                )
+                print(f"  [CRITICAL] Error processing {v_data.get('name', 'Unknown')}: {e}")
+                db.log_system_event("PIPELINE", "FAILURE", f"Error processing {v_data.get('name')}: {str(e)}")
 
         if not args.dry_run:
             db.mark_city_processed(city)
@@ -469,13 +426,7 @@ def main(args_list=None):
         print("\nPipeline run complete.")
         db.log_system_event("PIPELINE", "SUCCESS", "Full outreach cycle completed")
         if run_id:
-            db.end_pipeline_run(
-                run_id,
-                "COMPLETED",
-                city_count=total_cities,
-                venues_found=total_venues,
-                leads_generated=total_leads,
-            )
+            db.end_pipeline_run(run_id, "COMPLETED", city_count=total_cities, venues_found=total_venues, leads_generated=total_leads)
     else:
         print("\nDry run complete. No outreach or follow-up cycles performed.")
 

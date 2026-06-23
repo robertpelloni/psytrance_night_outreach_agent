@@ -116,23 +116,6 @@ class DatabaseManager:
             except sqlite3.OperationalError as e:
                 print(f"Migration error on 'lead_replies.requires_attention': {e}")
 
-
-        # Phase 49: Social Media Channels & Phase 50: Subjects
-        try:
-            conn.execute("ALTER TABLE outreach_leads ADD COLUMN outreach_channel TEXT DEFAULT 'EMAIL'")
-        except sqlite3.OperationalError:
-            pass
-
-        try:
-            conn.execute("ALTER TABLE outreach_leads ADD COLUMN generated_subject TEXT")
-        except sqlite3.OperationalError:
-            pass
-
-        try:
-            conn.execute("ALTER TABLE lead_replies ADD COLUMN source_channel TEXT DEFAULT 'EMAIL'")
-        except sqlite3.OperationalError:
-            pass
-
         # Add requires_attention column to existing unmatched_replies
         cursor = conn.execute("PRAGMA table_info(unmatched_replies)")
         existing_unmatched_replies_cols = [row[1] for row in cursor.fetchall()]
@@ -247,14 +230,13 @@ class DatabaseManager:
 
     def add_lead(self, lead_data):
         query = """
-        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_subject, generated_pitch, pipeline_status, success_probability, qualified_genre, pitch_variant)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status, success_probability, qualified_genre, pitch_variant)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
             conn.execute(query, (
                 lead_data['venue_id'], lead_data.get('vibe_score'),
                 lead_data.get('qualification_justification'),
-                lead_data.get('generated_subject'),
                 lead_data.get('generated_pitch'),
                 lead_data.get('pipeline_status', 'PENDING_QUALIFICATION'),
                 lead_data.get('success_probability'),
@@ -270,8 +252,8 @@ class DatabaseManager:
             query_parts.append("last_outreach_at = CURRENT_TIMESTAMP")
 
         if status in ['BOOKED', 'LOST', 'BOUNCED']:
-            query_parts.append("negotiation_status = ?")
-            params.append(status)
+             query_parts.append("negotiation_status = ?")
+             params.append(status)
 
         if pitch:
             query_parts.append("generated_pitch = ?")
@@ -290,7 +272,7 @@ class DatabaseManager:
 
     def get_pending_leads(self):
         query = """
-        SELECT l.id, v.name, v.city, v.extracted_traits, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_subject, l.generated_pitch, l.pipeline_status, l.success_probability, l.qualified_genre, l.pitch_variant,
+        SELECT l.id, v.name, v.city, v.extracted_traits, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.success_probability, l.qualified_genre, l.pitch_variant,
                (SELECT email FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as email,
                (SELECT instagram_handle FROM venue_contacts WHERE venue_id = v.id LIMIT 1) as instagram
         FROM outreach_leads l
@@ -305,7 +287,7 @@ class DatabaseManager:
 
     def get_lead_history(self):
         query = """
-        SELECT l.id, v.id as venue_id, v.name, v.city, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_subject, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre, l.pitch_variant, l.negotiation_status
+        SELECT l.id, v.id as venue_id, v.name, v.city, v.image_url, v.visual_description, l.vibe_score, l.qualification_justification, l.generated_pitch, l.pipeline_status, l.follow_up_count, l.last_outreach_at, l.success_probability, l.qualified_genre, l.pitch_variant, l.negotiation_status
         FROM outreach_leads l
         JOIN venues v ON l.venue_id = v.id
         WHERE l.pipeline_status IN ('SENT', 'REJECTED', 'BOOKED', 'LOST')
