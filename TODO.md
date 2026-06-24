@@ -149,7 +149,7 @@
 - [x] Add Detroit Search Queries editor to Settings UI
 - [ ] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues
-- [ ] Add "Add Venue Manually" form to dashboard
+- [x] Add "Add Venue Manually" form to dashboard
 - [ ] Add A/B testing statistical significance calculator
 
 ---

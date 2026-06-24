@@ -369,6 +369,47 @@ def delete_artist(artist_id):
     return redirect(url_for('settings'))
 
 @app.route('/add_source', methods=['POST'])
+
+@app.route('/add_venue_manually', methods=['POST'])
+def add_venue_manually():
+    import uuid
+    import threading
+    name = request.form.get('name')
+    city = request.form.get('city')
+    website = request.form.get('website', '')
+    notes = request.form.get('notes', '')
+
+    if not name or not city:
+        return jsonify({"error": "Name and City are required"}), 400
+
+    v_id = str(uuid.uuid4())
+    v_data = {
+        'id': v_id,
+        'name': name,
+        'city': city,
+        'website': website,
+        'raw_about_text': notes,
+        'source': 'manual',
+        'discovery_genre': (config_mgr.get("target_genres") or ["psytrance"])[0]
+    }
+
+    # Add to venues table
+    db.add_venue(v_data)
+
+    # Trigger background pipeline for qualification and pitch generation
+    def run_pipeline_for_manual_venue():
+        from main import qualify_and_pitch
+        from src.geocoding import GeocodingUtility
+        from src.outreach_predictor import OutreachPredictor
+        geocoder = GeocodingUtility()
+        predictor = OutreachPredictor(db)
+        qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config_mgr, analytics)
+
+    t = threading.Thread(target=run_pipeline_for_manual_venue)
+    t.start()
+
+    return redirect(url_for('index'))
+
 def add_source():
     url = request.form.get('url')
     name = request.form.get('name')
