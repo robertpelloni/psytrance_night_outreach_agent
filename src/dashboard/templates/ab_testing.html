@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A/B Testing Statistical Significance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jstat@1.9.5/dist/jstat.min.js"></script>
+</head>
+<body class="container mt-5 text-bg-dark">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>A/B Testing Calculator</h1>
+        <a href="/analytics" class="btn btn-outline-primary">Back to Analytics</a>
+    </div>
+
+    <div class="card text-bg-secondary p-4 shadow">
+        <h4 class="mb-3 text-info">Variant Performance</h4>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-4" id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Variant</th>
+                        <th>Sent (N)</th>
+                        <th>Replies (Conversions)</th>
+                        <th>Conversion Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant, stats in variant_stats.items() %}
+                    <tr>
+                        <td class="variant-name">{{ variant }}</td>
+                        <td class="variant-sent">{{ stats.sent }}</td>
+                        <td class="variant-replies">{{ stats.replies }}</td>
+                        <td>{{ stats.conversion_rate }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h4 class="mt-4 text-warning">Significance Analysis</h4>
+        <div id="results" class="p-3 bg-dark rounded border border-secondary">
+            Click "Calculate" to determine if the differences between variants are statistically significant.
+        </div>
+
+        <button class="btn btn-success mt-3" onclick="calculateSignificance()">Calculate Significance</button>
+    </div>
+
+    <script>
+        // Standard normal CDF inverse
+        function getZScore(p1, n1, p2, n2) {
+            if (n1 === 0 || n2 === 0) return 0;
+            const pPool = (p1*n1 + p2*n2) / (n1 + n2);
+            const se = Math.sqrt(pPool * (1 - pPool) * (1/n1 + 1/n2));
+            if (se === 0) return 0;
+            return Math.abs(p1 - p2) / se;
+        }
+
+        // Approx normal CDF
+        function getPValue(z) {
+            // jStat is loaded via CDN
+            if (typeof jStat !== 'undefined') {
+                return 2 * (1 - jStat.normal.cdf(z, 0, 1));
+            }
+            return 1; // Fallback
+        }
+
+        function calculateSignificance() {
+            const table = document.getElementById('statsTable');
+            const rows = table.querySelectorAll('tbody tr');
+            const data = [];
+
+            rows.forEach(row => {
+                data.push({
+                    name: row.querySelector('.variant-name').innerText,
+                    n: parseInt(row.querySelector('.variant-sent').innerText),
+                    conv: parseInt(row.querySelector('.variant-replies').innerText)
+                });
+            });
+
+            if (data.length < 2) {
+                document.getElementById('results').innerHTML = '<span class="text-danger">Need at least 2 variants to compare.</span>';
+                return;
+            }
+
+            let resultsHTML = '';
+
+            // Compare each pair
+            for (let i = 0; i < data.length; i++) {
+                for (let j = i + 1; j < data.length; j++) {
+                    const v1 = data[i];
+                    const v2 = data[j];
+
+                    const p1 = v1.conv / (v1.n || 1);
+                    const p2 = v2.conv / (v2.n || 1);
+
+                    const z = getZScore(p1, v1.n, p2, v2.n);
+                    const pValue = getPValue(z);
+
+                    const isSignificant = pValue < 0.05;
+                    const color = isSignificant ? 'text-success' : 'text-muted';
+                    const verdict = isSignificant ? 'Statistically Significant (95% confidence)' : 'Not Significant';
+
+                    resultsHTML += `
+                        <div class="mb-3 border-bottom border-secondary pb-2">
+                            <strong>${v1.name} vs ${v2.name}</strong><br>
+                            Z-Score: ${z.toFixed(2)} | P-Value: ${pValue.toFixed(4)}<br>
+                            <span class="${color}">${verdict}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('results').innerHTML = resultsHTML;
+        }
+    </script>
+</body>
+</html>

@@ -150,7 +150,7 @@
 - [ ] Generate pitch subject lines via AI (currently hardcoded)
 - [ ] Add "Do Not Contact" list for venues
 - [x] Add "Add Venue Manually" form to dashboard
-- [ ] Add A/B testing statistical significance calculator
+- [x] Add A/B testing statistical significance calculator
 
 ---
 
