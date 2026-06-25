@@ -368,7 +368,6 @@ def delete_artist(artist_id):
     db.delete_artist(artist_id)
     return redirect(url_for('settings'))
 
-@app.route('/add_source', methods=['POST'])
 
 @app.route('/add_venue_manually', methods=['POST'])
 def add_venue_manually():
@@ -410,6 +409,7 @@ def add_venue_manually():
 
     return redirect(url_for('index'))
 
+@app.route("/add_source", methods=["POST"])
 def add_source():
     url = request.form.get('url')
     name = request.form.get('name')
@@ -555,3 +555,25 @@ if __name__ == '__main__':
     scheduler.start()
 
     app.run(debug=True, port=5000)
+
+@app.route('/calculate_ab_significance')
+def calculate_ab_significance():
+    from src.analytics import AnalyticsEngine
+    analytics = AnalyticsEngine()
+    stats = analytics.get_scene_health()
+
+    variant_stats = {}
+    for row in db.execute_query("SELECT variant, status FROM outreach_leads WHERE variant IS NOT NULL", []):
+        v = row[0]
+        s = row[1]
+        if v not in variant_stats:
+            variant_stats[v] = {"sent": 0, "replies": 0, "conversion_rate": 0}
+        variant_stats[v]["sent"] += 1
+        if s in ["Replied", "Interested", "Booked"]:
+            variant_stats[v]["replies"] += 1
+
+    for v, d in variant_stats.items():
+        if d["sent"] > 0:
+            d["conversion_rate"] = round((d["replies"] / d["sent"]) * 100, 2)
+
+    return render_template('ab_testing.html', variant_stats=variant_stats)
