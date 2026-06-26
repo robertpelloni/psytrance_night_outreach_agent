@@ -37,15 +37,7 @@ class FollowUpEngine:
                 email = contact[0].split(',')[0].strip()
                 if email:
                     print(f"Generating follow-up for {venue['name']} ({email})...")
-                    vibe_score = venue.get('vibe_score', 0)
-                    threshold = self.config.get("vibe_threshold") or 6
-                    follow_up_pitch = self.ai.generate_follow_up(
-                        venue['name'],
-                        lead['generated_pitch'],
-                        genre=primary_genre,
-                        vibe_score=vibe_score,
-                        threshold=threshold
-                    )
+                    follow_up_pitch = self.ai.generate_follow_up(venue['name'], lead['generated_pitch'], genre=primary_genre)
 
                     subject = f"Re: Proposal for {primary_genre.capitalize()} Night Residency - {venue['name']}"
                     if self.mailer.send_email(email, subject, follow_up_pitch):
