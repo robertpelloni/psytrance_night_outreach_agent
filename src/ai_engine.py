@@ -134,21 +134,11 @@ Output JSON format:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance", artist_id=None, vibe_score=None, threshold=None):
+    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance", artist_id=None):
         if not self.client:
             return f"Just following up on our previous email regarding a {genre} night!"
         identity = self._get_identity_context(artist_id=artist_id)["context"]
         identity_note = f"\nOur identity: {identity}" if identity else ""
-
-        vibe_context = ""
-        if vibe_score is not None and threshold is not None:
-            if vibe_score >= threshold + 2:
-                vibe_context = "This venue is a perfect fit for our vibe! Be enthusiastic and reference how perfectly our sound matches their aesthetic."
-            elif vibe_score >= threshold:
-                vibe_context = "This venue is a solid match. Be polite and professional."
-            else:
-                vibe_context = "This venue is a bit of a stretch, but we still want to try. Keep it casual and low-pressure."
-
         prompt = f"""
 Write a short, polite follow-up email to a booking manager at {venue_name}.
 We previously sent them a pitch for a {genre} residency in the Detroit area.
@@ -157,7 +147,6 @@ Original Pitch context: {original_pitch[:500]}...
 
 The follow-up should be brief, friendly, and just checking if they had a chance
 to see our proposal. Reference the Detroit scene if it feels natural.
-{vibe_context}
 """
         try:
             response = self.client.chat.completions.create(
@@ -434,7 +423,7 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
         if not self.client:
             return "Thank you for your reply! Let's discuss further."
         identity = self._get_identity_context(artist_id=artist_id)["context"]
-        identity_note = f"\n\nOur identity: {identity}" if identity else ""
+        identity_note = f"\nOur identity: {identity}" if identity else ""
 
         negotiation_context = ""
         if rate_card:

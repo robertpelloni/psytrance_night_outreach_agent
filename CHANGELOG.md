@@ -204,9 +204,7 @@
 - **Follow-up Engine**: Automated nudge cycle.
 - **Proxy/UA Rotation**: Anti-bot bypass.
 
-## [1.1.72] - 2026-06-25
-### Added
-- Integrated simulated Instagram/FB DM ingestion pipeline directly into `InboxMonitor`.
-- Updated `OutreachEngine` to gracefully fallback to simulated DM outreach when email addresses are missing but IG handles are present.
-- Updated `AIEngine` and `FollowUpEngine` to ingest vibe scores and thresholds, personalizing follow-up emails for enhanced Detroit scene authenticity.
-- Automated tests passed for scaling multi-city hub operations.
+## [1.1.73] - $(date '+%Y-%m-%d')
+### Fixed
+- Resolved SQLite `OperationalError: database is locked` errors during concurrent read/writes in the `OutreachEngine` and `DatabaseManager` loops.
+- Hooked IG/FB DM Templates directly into the AI pitch generation logic via `is_dm` flag.

@@ -170,8 +170,7 @@ Expand beyond email into automated social media outreach assistance.
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
 
-### Phase 24-35 Updates: Advanced Intelligence & Global Synchronization
-*   [x] Establish base logic for Instagram/FB DM ingestion parsing and fallback sending.
-*   [ ] Connect simulated IG DM ingestion module to a real scraping API or proxy for official unread message monitoring.
-*   [x] Verify and stabilize multi-city scaling across Midwest.
-*   [ ] Enhance Global Synchronization logic for complex multi-node deployments.
+### Phase 4 Outreach Execution Enhancements
+*   [x] Integrate SMTP logic with `.env` loading and establish a dry-run test suite.
+*   [x] Hook IG/FB DM templates directly into the `AIEngine` pitch generator and trigger simulated DM execution.
+*   [x] Fix concurrent database write locks during the primary outreach dispatch cycle.
