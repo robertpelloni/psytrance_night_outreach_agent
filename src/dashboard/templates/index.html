@@ -147,6 +147,7 @@
 </head>
 <body class="container mt-5 text-bg-dark">
     <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addVenueModal">+ Add Venue Manually</button>
         <h1>
             {% if view == 'history' %}History
             {% elif view == 'qualification' %}Qualification
@@ -174,6 +175,7 @@
                     {% endif %}
                 </a>
                 <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}">Booked</a>
+                <a href="/calculate_ab_significance" class="btn btn-outline-warning">A/B Testing</a>
             </div>
         </div>
     </div>
@@ -412,5 +414,42 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Add Venue Manually Modal -->
+    <div class="modal fade" id="addVenueModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Add Venue Manually</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/add_venue_manually" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-info">Venue Name*</label>
+                            <input type="text" name="name" class="form-control bg-secondary text-white border-dark" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info">City*</label>
+                            <input type="text" name="city" class="form-control bg-secondary text-white border-dark" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info">Website (Optional)</label>
+                            <input type="url" name="website" class="form-control bg-secondary text-white border-dark">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info">Notes / Description / Vibes</label>
+                            <textarea name="notes" class="form-control bg-secondary text-white border-dark" rows="3" placeholder="Paste context for the AI vibe check..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save & Qualify</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

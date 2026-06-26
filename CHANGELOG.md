@@ -203,3 +203,10 @@
 - **Sentiment Analysis**: Reply classification and draft orchestration.
 - **Follow-up Engine**: Automated nudge cycle.
 - **Proxy/UA Rotation**: Anti-bot bypass.
+
+## [1.1.72] - 2026-06-25
+### Added
+- Integrated simulated Instagram/FB DM ingestion pipeline directly into `InboxMonitor`.
+- Updated `OutreachEngine` to gracefully fallback to simulated DM outreach when email addresses are missing but IG handles are present.
+- Updated `AIEngine` and `FollowUpEngine` to ingest vibe scores and thresholds, personalizing follow-up emails for enhanced Detroit scene authenticity.
+- Automated tests passed for scaling multi-city hub operations.
