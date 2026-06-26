@@ -206,6 +206,24 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             print(f"  Exploitation: Best variant '{variant}' (Conv: {conv}%).")
 
         print(f"  Generating '{variant}' pitch for {v_data['name']}...")
+
+        # Check if email exists to determine if it should be an email or DM pitch
+        query = "SELECT email, instagram_handle FROM venue_contacts WHERE venue_id = ?"
+        is_dm = False
+        conn = db._get_connection()
+        try:
+            cursor = conn.execute(query, (v_id,))
+            contact = cursor.fetchone()
+            if contact:
+                email = contact[0].split(',')[0].strip() if contact[0] else None
+                instagram = contact[1] if len(contact) > 1 else None
+                if not email and instagram:
+                    is_dm = True
+        except Exception as e:
+            print(f"Error querying contacts: {e}")
+        # Note: Do NOT explicitly close the connection here in the main loop if we are using the patched mock
+        # which shares a single connection object across threads/tests. We let the db manager or pytest handle it.
+
         pitch = ai.generate_pitch(
             v_data["name"],
             vibe_result["justification"],
@@ -215,6 +233,7 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             media_library=config.get("media_library"),
             genre=qualify_genre,
             variant=variant,
+            is_dm=is_dm
         )
         status = "PENDING_REVIEW"
     else:

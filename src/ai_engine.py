@@ -298,6 +298,7 @@ Output JSON format:
         genre="psytrance",
         variant="Professional",
         artist_id=None,
+        is_dm=False,
     ):
         if not self.client:
             return "Hey, we would love to play at your venue!"
@@ -329,6 +330,10 @@ Output JSON format:
             identity_context = f"Our identity: {identity}\n"
         else:
             identity_context = f"We are a Detroit-based {genre} DJ/selector.\n"
+
+        format_instruction = ""
+        if is_dm:
+            format_instruction = "- FORMAT THIS AS AN INSTAGRAM/FACEBOOK DM. IT MUST BE VERY SHORT, PUNCHY, AND CASUAL. No formal salutations like 'Dear Booking Manager'.\n"
 
         variant_prompts = {
             "Professional": (
@@ -371,6 +376,7 @@ Key pitch elements:
 - Emphasize we understand the venue's identity and are not just mass-emailing.
 - Suggest a low-risk first step (one-off night, weeknight, or early slot on an existing event).
 - Keep it concise — booking managers are busy.
+{format_instruction}
 - If the venue is in Hamtramck/Ferndale, mention the suburb's growing creative scene.
 - If the venue is in Detroit proper, acknowledge the city's electronic music heritage.
 """

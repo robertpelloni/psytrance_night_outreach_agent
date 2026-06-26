@@ -174,3 +174,6 @@ See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
 *   [x] Integrate SMTP logic with `.env` loading and establish a dry-run test suite.
 *   [x] Hook IG/FB DM templates directly into the `AIEngine` pitch generator and trigger simulated DM execution.
 *   [x] Fix concurrent database write locks during the primary outreach dispatch cycle.
+
+### Phase 4 Outreach Execution Enhancements
+*   [x] Integrate A/B testing selection and IG DM pitch generation dynamically based on data availability in the primary qualification loop.

@@ -37,3 +37,7 @@ This session successfully executed the **Executive Protocol for Repository Synch
 *   **Database Fixes:** Refactored connection management in `db_manager.py` and `outreach_engine.py` to prevent SQLite locks during high-volume reads/writes in the outreach dispatch loop.
 *   **Pitch Context:** Added the `is_dm` flag to the AI Engine's `generate_pitch` method to instruct GPT-4o to format pitches as short, punchy Instagram DMs when standard emails aren't available.
 *   **Outreach Testing:** Manually qualified leads and simulated SMTP dispatch and IG DM execution, verifying that leads transition to the `SENT` pipeline status correctly.
+
+## Session Summary (v1.1.74)
+*   **Pitch Context:** Hooked the `is_dm` flag logic directly into the main `qualify_and_pitch` execution loop in `main.py`, guaranteeing that venues without emails receive properly formatted DM pitches.
+*   **Outreach Testing:** Manually verified using an isolated SQLite database and mocked components that `main.py` generates DM pitches correctly when only an IG handle is present.

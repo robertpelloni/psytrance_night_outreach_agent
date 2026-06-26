@@ -208,3 +208,9 @@
 ### Fixed
 - Resolved SQLite `OperationalError: database is locked` errors during concurrent read/writes in the `OutreachEngine` and `DatabaseManager` loops.
 - Hooked IG/FB DM Templates directly into the AI pitch generation logic via `is_dm` flag.
+
+## [1.1.74] - $(date '+%Y-%m-%d')
+### Added
+- Properly propagated `is_dm` flag inside the `main.py` pipeline loop by pulling instagram handles from `venue_contacts` if email is missing.
+- Ensured IG DM contexts trigger casual formatting logic inside the AIEngine pitch generator in isolated unit tests.
+- Tested and verified against full integration staging suite.
