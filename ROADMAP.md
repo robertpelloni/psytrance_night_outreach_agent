@@ -177,3 +177,6 @@ See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
 
 ### Phase 4 Outreach Execution Enhancements
 *   [x] Integrate A/B testing selection and IG DM pitch generation dynamically based on data availability in the primary qualification loop.
+
+### Phase 24+ Intelligence & Vision Enhancements
+*   [x] Establish basic `TourPlanner` interface to generate Multi-City Tour Pitch strategies using geospatial clustering.

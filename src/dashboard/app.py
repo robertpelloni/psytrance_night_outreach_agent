@@ -572,15 +572,7 @@ def calculate_ab_significance():
 
     return render_template('ab_testing.html', variant_stats=variant_stats)
 
-@app.route('/dm_queue')
-def dm_queue():
-    """Dashboard view for the simulated DM queue."""
-    query = "SELECT l.*, v.name, v.city, vc.instagram_handle FROM outreach_leads l JOIN venues v ON l.venue_id = v.id JOIN venue_contacts vc ON v.id = vc.venue_id WHERE l.pipeline_status = 'SENT' AND vc.email IS NULL AND vc.instagram_handle IS NOT NULL"
-    with db._get_connection() as conn:
-        conn.row_factory = __import__('sqlite3').Row
-        cursor = conn.execute(query)
-        leads = [dict(row) for row in cursor.fetchall()]
-    return render_template('index.html', leads=leads, view='dm_queue', attention_count=0)
+
 
 @app.route('/dm_queue')
 def dm_queue():
