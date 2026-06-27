@@ -25,26 +25,61 @@ class FollowUpEngine:
         print(f"FollowUpEngine: Found {len(leads)} leads eligible for follow-up.")
 
         for lead in leads:
+            # Re-check vibe score
+            vibe_score = lead.get('vibe_score', 0)
+            if vibe_score < 6:
+                print(f"Skipping follow-up for lead {lead['id']} due to low vibe score ({vibe_score}).")
+                continue
+
             print(f"Processing follow-up for lead_id {lead['id']}...")
             venue = self.db.get_venue(lead['venue_id'])
-            # Fetch contact email
-            query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
-            with self.db._get_connection() as conn:
+            # Fetch contact email and IG handle
+            query = "SELECT email, instagram_handle FROM venue_contacts WHERE venue_id = ?"
+            conn = self.db._get_connection()
+            try:
                 cursor = conn.execute(query, (lead['venue_id'],))
                 contact = cursor.fetchone()
+            finally:
+                conn.close()
 
-            if contact and contact[0]:
-                email = contact[0].split(',')[0].strip()
+            if contact:
+                email = contact[0].split(',')[0].strip() if contact[0] else None
+                instagram = contact[1] if len(contact) > 1 else None
+
+                vibe_threshold = self.config.get("vibe_threshold") or 6
+
+                # Fetch variant from lead
+                variant = lead.get('pitch_variant') or "Professional"
+
                 if email:
-                    print(f"Generating follow-up for {venue['name']} ({email})...")
-                    follow_up_pitch = self.ai.generate_follow_up(venue['name'], lead['generated_pitch'], genre=primary_genre)
+                    print(f"Generating email follow-up for {venue['name']} ({email})...")
+                    follow_up_pitch = self.ai.generate_follow_up(
+                        venue['name'],
+                        lead['generated_pitch'],
+                        genre=primary_genre,
+                        vibe_score=vibe_score,
+                        threshold=vibe_threshold
+                    )
 
                     subject = f"Re: Proposal for {primary_genre.capitalize()} Night Residency - {venue['name']}"
                     if self.mailer.send_email(email, subject, follow_up_pitch):
                         self.db.record_follow_up(lead['id'])
-                        print(f"Follow-up sent to {email}. Count is now {lead['follow_up_count'] + 1}.")
+                        print(f"Follow-up sent to {email}. Count is now {lead.get('follow_up_count', 0) + 1}.")
+                elif instagram:
+                    print(f"Generating IG DM follow-up for {venue['name']} (@{instagram})...")
+                    follow_up_pitch = self.ai.generate_follow_up(
+                        venue['name'],
+                        lead['generated_pitch'],
+                        genre=primary_genre,
+                        vibe_score=vibe_score,
+                        threshold=vibe_threshold,
+                        is_dm=True
+                    )
+                    self.db.record_follow_up(lead['id'])
+                    self.db.log_system_event("FOLLOW_UP", "IG_DM_SENT", f"Simulated DM follow-up to @{instagram}: {follow_up_pitch[:100]}...")
+                    print(f"Follow-up sent to IG @{instagram}. Count is now {lead.get('follow_up_count', 0) + 1}.")
                 else:
-                    print(f"No valid email for follow-up on lead {lead['id']}.")
+                    print(f"No valid email or IG handle for follow-up on lead {lead['id']}.")
             else:
                 print(f"No contact info for follow-up on lead {lead['id']}.")
 

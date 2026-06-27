@@ -559,6 +559,40 @@ if __name__ == '__main__':
 @app.route('/calculate_ab_significance')
 def calculate_ab_significance():
     from src.analytics import AnalyticsEngine
+    analytics = AnalyticsEngine(db_path=db_path)
+    stats = analytics.get_variant_stats()
+
+    variant_stats = {}
+    for v, d in stats.items():
+        variant_stats[v] = {
+            "sent": d['total_leads'],
+            "replies": d['interested_replies'],
+            "conversion_rate": d['conversion_rate']
+        }
+
+    return render_template('ab_testing.html', variant_stats=variant_stats)
+
+@app.route('/dm_queue')
+def dm_queue():
+    """Dashboard view for the simulated DM queue."""
+    query = "SELECT l.*, v.name, v.city, vc.instagram_handle FROM outreach_leads l JOIN venues v ON l.venue_id = v.id JOIN venue_contacts vc ON v.id = vc.venue_id WHERE l.pipeline_status = 'SENT' AND vc.email IS NULL AND vc.instagram_handle IS NOT NULL"
+    with db._get_connection() as conn:
+        conn.row_factory = __import__('sqlite3').Row
+        cursor = conn.execute(query)
+        leads = [dict(row) for row in cursor.fetchall()]
+    return render_template('index.html', leads=leads, view='dm_queue', attention_count=0)
+
+@app.route('/dm_queue')
+def dm_queue():
+    """Dashboard view for the simulated DM queue."""
+    query = "SELECT l.*, v.name, v.city, vc.instagram_handle FROM outreach_leads l JOIN venues v ON l.venue_id = v.id JOIN venue_contacts vc ON v.id = vc.venue_id WHERE l.pipeline_status = 'SENT' AND vc.email IS NULL AND vc.instagram_handle IS NOT NULL"
+    with db._get_connection() as conn:
+        conn.row_factory = __import__('sqlite3').Row
+        cursor = conn.execute(query)
+        leads = [dict(row) for row in cursor.fetchall()]
+    return render_template('index.html', leads=leads, view='dm_queue', attention_count=0)
+
+    from src.analytics import AnalyticsEngine
     analytics = AnalyticsEngine()
     stats = analytics.get_scene_health()
 

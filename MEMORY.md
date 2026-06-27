@@ -52,3 +52,8 @@
 - **OpenAI Token Budgeting**: No automated cost estimation or alerting per pipeline run (Phase 42).
 - **Visual Analytics**: Missing outreach timeline visualization and side-by-side venue comparison (Phase 46).
 - **Multi-Artist Support**: Collective-level artist profiles and shared dashboard access pending (Phase 47).
+
+## Production Scale Validation (v1.1.75-rc1)
+- **Integration Dry-Run Completed:** The full Detroit multi-city discovery, qualification, and outreach pipeline (`main.py`) successfully executed without database locking issues, confirming that the new WAL journaling mode and strict connection lifecycles established in v1.1.73 and v1.1.74 hold under concurrent load.
+- **Instagram DM & A/B Tracking:** Verified that venues lacking email addresses trigger the new `is_dm=True` pipeline, falling back to simulated IG DM execution seamlessly.
+- **Dashboard Extensions:** Added `/dm_queue` route and connected it to the UI navigation. Upgraded the `/calculate_ab_significance` endpoint to query live A/B metrics using the `AnalyticsEngine`.
