@@ -316,7 +316,7 @@ Output JSON format:
         is_dm=False,
     ):
         if not self.client:
-            return "Hey, we would love to play at your venue!"
+            return {"subject": "Proposal for Psytrance Night Residency", "body": "Hey, we would love to play at your venue!"}
 
         id_data = self._get_identity_context(artist_id=artist_id)
         identity = id_data["context"]
@@ -394,6 +394,11 @@ Key pitch elements:
 {format_instruction}
 - If the venue is in Hamtramck/Ferndale, mention the suburb's growing creative scene.
 - If the venue is in Detroit proper, acknowledge the city's electronic music heritage.
+
+OUTPUT FORMAT:
+Return a JSON object with exactly two keys:
+1. "subject": A compelling, bespoke, non-spammy subject line for the email (leave blank or null if this is a DM).
+2. "body": The actual pitch content as requested.
 """
         try:
             response = self.client.chat.completions.create(
@@ -405,10 +410,17 @@ Key pitch elements:
                     },
                     {"role": "user", "content": prompt},
                 ],
+                response_format={"type": "json_object"}
             )
             self._log_usage(response)
             content = response.choices[0].message.content
-            return content if content else "Error generating pitch."
+            if content:
+                import json
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError:
+                    return {"subject": "Proposal for Psytrance Night Residency", "body": content}
+            return {"subject": "Proposal for Psytrance Night Residency", "body": "Error generating pitch."}
         except Exception as e:
             print(f"AI Error: {e}")
             return "Error generating pitch."

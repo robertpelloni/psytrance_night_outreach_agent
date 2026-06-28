@@ -42,7 +42,7 @@ class TestContextualOutreach(unittest.TestCase):
         media_library = [{"url": "https://selected.test", "tags": ["test"]}]
         pitch = ai.generate_pitch("Venue", "Justification", traits='{"test": "val"}', media_library=media_library)
 
-        self.assertIn("https://selected.test", pitch)
+        self.assertIn("https://selected.test", pitch['body'])
 
 if __name__ == "__main__":
     unittest.main()

@@ -22,11 +22,12 @@ class OutreachEngine:
 
         # Count how many sent today
         sent_today_query = "SELECT COUNT(*) FROM outreach_leads WHERE pipeline_status = 'SENT' AND last_outreach_at >= date('now')"
-        conn = self.db._get_connection()
         try:
-            sent_today = conn.execute(sent_today_query).fetchone()[0]
-        finally:
-            conn.close()
+            with self.db._get_connection() as conn:
+                sent_today = conn.execute(sent_today_query).fetchone()[0]
+        except Exception as e:
+            print(f"Error checking daily limit: {e}")
+            sent_today = 0
 
         if sent_today >= max_daily:
             print(f"OutreachEngine: Daily limit reached ({sent_today}/{max_daily}). Skipping dispatch.")
@@ -40,12 +41,13 @@ class OutreachEngine:
             venue_id = lead['venue_id']
             # Fetch contact email and instagram
             query = "SELECT email, instagram_handle FROM venue_contacts WHERE venue_id = ?"
-            conn = self.db._get_connection()
             try:
-                cursor = conn.execute(query, (venue_id,))
-                contact = cursor.fetchone()
-            finally:
-                conn.close()
+                with self.db._get_connection() as conn:
+                    cursor = conn.execute(query, (venue_id,))
+                    contact = cursor.fetchone()
+            except Exception as e:
+                print(f"Error querying contacts: {e}")
+                contact = None
 
             if contact:
                 email = contact[0].split(',')[0].strip() if contact[0] else None
@@ -53,7 +55,7 @@ class OutreachEngine:
 
                 if email:
                     print(f"Dispatching pitch to {email} for venue_id {venue_id}...")
-                    subject = "Proposal for Psytrance Night Residency"
+                    subject = lead.get('generated_subject') or "Proposal for Psytrance Night Residency"
                     body = lead['generated_pitch']
                     if self.mailer.send_email(email, subject, body):
                         self.db.update_lead_status(lead['id'], 'SENT')

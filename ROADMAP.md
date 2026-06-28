@@ -113,7 +113,7 @@
 - [x] Add daily outreach throttle (max 10 emails/day)
 - [x] Add configurable delay between dispatches (5 minutes)
 - [x] Add OpenAI token budget tracker (v1.1.62)
-- [ ] Add pitch subject line generation (currently hardcoded)
+- [x] Add pitch subject line generation (currently hardcoded)
 - [ ] Add email open/click tracking via tracking pixel or link wrapper
 - [ ] Add "Do Not Contact" list for venues
 - [ ] Add A/B testing statistical significance calculator
@@ -127,7 +127,7 @@
 - [x] Create `database/detroit_venues_seed.json` with 30 seed venues
 - [x] Add seed import command: `python main.py --seed`
 - [ ] Add "Add Venue Manually" form to dashboard
-- [ ] Add venue notes/annotations system
+- [x] Add venue notes/annotations system
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 - [x] Add auto-response for OOO replies (v1.1.54)
@@ -180,3 +180,6 @@ See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
 
 ### Phase 24+ Intelligence & Vision Enhancements
 *   [x] Establish basic `TourPlanner` interface to generate Multi-City Tour Pitch strategies using geospatial clustering.
+
+### Phase 49: Social Media Automation (v1.1.65 - Current)
+- [x] Automatically route simulated DMs to `SentimentAnalyzer` to score tone and auto-flag high-intent leads to the HITL dashboard review queue.

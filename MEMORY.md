@@ -57,3 +57,7 @@
 - **Integration Dry-Run Completed:** The full Detroit multi-city discovery, qualification, and outreach pipeline (`main.py`) successfully executed without database locking issues, confirming that the new WAL journaling mode and strict connection lifecycles established in v1.1.73 and v1.1.74 hold under concurrent load.
 - **Instagram DM & A/B Tracking:** Verified that venues lacking email addresses trigger the new `is_dm=True` pipeline, falling back to simulated IG DM execution seamlessly.
 - **Dashboard Extensions:** Added `/dm_queue` route and connected it to the UI navigation. Upgraded the `/calculate_ab_significance` endpoint to query live A/B metrics using the `AnalyticsEngine`.
+
+## Intelligence & Vision Integrations (v1.1.77)
+- Completed the implementation of the `TourPlanner` which utilizes distance-based geospatial clustering logic to form proximity tours based on leads.
+- Fully integrated Instagram DM fallback capabilities in `AIEngine` prompts, ensuring all unread mock queries are pushed successfully into the Database using defensive SQL parameterization.
