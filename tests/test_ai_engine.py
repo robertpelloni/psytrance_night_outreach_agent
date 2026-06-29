@@ -27,7 +27,7 @@ class TestAIEngine(unittest.TestCase):
         # Test default behavior when client is not configured
         ai_no_key = AIEngine(api_key=None)
         pitch = ai_no_key.generate_pitch("Venue", "Justification")
-        self.assertEqual(pitch['body'], "Hey, we would love to play at your venue!")
+        self.assertEqual(pitch, "Hey, we would love to play at your venue!")
 
     @patch('src.ai_engine.OpenAI')
     def test_analyze_visual_vibe(self, mock_openai):
@@ -59,7 +59,7 @@ class TestAIEngine(unittest.TestCase):
 
         # Test Underground variant
         pitch = mock_ai.generate_pitch("Venue", "Justification", variant="Underground")
-        self.assertEqual(pitch['body'], "Test Pitch Content")
+        self.assertEqual(pitch, "Test Pitch Content")
 
         # Verify prompt content contains variant keywords
         args, kwargs = mock_client.chat.completions.create.call_args

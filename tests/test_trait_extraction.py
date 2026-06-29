@@ -45,4 +45,4 @@ def test_generate_pitch_with_traits():
 
     with patch.object(ai.client.chat.completions, 'create', return_value=mock_response):
         pitch = ai.generate_pitch("Sonic Temple", "Great vibe", traits=traits)
-        assert "Funktion-One" in pitch['body']
+        assert "Funktion-One" in pitch

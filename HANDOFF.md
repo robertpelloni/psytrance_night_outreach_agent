@@ -41,6 +41,3 @@ This session successfully executed the **Executive Protocol for Repository Synch
 ## Session Summary (v1.1.74)
 *   **Pitch Context:** Hooked the `is_dm` flag logic directly into the main `qualify_and_pitch` execution loop in `main.py`, guaranteeing that venues without emails receive properly formatted DM pitches.
 *   **Outreach Testing:** Manually verified using an isolated SQLite database and mocked components that `main.py` generates DM pitches correctly when only an IG handle is present.
-
-## Session Summary (v1.1.76)
-*   **Intelligence & Vision:** Extended the Phase 24 roadmap items by implementing the initial `TourPlanner` integration for analyzing the Detroit/Midwest venue dataset, generating an optimized multi-city circuit based on geographic proximity and vibe scores.

@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
     vibe_score INTEGER,
     qualification_justification TEXT,
     generated_pitch TEXT,
-    generated_subject TEXT,
     pipeline_status TEXT DEFAULT 'PENDING_QUALIFICATION', -- PENDING_QUALIFICATION, PENDING_REVIEW, APPROVED, REJECTED, SENT, REJECTED
     qualified_genre TEXT,
     pitch_variant TEXT, -- A/B testing variant (e.g., 'Professional', 'Underground', 'Technical')

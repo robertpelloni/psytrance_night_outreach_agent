@@ -20,27 +20,38 @@ class FollowUpEngine:
 
         print(f"FollowUpEngine: Checking for leads to follow up (after {days_wait} days, max_follow_ups={max_follow_ups})...")
 
-        # We look for 'SENT' leads that haven't been followed up in X days
+        # We look for 'SENT' or 'FOLLOW_UP_APPROVED' leads that haven't been followed up in X days
         leads = self.db.get_leads_eligible_for_follow_up(days_wait, max_follow_ups)
-        print(f"FollowUpEngine: Found {len(leads)} leads eligible for follow-up.")
+        print(f"FollowUpEngine: Found {len(leads)} leads eligible for follow-up evaluation.")
 
         for lead in leads:
             # Re-check vibe score
             vibe_score = lead.get('vibe_score', 0)
+            auto_approve_threshold = self.config.get("auto_approve_threshold") or 9
+
             if vibe_score < 6:
                 print(f"Skipping follow-up for lead {lead['id']} due to low vibe score ({vibe_score}).")
                 continue
 
-            print(f"Processing follow-up for lead_id {lead['id']}...")
+            # HITL Gating Logic
+            if lead['pipeline_status'] == 'SENT':
+                if vibe_score >= auto_approve_threshold:
+                    print(f"Auto-approving follow-up for high-vibe lead {lead['id']}...")
+                    self.db.update_lead_status(lead['id'], 'FOLLOW_UP_APPROVED')
+                else:
+                    print(f"Lead {lead['id']} requires HITL approval for follow-up. Setting to PENDING_FOLLOW_UP.")
+                    self.db.update_lead_status(lead['id'], 'PENDING_FOLLOW_UP')
+                    continue
+            elif lead['pipeline_status'] != 'FOLLOW_UP_APPROVED':
+                continue
+
+            print(f"Processing approved follow-up for lead_id {lead['id']}...")
             venue = self.db.get_venue(lead['venue_id'])
             # Fetch contact email and IG handle
             query = "SELECT email, instagram_handle FROM venue_contacts WHERE venue_id = ?"
             conn = self.db._get_connection()
-            try:
-                cursor = conn.execute(query, (lead['venue_id'],))
-                contact = cursor.fetchone()
-            finally:
-                conn.close()
+            cursor = conn.execute(query, (lead['venue_id'],))
+            contact = cursor.fetchone()
 
             if contact:
                 email = contact[0].split(',')[0].strip() if contact[0] else None

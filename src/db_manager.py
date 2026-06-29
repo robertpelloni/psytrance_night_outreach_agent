@@ -230,15 +230,14 @@ class DatabaseManager:
 
     def add_lead(self, lead_data):
         query = """
-        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, generated_subject, pipeline_status, success_probability, qualified_genre, pitch_variant)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO outreach_leads (venue_id, vibe_score, qualification_justification, generated_pitch, pipeline_status, success_probability, qualified_genre, pitch_variant)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
         with self._get_connection() as conn:
             conn.execute(query, (
                 lead_data['venue_id'], lead_data.get('vibe_score'),
                 lead_data.get('qualification_justification'),
                 lead_data.get('generated_pitch'),
-                lead_data.get('generated_subject'),
                 lead_data.get('pipeline_status', 'PENDING_QUALIFICATION'),
                 lead_data.get('success_probability'),
                 lead_data.get('qualified_genre'),
@@ -335,10 +334,11 @@ class DatabaseManager:
         # EXCLUSION: Skip leads that have received a human reply (unless it is OOO)
         query = """
         SELECT * FROM outreach_leads
-        WHERE pipeline_status = 'SENT'
+        WHERE pipeline_status IN ('SENT', 'FOLLOW_UP_APPROVED', 'PENDING_FOLLOW_UP')
         AND follow_up_count < ?
         AND last_outreach_at < datetime('now', '-' || ? || ' days')
-        AND id NOT IN (SELECT DISTINCT lead_id FROM lead_replies WHERE sentiment NOT IN ('OOO', 'UNKNOWN'))
+        AND id NOT IN (SELECT DISTINCT lead_id FROM lead_replies WHERE sentiment NOT IN ('OOO', 'UNKNOWN', 'INTERESTED', 'INQUIRY'))
+        AND negotiation_status NOT IN ('BOOKED', 'LOST')
         """
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
@@ -505,13 +505,9 @@ class DatabaseManager:
             conn.execute(query, (artist_id,))
 
     def add_reply(self, lead_id, content, sentiment='UNKNOWN', draft_response=None):
-        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response, requires_attention) VALUES (?, ?, ?, ?, ?)"
-
-        # Requires attention if it's not a bounce or out of office
-        requires_attention = 1 if sentiment not in ['BOUNCED', 'OOO'] else 0
-
+        query = "INSERT INTO lead_replies (lead_id, content, sentiment, draft_response) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
-            conn.execute(query, (lead_id, content, sentiment, draft_response, requires_attention))
+            conn.execute(query, (lead_id, content, sentiment, draft_response))
 
         # Update negotiation status on new reply
         if sentiment in ['INTERESTED', 'INQUIRY']:

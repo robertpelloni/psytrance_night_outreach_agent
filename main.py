@@ -224,7 +224,7 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         # Note: Do NOT explicitly close the connection here in the main loop if we are using the patched mock
         # which shares a single connection object across threads/tests. We let the db manager or pytest handle it.
 
-        pitch_result = ai.generate_pitch(
+        pitch = ai.generate_pitch(
             v_data["name"],
             vibe_result["justification"],
             epk_link=config.get("epk_link"),
@@ -235,9 +235,6 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             variant=variant,
             is_dm=is_dm
         )
-        pitch = pitch_result.get("body", "Error generating pitch") if isinstance(pitch_result, dict) else pitch_result
-        subject = pitch_result.get("subject", "Proposal for Psytrance Night Residency") if isinstance(pitch_result, dict) else "Proposal for Psytrance Night Residency"
-
         status = "PENDING_REVIEW"
     else:
         status = "PENDING_QUALIFICATION"
@@ -247,7 +244,6 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         "vibe_score": vibe_result["vibe_score"],
         "qualification_justification": vibe_result["justification"],
         "generated_pitch": pitch,
-        "generated_subject": subject if 'subject' in locals() else None,
         "pipeline_status": status,
         "qualified_genre": qualify_genre,
         "pitch_variant": variant,

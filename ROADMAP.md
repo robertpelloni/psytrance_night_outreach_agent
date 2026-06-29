@@ -113,10 +113,10 @@
 - [x] Add daily outreach throttle (max 10 emails/day)
 - [x] Add configurable delay between dispatches (5 minutes)
 - [x] Add OpenAI token budget tracker (v1.1.62)
-- [x] Add pitch subject line generation (currently hardcoded)
+- [ ] Add pitch subject line generation (currently hardcoded)
 - [ ] Add email open/click tracking via tracking pixel or link wrapper
-- [ ] Add "Do Not Contact" list for venues
-- [ ] Add A/B testing statistical significance calculator
+- [x] Add "Do Not Contact" list for venues
+- [x] Add A/B testing statistical significance calculator
 
 ### Phase 43: Data Model & Persistence Improvements (v1.1.52)
 - [x] Add address, phone, type, capacity, and neighborhood to `venues` table
@@ -126,8 +126,8 @@
 ### Phase 44: Detroit Venue Seed & Community Intelligence (v1.1.51)
 - [x] Create `database/detroit_venues_seed.json` with 30 seed venues
 - [x] Add seed import command: `python main.py --seed`
-- [ ] Add "Add Venue Manually" form to dashboard
-- [x] Add venue notes/annotations system
+- [x] Add "Add Venue Manually" form to dashboard
+- [ ] Add venue notes/annotations system
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 - [x] Add auto-response for OOO replies (v1.1.54)
@@ -159,12 +159,19 @@
 ### Phase 49: Social Media Automation (v1.1.65)
 Expand beyond email into automated social media outreach assistance.
 
-- [ ] Implement Instagram/Facebook DM assistance and ingestion
+- [x] Implement Instagram/Facebook DM assistance and ingestion
 - [x] Add dashboard notification for new replies requiring attention (v1.1.64)
-- [ ] Implement per-run and per-day token budget alerts
+- [x] Implement per-run and per-day token budget alerts
 - [ ] Refine "Pending Qualification" view with bulk approval actions
 
 ---
+
+
+### Phase 50: Automated Follow-up & Sentiment Engine
+Expand reply parsing logic to deeply integrate sentiment and trigger automatic follow-ups.
+- [ ] Implement sentiment analysis for incoming DM responses to auto-tag lead warmth
+- [ ] Build automated follow-up triggers for positive DM leads (low-friction guidelines)
+- [ ] Add DM lead tracking visibility to the HITL dashboard
 
 ## Backlog / Future Ideas
 
@@ -177,9 +184,3 @@ See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
 
 ### Phase 4 Outreach Execution Enhancements
 *   [x] Integrate A/B testing selection and IG DM pitch generation dynamically based on data availability in the primary qualification loop.
-
-### Phase 24+ Intelligence & Vision Enhancements
-*   [x] Establish basic `TourPlanner` interface to generate Multi-City Tour Pitch strategies using geospatial clustering.
-
-### Phase 49: Social Media Automation (v1.1.65 - Current)
-- [x] Automatically route simulated DMs to `SentimentAnalyzer` to score tone and auto-flag high-intent leads to the HITL dashboard review queue.

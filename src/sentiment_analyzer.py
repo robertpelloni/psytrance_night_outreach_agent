@@ -46,7 +46,23 @@ class SentimentAnalyzer:
             with self.db._get_connection() as conn:
                 conn.execute("UPDATE outreach_leads SET last_outreach_at = CURRENT_TIMESTAMP WHERE id = ?", (lead_id,))
 
+        # Phase 50: Auto-tag lead warmth and flag for follow-up
+        requires_attention = 1 if sentiment in ['INTERESTED', 'INQUIRY'] else 0
+        if sentiment == 'REJECTED':
+            self.db.update_lead_status(lead_id, 'LOST')
+
+        # Tie follow-up status to individual venue records to avoid redundant outreach
+        if sentiment in ['INTERESTED', 'INQUIRY']:
+             # Flag the lead in DB as requiring attention, which the dashboard can track.
+             self.db.log_system_event("SENTIMENT", "HIGH_INTENT", f"Lead {lead_id} showed {sentiment} sentiment.")
+
         self.db.add_reply(lead_id, content, sentiment, draft_response=draft)
+
+        # If it's a DM and sentiment is positive, we could automatically queue a fast follow-up
+        if "IG DM:" in content and sentiment in ['INTERESTED', 'INQUIRY']:
+            # For low-friction authentic outreach, we change pipeline_status so HITL can approve the follow-up
+            self.db.update_lead_status(lead_id, 'PENDING_REVIEW')
+
         return sentiment
 
 if __name__ == "__main__":

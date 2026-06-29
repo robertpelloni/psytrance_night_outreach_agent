@@ -214,8 +214,3 @@
 - Properly propagated `is_dm` flag inside the `main.py` pipeline loop by pulling instagram handles from `venue_contacts` if email is missing.
 - Ensured IG DM contexts trigger casual formatting logic inside the AIEngine pitch generator in isolated unit tests.
 - Tested and verified against full integration staging suite.
-
-## [1.1.76] - $(date '+%Y-%m-%d')
-### Added
-- Initialized Phase 24+ Intelligence & Vision: 'Tour Routing & Proximity Clustering' module via `TourPlanner` integration.
-- Updated `TourPlanner` logic to seamlessly ingest Detroit/Midwest venue datasets to generate optimized geographic routing and cohesive "cluster pitches".

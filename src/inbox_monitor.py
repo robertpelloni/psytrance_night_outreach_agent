@@ -17,45 +17,6 @@ class InboxMonitor:
         self.imap_password = os.getenv("IMAP_PASSWORD") or self.config.get("imap_password")
         self.imap_port = int(os.getenv("IMAP_PORT") or self.config.get("imap_port") or 993)
 
-    def _poll_dm_inbox(self):
-        """Simulates polling Instagram/FB DMs for replies to our outreach."""
-        # Note: Since there is no official open API, this would typically connect to a
-        # headless browser scraper or an un-official IG API proxy service.
-        print("InboxMonitor: Polling Instagram/FB DM Ingestion pipeline for new messages...")
-
-        # Fetching simulated unread DMs from a mock endpoint or database queue
-        # In a real scenario, this matches DM handles back to lead IDs.
-        dm_queue = [] # Would be populated by DM scraper
-
-        for dm in dm_queue:
-            handle = dm.get('sender_handle')
-            body = dm.get('message')
-
-            # Match by instagram handle
-            query = """
-            SELECT l.*, v.name
-            FROM outreach_leads l
-            JOIN venues v ON l.venue_id = v.id
-            JOIN venue_contacts vc ON v.id = vc.venue_id
-            WHERE vc.instagram_handle LIKE ?
-            LIMIT 1
-            """
-            conn = self.db._get_connection()
-            try:
-                conn.row_factory = email_sqlite_row_factory
-                cursor = conn.execute(query, (f"%{handle}%",))
-                lead = cursor.fetchone()
-            finally:
-                conn.close()
-
-            if lead:
-                print(f"  Matched DM from @{handle} to lead_id: {lead['id']} (Venue: {lead['name']})")
-                self.analyzer.process_new_reply(lead['id'], f"IG DM: {body}")
-                self.db.log_system_event("INBOX", "DM_MATCH_SUCCESS", f"DM matched to lead {lead['id']}")
-            else:
-                print(f"  Could not match DM from @{handle} to any active lead.")
-                self.db.log_system_event("INBOX", "DM_MATCH_FAILURE", f"DM from @{handle} unmatched")
-
     def _connect(self):
         """Establishes a connection to the IMAP server."""
         if not all([self.imap_server, self.imap_user, self.imap_password]):
@@ -72,10 +33,6 @@ class InboxMonitor:
 
     def fetch_new_replies(self):
         """Polls the inbox for new unread messages and processes them."""
-
-        # Simulated Instagram/FB DM Ingestion (Phase 24-35 / 49)
-        self._poll_dm_inbox()
-
         mail = self._connect()
         if not mail:
             return 0

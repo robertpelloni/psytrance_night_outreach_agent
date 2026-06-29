@@ -59,7 +59,7 @@ import json
 @app.context_processor
 def inject_attention_count():
     count = db.get_attention_required_count()
-    return dict(attention_count=count)
+    return dict()
 
 @app.route('/')
 def index():
@@ -572,8 +572,6 @@ def calculate_ab_significance():
 
     return render_template('ab_testing.html', variant_stats=variant_stats)
 
-
-
 @app.route('/dm_queue')
 def dm_queue():
     """Dashboard view for the simulated DM queue."""
@@ -582,24 +580,18 @@ def dm_queue():
         conn.row_factory = __import__('sqlite3').Row
         cursor = conn.execute(query)
         leads = [dict(row) for row in cursor.fetchall()]
-    return render_template('index.html', leads=leads, view='dm_queue', attention_count=0)
+    return render_template('index.html', leads=leads, view='dm_queue')
 
-    from src.analytics import AnalyticsEngine
-    analytics = AnalyticsEngine()
-    stats = analytics.get_scene_health()
+@app.route('/pending_follow_ups')
+def pending_follow_ups():
+    query = "SELECT l.*, v.name, v.city FROM outreach_leads l JOIN venues v ON l.venue_id = v.id WHERE l.pipeline_status = 'PENDING_FOLLOW_UP'"
+    with db._get_connection() as conn:
+        conn.row_factory = __import__('sqlite3').Row
+        cursor = conn.execute(query)
+        leads = [dict(row) for row in cursor.fetchall()]
+    return render_template('index.html', leads=leads, view='pending_follow_ups')
 
-    variant_stats = {}
-    for row in db.execute_query("SELECT variant, status FROM outreach_leads WHERE variant IS NOT NULL", []):
-        v = row[0]
-        s = row[1]
-        if v not in variant_stats:
-            variant_stats[v] = {"sent": 0, "replies": 0, "conversion_rate": 0}
-        variant_stats[v]["sent"] += 1
-        if s in ["Replied", "Interested", "Booked"]:
-            variant_stats[v]["replies"] += 1
-
-    for v, d in variant_stats.items():
-        if d["sent"] > 0:
-            d["conversion_rate"] = round((d["replies"] / d["sent"]) * 100, 2)
-
-    return render_template('ab_testing.html', variant_stats=variant_stats)
+@app.route('/approve_follow_up/<int:lead_id>', methods=['POST'])
+def approve_follow_up(lead_id):
+    db.update_lead_status(lead_id, 'FOLLOW_UP_APPROVED')
+    return redirect(url_for('pending_follow_ups'))
