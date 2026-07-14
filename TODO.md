@@ -136,9 +136,9 @@
 
 ## 🔴 Critical (Production Blockers)
 
-- [x] Add dashboard notification for new replies requiring attention
-- [ ] Add Google Maps Places API as a reliable fallback for Playwright
-- [ ] Implement per-run and per-day OpenAI token budget alerts
+- [x] Add dashboard notification for new replies requiring attention (v1.1.64)
+- [x] Add Google Maps Places API as a reliable fallback for Playwright (v1.1.67)
+- [x] Implement per-run and per-day OpenAI token budget alerts (v1.1.65)
 
 ---
 
@@ -147,10 +147,10 @@
 - [x] Add Artist Identity section to Settings UI (Artist Management)
 - [x] Add Media Library management to Settings UI
 - [x] Add Detroit Search Queries editor to Settings UI
-- [ ] Generate pitch subject lines via AI (currently hardcoded)
-- [ ] Add "Do Not Contact" list for venues
-- [x] Add "Add Venue Manually" form to dashboard
-- [x] Add A/B testing statistical significance calculator
+- [x] Generate pitch subject lines via AI (v1.1.68)
+- [x] Add "Do Not Contact" list for venues (v1.1.69)
+- [x] Add "Add Venue Manually" form to dashboard (v1.1.70)
+- [x] Add A/B testing statistical significance calculator (v1.1.71)
 
 ---
 
