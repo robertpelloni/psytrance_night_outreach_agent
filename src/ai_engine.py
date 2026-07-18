@@ -4,21 +4,30 @@ import json
 
 
 class AIEngine:
-    def __init__(self, api_key=None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
+        self.base_url: str | None = os.getenv("OPENAI_BASE_URL")
+        self.model: str = os.getenv("OPENAI_MODEL", "gpt-4o")
+        if self.api_key:
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url if self.base_url else None,
+            )
+        else:
+            self.client = None
 
     def _log_usage(self, response):
         """Logs OpenAI token usage to the database."""
         try:
             from src.db_manager import DatabaseManager
+
             db = DatabaseManager()
             usage = response.usage
             db.log_ai_usage(
                 response.model,
                 usage.prompt_tokens,
                 usage.completion_tokens,
-                usage.total_tokens
+                usage.total_tokens,
             )
         except Exception as e:
             print(f"Error logging AI usage: {e}")
@@ -44,10 +53,10 @@ class AIEngine:
             if artist_id:
                 artist_data = db.get_artist(artist_id)
                 if artist_data:
-                    artist_name = artist_data['name']
-                    bio = artist_data.get('bio', '')
-                    epk = artist_data.get('epk_link', '')
-                    mix = artist_data.get('mix_link', '')
+                    artist_name = artist_data["name"]
+                    bio = artist_data.get("bio", "")
+                    epk = artist_data.get("epk_link", "")
+                    mix = artist_data.get("mix_link", "")
 
             parts = []
             if artist_name:
@@ -62,12 +71,14 @@ class AIEngine:
                 "context": " | ".join(parts) if parts else "",
                 "artist_name": artist_name,
                 "epk_link": epk,
-                "mix_link": mix
+                "mix_link": mix,
             }
         except Exception:
             return {"context": "", "artist_name": "", "epk_link": "", "mix_link": ""}
 
-    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None, artist_id=None):
+    def vibe_check(
+        self, venue_name, raw_text, genre="psytrance", rating=None, artist_id=None
+    ):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
@@ -113,7 +124,7 @@ Output JSON format:
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
@@ -134,7 +145,16 @@ Output JSON format:
             print(f"AI Error: {e}")
             return {"vibe_score": 0, "justification": f"Error: {e}"}
 
-    def generate_follow_up(self, venue_name, original_pitch, genre="psytrance", artist_id=None, vibe_score=None, threshold=None, is_dm=False):
+    def generate_follow_up(
+        self,
+        venue_name,
+        original_pitch,
+        genre="psytrance",
+        artist_id=None,
+        vibe_score=None,
+        threshold=None,
+        is_dm=False,
+    ):
         if not self.client:
             return f"Just following up on our previous email regarding a {genre} night!"
         identity = self._get_identity_context(artist_id=artist_id)["context"]
@@ -144,7 +164,9 @@ Output JSON format:
             if vibe_score >= threshold + 2:
                 vibe_context = "This venue is a perfect fit for our vibe! Be enthusiastic and reference how perfectly our sound matches their aesthetic."
             elif vibe_score >= threshold:
-                vibe_context = "This venue is a solid match. Be polite and professional."
+                vibe_context = (
+                    "This venue is a solid match. Be polite and professional."
+                )
             else:
                 vibe_context = "This venue is a bit of a stretch, but we still want to try. Keep it casual and low-pressure."
 
@@ -165,7 +187,7 @@ to see our proposal. Reference the Detroit scene if it feels natural.
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
@@ -203,7 +225,7 @@ Return ONLY valid JSON.
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
             )
@@ -232,7 +254,7 @@ Output ONLY the tag name.
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
@@ -275,7 +297,7 @@ Output JSON format:
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "user",
@@ -370,38 +392,33 @@ Output JSON format:
         tone_instruction = variant_prompts.get(variant, variant_prompts["Professional"])
 
         prompt = f"""
-Write a bespoke cold email pitch to the booking manager of {venue_name}.
+Write a short, casual cold email to the booking person at {venue_name}.
 
-Justification for outreach: {justification}
+About us: {identity_context}
+We're Detroit-based psytrance DJs looking to start a recurring night. We think their venue fits the vibe.
 
-{identity_context}
-Our project: We're looking to start a recurring {genre} night/residency at venues that
-align with the psychedelic underground. Detroit has a rich electronic music tradition, and
-we believe the city is ready for a dedicated psytrance experience — from forest psy to
-dark progressive to full-power nighttime sets.
-
-{tone_instruction}
-
-Please include these links:
-{links_context}
+Venue info: {justification}
 {traits_context}
 
-Key pitch elements:
-- Position this as filling a gap: Detroit has world-class techno but very few regular psytrance events.
-- Emphasize we understand the venue's identity and are not just mass-emailing.
-- Suggest a low-risk first step (one-off night, weeknight, or early slot on an existing event).
-- Keep it concise — booking managers are busy.
+TONE: {tone_instruction}
+
+RULES:
+- Keep it SHORT. 3-4 short paragraphs max. Booking managers are busy.
+- Sound like a real person, not a corporate email. We are psytrance DJ bros reaching out to connect.
+- DO NOT use any placeholder templates like [Your Name], [Your Email], [Your Phone], [SoundCloud/Mixes], [Booking Manager's Name], etc. Use the actual names from the identity info above. If no email/phone is provided, just don't mention them.
+- DO NOT include a signature block with placeholders. Just sign off with our actual names.
+- Mention something specific about the venue to show we actually know them.
+- Suggest a low-risk first step: one-off weeknight, or an early slot on an existing night.
+- If links are available, mention them naturally. Don't force it.
 {format_instruction}
-- If the venue is in Hamtramck/Ferndale, mention the suburb's growing creative scene.
-- If the venue is in Detroit proper, acknowledge the city's electronic music heritage.
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert music booking agent specializing in electronic music subcultures and the Detroit scene.",
+                        "content": "You are writing emails for two Detroit psytrance DJs reaching out to venues. Keep it real, short, and authentic. No corporate speak. No template placeholders.",
                     },
                     {"role": "user", "content": prompt},
                 ],
@@ -427,7 +444,7 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o", messages=[{"role": "user", "content": prompt}]
+                model=self.model, messages=[{"role": "user", "content": prompt}]
             )
             self._log_usage(response)
             content = response.choices[0].message.content
@@ -438,7 +455,14 @@ Return ONLY the 'url' of the best match. If no URL is set, return empty string.
             return None
 
     def generate_reply_draft(
-        self, venue_name, lead_reply, original_pitch, genre="psytrance", rate_card=None, availability=None, artist_id=None
+        self,
+        venue_name,
+        lead_reply,
+        original_pitch,
+        genre="psytrance",
+        rate_card=None,
+        availability=None,
+        artist_id=None,
     ):
         """Generates a professional draft response to a venue's reply."""
         if not self.client:
@@ -470,7 +494,7 @@ Goal:
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",
@@ -504,7 +528,7 @@ Output ONLY the resolved file content. Do not include any explanation or markdow
 """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=self.model,
                 messages=[
                     {
                         "role": "system",

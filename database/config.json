@@ -1,74 +1,7 @@
 {
-    "cities": [
-        "Detroit",
-        "Hamtramck",
-        "Ferndale",
-        "Royal Oak",
-        "Ann Arbor",
-        "Grand Rapids",
-        "Chicago",
-        "Cleveland",
-        "Columbus",
-        "Toronto"
-    ],
-    "target_genres": [
-        "psytrance",
-        "psychedelic trance",
-        "forest psy",
-        "dark prog",
-        "progressive psy",
-        "hi-tech"
-    ],
-    "epk_link": "",
-    "mix_link": "",
-    "artist_name": "",
-    "collective_name": "",
+    "artist_name": "djbobby / djlumbro",
+    "collective_name": "ResurrectingBeats",
     "home_city": "Detroit",
-    "vibe_threshold": 6,
-    "auto_approve_threshold": 9,
-    "follow_up_days": 7,
-    "max_follow_ups": 2,
-    "detroit_search_queries": [
-        "underground electronic music venue",
-        "warehouse venue Detroit",
-        "techno club Detroit",
-        "psytrance event Detroit",
-        "electronic music art space Detroit",
-        "afterhours Detroit",
-        "DIY venue Detroit",
-        "loft party Detroit",
-        "industrial venue Detroit"
-    ],
-    "detroit_neighborhoods": [
-        "Midtown Detroit",
-        "Downtown Detroit",
-        "Corktown Detroit",
-        "Southwest Detroit",
-        "Eastside Detroit",
-        "New Center Detroit",
-        "Hamtramck",
-        "Ferndale"
-    ],
-    "media_library": [
-        {
-            "name": "Forest Psy DJ Set",
-            "url": "",
-            "tags": ["forest", "underground", "dark", "nighttime"]
-        },
-        {
-            "name": "Progressive Psy Morning Set",
-            "url": "",
-            "tags": ["outdoor", "progressive", "morning", "chill"]
-        },
-        {
-            "name": "Dark Prog/Techno Crossover",
-            "url": "",
-            "tags": ["techno", "dark prog", "crossover", "industrial"]
-        },
-        {
-            "name": "Visual Projection Reel",
-            "url": "",
-            "tags": ["visuals", "lasers", "projections", "psychedelic"]
-        }
-    ]
+    "epk_link": "",
+    "mix_link": ""
 }
