@@ -156,22 +156,26 @@
 
 ## Upcoming Phases
 
-### Phase 49: Social Media Automation (v1.1.65)
+### Phase 49: Social Media Automation (v1.1.65 - v1.1.73)
 Expand beyond email into automated social media outreach assistance.
 
-- [x] Implement Instagram/Facebook DM assistance and ingestion
+- [x] Implement Instagram/Facebook DM assistance and ingestion (v1.1.71)
 - [x] Add dashboard notification for new replies requiring attention (v1.1.64)
 - [x] Implement per-run and per-day token budget alerts
+- [x] Integrate DM pitch generation and A/B Testing into Outreach logic (v1.1.72)
+- [x] Optimize DB connection for concurrency (v1.1.73)
 - [ ] Refine "Pending Qualification" view with bulk approval actions
 
 ---
 
 
-### Phase 50: Automated Follow-up & Sentiment Engine
+### Phase 50: Automated Follow-up & Sentiment Engine (v1.1.74)
 Expand reply parsing logic to deeply integrate sentiment and trigger automatic follow-ups.
+- [ ] Wire A/B Testing into Email and DM dispatch logic
+- [ ] Integrate completed DM pipeline leads into HITL unified inbox
 - [ ] Implement sentiment analysis for incoming DM responses to auto-tag lead warmth
 - [ ] Build automated follow-up triggers for positive DM leads (low-friction guidelines)
-- [ ] Add DM lead tracking visibility to the HITL dashboard
+- [ ] Add explicit DM lead tracking visibility charts to the HITL dashboard
 
 ## Backlog / Future Ideas
 

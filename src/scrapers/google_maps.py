@@ -3,6 +3,8 @@ import uuid
 import re
 from playwright.sync_api import sync_playwright
 import time
+import requests
+import os
 
 class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
     def __init__(self):
@@ -117,5 +119,62 @@ class GoogleMapsPlaywrightScraper(GoogleMapsScraper):
                     time.sleep(retry_delay * (2 ** attempt))
                 else:
                     print(f"  Scraper failed after {max_retries} attempts.")
+
+        if not venues:
+            venues = self._fallback_api_search(city, full_query)
+
+        return venues
+
+    def _fallback_api_search(self, city, full_query):
+        """Fallback to Google Places API if Playwright scraping fails or yields no results."""
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        if not api_key:
+            print("  [Fallback] No GOOGLE_MAPS_API_KEY found in environment. Skipping API fallback.")
+            return []
+
+        print(f"  [Fallback] Attempting Google Places API search for: {full_query}")
+        venues = []
+
+        # We use Text Search (Places API)
+        url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+        params = {
+            "query": full_query,
+            "key": api_key
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get("results", [])
+
+                for place in results:
+                    rating = place.get("rating")
+                    name = place.get("name", "Unknown Venue")
+
+                    # To get a photo URL, you'd need a secondary request to the Photo API using the photo_reference
+                    # For simplicity, we just leave it None unless you want to spend extra requests.
+                    image_url = None
+                    photos = place.get("photos", [])
+                    if photos:
+                        photo_ref = photos[0].get("photo_reference")
+                        image_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference={photo_ref}&key={api_key}"
+
+                    venues.append({
+                        'id': str(uuid.uuid4()),
+                        'name': name,
+                        'city': city,
+                        'website': None,  # Place Search doesn't return website; Place Details does.
+                        'google_rating': rating,
+                        'tags': full_query,
+                        'raw_about_text': f"Scraped from Google Places API for {full_query}. Rating: {rating if rating else 'N/A'}",
+                        'image_url': image_url,
+                        'source': 'google_maps_api'
+                    })
+                print(f"  [Fallback] Google Places API returned {len(venues)} venues.")
+            else:
+                print(f"  [Fallback] Google Places API request failed with status {response.status_code}.")
+        except Exception as e:
+            print(f"  [Fallback] Error calling Google Places API: {e}")
 
         return venues

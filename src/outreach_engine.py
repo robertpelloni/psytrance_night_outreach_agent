@@ -39,8 +39,8 @@ class OutreachEngine:
                 cursor = conn.execute(query, (venue_id,))
                 contact = cursor.fetchone()
 
-            if contact and contact[0]:
-                email = contact[0].split(',')[0].strip()
+            if contact:
+                email = contact[0].split(',')[0].strip() if contact[0] else None
                 if email:
                     print(f"Dispatching pitch to {email} for venue_id {venue_id}...")
                     subject = "Proposal for Psytrance Night Residency"
@@ -56,7 +56,23 @@ class OutreachEngine:
                             print(f"OutreachEngine: Sleeping for {delay_min} minutes before next dispatch...")
                             time.sleep(delay_min * 60)
                 else:
-                    print(f"No valid email found for lead {lead['id']}.")
+                    # Check for IG DM fallback
+                    ig_query = "SELECT instagram_handle FROM venue_contacts WHERE venue_id = ?"
+                    with self.db._get_connection() as conn:
+                        ig_cursor = conn.execute(ig_query, (venue_id,))
+                        ig_contact = ig_cursor.fetchone()
+
+                    if ig_contact and ig_contact[0]:
+                        print(f"Dispatching IG DM pitch to {ig_contact[0]} for venue_id {venue_id}...")
+                        self.db.update_lead_status(lead['id'], 'SENT')
+                        self.db.log_system_event("OUTREACH", "IG_DM_SENT", f"Simulated DM to @{ig_contact[0]}: {lead['generated_pitch'][:100]}...")
+                        print(f"Lead {lead['id']} marked as SENT via IG DM.")
+                        sent_today += 1
+
+                        if sent_today < max_daily:
+                            time.sleep(delay_min * 60)
+                    else:
+                        print(f"No valid email or IG handle found for lead {lead['id']}.")
             else:
                 print(f"No contact info found for lead {lead['id']}.")
 

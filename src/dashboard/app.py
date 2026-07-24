@@ -180,6 +180,7 @@ def show_map():
     clusters = analytics.get_venue_clusters()
     return render_template('map.html', venues=venues, clusters=clusters)
 
+
 @app.route('/plan_tour/<int:cluster_index>')
 def plan_tour(cluster_index):
     recommendation = planner.plan_optimized_tour(cluster_index)
@@ -189,7 +190,37 @@ def plan_tour(cluster_index):
         "pitch": pitch
     })
 
+@app.route('/plan_circuit')
+def plan_circuit():
+    recommendation = planner.plan_optimized_tour(cluster_index=None)
+    route = planner.get_circuit_route() if hasattr(planner, 'get_circuit_route') else []
+    return jsonify({
+        "recommendation": recommendation,
+        "route": route
+    })
+
+
+
+@app.route('/dispatch_circuit', methods=['POST'])
+def dispatch_circuit():
+    route = planner.get_circuit_route() if hasattr(planner, 'get_circuit_route') else []
+    if not route:
+        return jsonify({"error": "No circuit route available"}), 404
+
+    pitch = request.json.get('pitch')
+    if not pitch:
+        return jsonify({"error": "Pitch content required"}), 400
+
+    # Collect all venues across all clusters in the circuit
+    venues_list = []
+    for cluster in route:
+        venues_list.extend(cluster['venues'])
+
+    results = outreach_engine.dispatch_cluster_pitch(venues_list, pitch)
+    return jsonify(results)
+
 @app.route('/dispatch_tour/<int:cluster_index>', methods=['POST'])
+
 def dispatch_tour(cluster_index):
     clusters = analytics.get_venue_clusters()
     if cluster_index >= len(clusters):
@@ -556,31 +587,84 @@ if __name__ == '__main__':
 
     app.run(debug=True, port=5000)
 
+
 @app.route('/calculate_ab_significance')
 def calculate_ab_significance():
-    from src.analytics import AnalyticsEngine
-    analytics = AnalyticsEngine(db_path=db_path)
     stats = analytics.get_variant_stats()
 
-    variant_stats = {}
-    for v, d in stats.items():
-        variant_stats[v] = {
-            "sent": d['total_leads'],
-            "replies": d['interested_replies'],
-            "conversion_rate": d['conversion_rate']
-        }
+    # We need at least two variants to compare
+    if len(stats) < 2:
+        return jsonify({"error": "Need at least two variants with data to calculate significance."})
 
-    return render_template('ab_testing.html', variant_stats=variant_stats)
+    # Sort to find top two performing variants by conversion rate
+    sorted_variants = sorted(stats.items(), key=lambda item: item[1]['conversion_rate'], reverse=True)
+
+    var_a = sorted_variants[0]
+    var_b = sorted_variants[1]
+
+    # Simple Chi-Square approximation
+    success_a = var_a[1]['interested']
+    total_a = var_a[1]['sent']
+    success_b = var_b[1]['interested']
+    total_b = var_b[1]['sent']
+
+    if total_a == 0 or total_b == 0:
+        return jsonify({"error": "Insufficient pitch data sent to calculate significance."})
+
+    p1 = success_a / total_a
+    p2 = success_b / total_b
+    p_pool = (success_a + success_b) / (total_a + total_b)
+
+    if p_pool == 0 or p_pool == 1:
+        return jsonify({
+            "is_significant": False,
+            "p_value": 1.0,
+            "chi2": 0.0,
+            "variant_a": var_a[0],
+            "variant_b": var_b[0]
+        })
+
+    # Chi-square stat = (p1 - p2)^2 / (p_pool * (1 - p_pool) * (1/n1 + 1/n2))
+    chi2 = ((p1 - p2)**2) / (p_pool * (1 - p_pool) * ((1/total_a) + (1/total_b)))
+
+    # Roughly, chi2 > 3.84 is p < 0.05 for 1 degree of freedom
+    is_significant = chi2 > 3.84
+
+    # Very rough p-value approximation for display purposes
+    p_value = 1.0
+    if chi2 > 6.63: p_value = 0.01
+    elif chi2 > 3.84: p_value = 0.05
+    elif chi2 > 2.71: p_value = 0.10
+    else: p_value = 0.50
+
+    return jsonify({
+        "is_significant": is_significant,
+        "chi2": chi2,
+        "p_value": p_value,
+        "variant_a": var_a[0],
+        "variant_b": var_b[0]
+    })
+
+
 
 @app.route('/dm_queue')
 def dm_queue():
     """Dashboard view for the simulated DM queue."""
-    query = "SELECT l.*, v.name, v.city, vc.instagram_handle FROM outreach_leads l JOIN venues v ON l.venue_id = v.id JOIN venue_contacts vc ON v.id = vc.venue_id WHERE l.pipeline_status = 'SENT' AND vc.email IS NULL AND vc.instagram_handle IS NOT NULL"
+    query = """
+        SELECT l.*, v.name, v.city, vc.instagram_handle
+        FROM outreach_leads l
+        JOIN venues v ON l.venue_id = v.id
+        JOIN venue_contacts vc ON v.id = vc.venue_id
+        WHERE l.pipeline_status IN ('SENT', 'REPLIED')
+        AND vc.email IS NULL
+        AND vc.instagram_handle IS NOT NULL
+    """
     with db._get_connection() as conn:
         conn.row_factory = __import__('sqlite3').Row
         cursor = conn.execute(query)
         leads = [dict(row) for row in cursor.fetchall()]
     return render_template('index.html', leads=leads, view='dm_queue')
+
 
 @app.route('/pending_follow_ups')
 def pending_follow_ups():

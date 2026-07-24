@@ -8,7 +8,10 @@ class DatabaseManager:
         self._init_db()
 
     def _get_connection(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        # WAL mode is critical for concurrent read/writes
+        conn.execute('PRAGMA journal_mode=WAL;')
+        return conn
 
     def _init_db(self):
         # Find schema path relative to project root
@@ -404,6 +407,17 @@ class DatabaseManager:
         query = "INSERT INTO ai_usage (model, prompt_tokens, completion_tokens, total_tokens) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:
             conn.execute(query, (model, prompt_tokens, completion_tokens, total_tokens))
+
+    def get_today_token_usage(self):
+        query = """
+        SELECT SUM(total_tokens) as total
+        FROM ai_usage
+        WHERE date(timestamp) = date('now')
+        """
+        with self._get_connection() as conn:
+            cursor = conn.execute(query)
+            row = cursor.fetchone()
+            return row[0] if row and row[0] is not None else 0
 
     def get_ai_usage_stats(self, days=7):
         query = """

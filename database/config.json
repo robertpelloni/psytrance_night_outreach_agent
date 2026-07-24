@@ -24,7 +24,7 @@
     "artist_name": "",
     "collective_name": "",
     "home_city": "Detroit",
-    "vibe_threshold": 6,
+    "vibe_threshold": 5,
     "auto_approve_threshold": 9,
     "follow_up_days": 7,
     "max_follow_ups": 2,
@@ -53,22 +53,42 @@
         {
             "name": "Forest Psy DJ Set",
             "url": "",
-            "tags": ["forest", "underground", "dark", "nighttime"]
+            "tags": [
+                "forest",
+                "underground",
+                "dark",
+                "nighttime"
+            ]
         },
         {
             "name": "Progressive Psy Morning Set",
             "url": "",
-            "tags": ["outdoor", "progressive", "morning", "chill"]
+            "tags": [
+                "outdoor",
+                "progressive",
+                "morning",
+                "chill"
+            ]
         },
         {
             "name": "Dark Prog/Techno Crossover",
             "url": "",
-            "tags": ["techno", "dark prog", "crossover", "industrial"]
+            "tags": [
+                "techno",
+                "dark prog",
+                "crossover",
+                "industrial"
+            ]
         },
         {
             "name": "Visual Projection Reel",
             "url": "",
-            "tags": ["visuals", "lasers", "projections", "psychedelic"]
+            "tags": [
+                "visuals",
+                "lasers",
+                "projections",
+                "psychedelic"
+            ]
         }
     ]
 }

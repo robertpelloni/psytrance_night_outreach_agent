@@ -28,6 +28,8 @@
                 <option value="APPROVED">Approved</option>
             </select>
             <button onclick="toggleClusters()" id="cluster-toggle" class="btn btn-sm btn-outline-info">Show Hotspots</button>
+            <button onclick="planCircuit()" id="circuit-btn" class="btn btn-sm btn-outline-warning">Plan Midwest Circuit</button>
+
             <a href="/" class="btn btn-sm btn-outline-primary">Dashboard</a>
         </div>
     </div>
@@ -145,6 +147,71 @@
                 btn.disabled = false;
                 btn.innerText = 'Retry Dispatch';
             });
+        }
+
+        let circuitPolyline = null;
+
+
+        function dispatchCircuit() {
+            const pitch = document.getElementById('cluster-pitch').value;
+            const btn = document.getElementById('dispatch-btn');
+            const alertDiv = document.getElementById('dispatch-results');
+
+            btn.disabled = true;
+            btn.innerText = 'Dispatching Circuit...';
+
+            fetch(`/dispatch_circuit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pitch: pitch })
+            })
+            .then(r => r.json())
+            .then(data => {
+                alertDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+                alertDiv.classList.add(data.success > 0 ? 'alert-success' : 'alert-danger');
+                alertDiv.innerText = `Successfully dispatched to ${data.success} venues across the circuit. Failures: ${data.failure}.`;
+                btn.innerText = 'Dispatch Complete';
+            })
+            .catch(err => {
+                alertDiv.classList.remove('d-none');
+                alertDiv.classList.add('alert-danger');
+                alertDiv.innerText = "Error dispatching circuit: " + err;
+                btn.disabled = false;
+                btn.innerText = 'Retry Dispatch';
+            });
+        }
+
+        function planCircuit() {
+            const btn = document.getElementById('circuit-btn');
+            btn.disabled = true;
+            btn.innerText = 'Calculating Route...';
+
+            fetch(`/plan_circuit`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('tour-output').innerText = data.recommendation;
+                    document.getElementById('cluster-pitch').value = "Circuit routing active. View strategy above.";
+                    document.getElementById('dispatch-btn').classList.remove('d-none');
+                    document.getElementById('dispatch-btn').onclick = () => dispatchCircuit();
+
+
+                    if (data.route && data.route.length > 1) {
+                        const latlngs = data.route.map(c => [c.center.lat, c.center.lon]);
+                        if (circuitPolyline) map.removeLayer(circuitPolyline);
+                        circuitPolyline = L.polyline(latlngs, {color: 'orange', weight: 4, dashArray: '10, 10'}).addTo(map);
+                        map.fitBounds(circuitPolyline.getBounds());
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('tourModal'));
+                    modal.show();
+                    btn.disabled = false;
+                    btn.innerText = 'Plan Midwest Circuit';
+                })
+                .catch(err => {
+                    alert("Error calculating circuit: " + err);
+                    btn.disabled = false;
+                    btn.innerText = 'Plan Midwest Circuit';
+                });
         }
 
         function toggleClusters() {
