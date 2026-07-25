@@ -1,4 +1,5 @@
 import json
+import math
 from src.ai_engine import AIEngine
 from src.db_manager import DatabaseManager
 from src.analytics import AnalyticsEngine
@@ -9,34 +10,92 @@ class TourPlanner:
         self.db = DatabaseManager(db_path=db_path)
         self.analytics = AnalyticsEngine(db_path=db_path)
 
-    def plan_optimized_tour(self, cluster_index=0):
+    def _haversine(self, lat1, lon1, lat2, lon2):
+        R = 6371 # Earth radius in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+
+    def get_circuit_route(self):
         """
-        Takes a cluster of venues and uses AI to suggest an optimal
+        Calculates an optimal route connecting the centers of all identified venue clusters.
+        Uses a nearest-neighbor approach starting from the cluster with the highest average vibe.
+        """
+        clusters = self.analytics.get_venue_clusters()
+        if not clusters:
+            return []
+
+        # Start with the cluster that has the highest average vibe
+        sorted_clusters = sorted(clusters, key=lambda x: x['avg_vibe'], reverse=True)
+        unvisited = sorted_clusters[1:]
+
+        route = [sorted_clusters[0]]
+        current_cluster = sorted_clusters[0]
+
+        while unvisited:
+            # Find nearest neighbor
+            nearest = min(
+                unvisited,
+                key=lambda c: self._haversine(
+                    current_cluster['center']['lat'], current_cluster['center']['lon'],
+                    c['center']['lat'], c['center']['lon']
+                )
+            )
+            route.append(nearest)
+            unvisited.remove(nearest)
+            current_cluster = nearest
+
+        return route
+
+    def plan_optimized_tour(self, cluster_index=None):
+        """
+        Takes clusters of venues and uses AI to suggest an optimal
         visiting sequence and outreach strategy for a tour.
+        If cluster_index is None, it plans a multi-city circuit across all clusters.
         """
         if not self.ai or not self.ai.client:
             return "Tour Planning requires an active AI Engine."
 
         clusters = self.analytics.get_venue_clusters()
-        if not clusters or cluster_index >= len(clusters):
+        if not clusters:
             return "No clusters available for planning."
 
-        cluster = clusters[cluster_index]
-        venues_list = cluster['venues']
+        # Fetch A/B variant stats to inform AI
+        variant_stats = self.analytics.get_variant_stats()
+        best_variant = None
+        if variant_stats:
+            best_variant = max(variant_stats.keys(), key=lambda k: variant_stats[k].get("conversion_rate", 0))
+
+        if cluster_index is not None:
+            if cluster_index >= len(clusters):
+                return "Cluster index out of bounds."
+            route_clusters = [clusters[cluster_index]]
+            tour_scope = "a localized cluster"
+        else:
+            route_clusters = self.get_circuit_route()
+            tour_scope = "a multi-city circuit across several regional clusters"
 
         # Format venues for AI
         venues_summary = []
-        for v in venues_list:
-            venues_summary.append(f"- {v['name']} ({v['vibe_score']}/10)")
+        for i, cluster in enumerate(route_clusters):
+            venues_summary.append(f"\nCluster {i+1} (Center Lat: {cluster['center']['lat']:.2f}, Lon: {cluster['center']['lon']:.2f}, Avg Vibe: {cluster['avg_vibe']:.1f}):")
+            for v in cluster['venues']:
+                venues_summary.append(f"- {v['name']} (Vibe: {v['vibe_score']}/10, Status: {v['pipeline_status']})")
+
+        variant_advice = ""
+        if best_variant:
+            variant_advice = f"\n4. Note: Analytics show our '{best_variant}' pitch variant converts best. Tailor the suggested outreach strategy to align with the tone of this variant."
 
         prompt = f"""
-        Plan a multi-city psytrance tour for the following venues located in the same geographic region:
+        Plan an optimal psytrance tour route for {tour_scope} based on the following venues:
         {chr(10).join(venues_summary)}
 
         Provide:
-        1. An optimal visiting sequence.
-        2. A cohesive 'tour pitch' strategy that emphasizes the connection between these venues.
-        3. Logistics advice for this specific cluster.
+        1. An optimal visiting sequence (route) that minimizes travel time between venues and clusters.
+        2. A cohesive 'tour pitch' strategy that emphasizes the connection between these venues and our multi-city presence.
+        3. Logistics advice for this specific route. {variant_advice}
 
         Return as a structured recommendation.
         """

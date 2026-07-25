@@ -159,25 +159,25 @@
             <button id="fetch-replies-btn" onclick="fetchReplies()" class="btn btn-info text-nowrap">Fetch New Replies</button>
             {% endif %}
             <div class="btn-group">
-                <a href="/map" class="btn btn-outline-light">Venue Map</a>
-                <a href="/analytics" class="btn btn-outline-info">Analytics</a>
-                <a href="/sources" class="btn btn-outline-success">Sources</a>
-                <a href="/settings" class="btn btn-outline-warning">Settings</a>
-                <a href="/system" class="btn btn-outline-secondary">System</a>
+                <a href="/map" class="btn btn-outline-light" data-bs-toggle="tooltip" title="View clustered venues on an interactive map.">Venue Map</a>
+                <a href="/analytics" class="btn btn-outline-info" data-bs-toggle="tooltip" title="View historical performance and engagement analytics.">Analytics</a>
+                <a href="/sources" class="btn btn-outline-success" data-bs-toggle="tooltip" title="Manage data sources like Resident Advisor and Google Maps.">Sources</a>
+                <a href="/settings" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="System settings and configuration.">Settings</a>
+                <a href="/system" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="System logs and proxy health.">System</a>
             </div>
             <div class="btn-group ms-2">
-                <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pending</a>
-                <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}">Filter</a>
-                <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Review new AI-generated pitches ready for approval.">Pending</a>
+                <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Review raw scraped venues awaiting AI Vibe checks.">Filter</a>
+                <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Unified Inbox: View sent pitches, simulate replies, and manage negotiations.">
                     History
                     {% if attention_count and attention_count > 0 %}
                     <span id="nav-attention-badge" class="badge bg-danger rounded-pill ms-1">{{ attention_count }}</span>
                     {% endif %}
                 </a>
-                <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}">Booked</a>
-                <a href="/calculate_ab_significance" class="btn btn-outline-warning">A/B Testing</a>
-                <a href="/dm_queue" class="btn {% if view == 'dm_queue' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">DM Queue</a>
-                <a href="/pending_follow_ups" class="btn {% if view == 'pending_follow_ups' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pending Follow-ups</a>
+                <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Track successfully booked venues.">Booked</a>
+                <a href="/calculate_ab_significance" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="View current A/B testing stats for pitch variants.">A/B Testing</a>
+                <a href="/dm_queue" class="btn {% if view == 'dm_queue' %}btn-secondary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Queue of Instagram DM outreach leads awaiting action.">DM Queue</a>
+                <a href="/pending_follow_ups" class="btn {% if view == 'pending_follow_ups' %}btn-warning{% else %}btn-outline-warning{% endif %}" data-bs-toggle="tooltip" title="Leads scheduled for follow-up outreach based on their vibe score.">Pending Follow-ups</a>
             </div>
         </div>
     </div>

@@ -16,6 +16,7 @@ from src.geocoding import GeocodingUtility
 from src.outreach_predictor import OutreachPredictor
 from src.analytics import AnalyticsEngine
 from src.inbox_monitor import InboxMonitor
+from src.tour_planner import TourPlanner
 
 
 def load_scrapers():
@@ -287,6 +288,7 @@ def main(args_list=None):
     geocoder = GeocodingUtility()
     predictor = OutreachPredictor()
     analytics = AnalyticsEngine()
+    tour_planner = TourPlanner(ai=ai, db_path=getattr(db, 'db_path', 'database/outreach.db'))
     query_scrapers, city_scrapers = load_scrapers()
 
     if args.seed:
@@ -430,7 +432,13 @@ def main(args_list=None):
         if not args.dry_run:
             db.mark_city_processed(city)
 
+
     if not args.dry_run:
+        print("\nGenerating optimal tour route based on newly qualified clusters...")
+        for i in range(1): # We just want the first/main cluster for now
+            tour_plan = tour_planner.plan_optimized_tour(cluster_index=i)
+            print(f"\n[Cluster {i+1} Tour Plan]:\n{tour_plan}")
+
         print(
             "\nScraping and qualification complete. Running outreach, follow-up, and inbox cycles..."
         )

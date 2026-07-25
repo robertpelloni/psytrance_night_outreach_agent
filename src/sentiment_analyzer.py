@@ -6,9 +6,9 @@ class SentimentAnalyzer:
         self.db = DatabaseManager(db_path=db_path)
         self.ai = AIEngine()
 
+
     def process_new_reply(self, lead_id, content):
         """Analyzes a new reply and stores it with sentiment and drafted response."""
-        # Ensure lead_id is an integer if passed as a mock or other type in tests
         try:
             lead_id = int(lead_id)
         except (ValueError, TypeError):
@@ -18,23 +18,18 @@ class SentimentAnalyzer:
         print(f"SentimentAnalyzer: Detected {sentiment} for lead_id {lead_id}.")
 
         draft = None
-        if sentiment in ['INTERESTED', 'INQUIRY']:
-            from src.config_manager import ConfigManager
-            config = ConfigManager()
-            primary_genre = (config.get("target_genres") or ["psytrance"])[0]
-            rate_card = config.get("rate_card")
-            availability = config.get("availability_ranges")
+        constraints = None
 
-            lead = self.db.get_lead(lead_id)
-            venue = self.db.get_venue(lead['venue_id'])
-            draft = self.ai.generate_reply_draft(
-                venue['name'],
-                content,
-                lead['generated_pitch'],
-                genre=primary_genre,
-                rate_card=rate_card,
-                availability=availability
-            )
+        if sentiment in ['INTERESTED', 'INQUIRY']:
+            from src.negotiation.reply_parser import ReplyParser
+            from src.negotiation.counter_proposal_generator import CounterProposalGenerator
+
+            parser = ReplyParser(ai=self.ai)
+            generator = CounterProposalGenerator(ai=self.ai, db_path=getattr(self.db, 'db_path', 'database/outreach.db'))
+
+            # Phase 51: Extract negotiation constraints and generate counter-proposal
+            constraints = parser.parse_reply(content)
+            draft = generator.generate(lead_id, content, constraints)
         elif sentiment == 'OOO':
             # Phase 45: Queue re-attempt by bumping last_outreach_at forward
             # so the FollowUpEngine picks it up later

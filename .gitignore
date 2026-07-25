@@ -12,3 +12,7 @@ include/
 .env
 *.log
 database/*.db
+database/*.sqlite
+database/*.db-wal
+database/*.db-shm
+midwest_circuit_map.html

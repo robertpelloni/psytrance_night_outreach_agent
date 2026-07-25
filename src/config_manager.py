@@ -33,6 +33,8 @@ class ConfigManager:
             "home_city": "Detroit",
             "vibe_threshold": 6,
             "auto_approve_threshold": 9,
+            "openai_token_budget_per_run": 100000,
+            "openai_token_budget_per_day": 500000,
             "daily_outreach_limit": 10,
             "outreach_delay_min": 5,
             "follow_up_days": 7,
