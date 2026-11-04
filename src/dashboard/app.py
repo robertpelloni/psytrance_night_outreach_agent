@@ -3,6 +3,8 @@ import sqlite3
 import sys
 import os
 import subprocess
+import json
+import signal
 
 # Add the parent directory to sys.path to allow absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -54,44 +56,164 @@ def scheduled_pipeline():
 # Note: We'll start the scheduler in the __main__ block
 # to avoid issues during module import/tests
 
-import json
-
 @app.context_processor
 def inject_attention_count():
     count = db.get_attention_required_count()
-    return dict()
+    return dict(attention_count=count)
 
-@app.route('/')
-def index():
-    leads = db.get_pending_leads()
-    artists = db.list_artists()
+def get_full_dashboard_context(active_tab='pipeline', view='pending'):
+    """
+    Consolidated helper to load all necessary data across all high-value modules
+    for the unified single-page dashboard architecture.
+    """
+    # 1. Pipeline & Lead Queues
+    if view == 'pending':
+        leads = db.get_pending_leads()
+    elif view == 'qualification':
+        leads = db.get_leads_by_status('PENDING_QUALIFICATION')
+        for lead in leads:
+            venue = db.get_venue(lead['venue_id'])
+            if venue:
+                lead['name'] = venue['name']
+                lead['city'] = venue['city']
+                lead['image_url'] = venue.get('image_url')
+                lead['visual_description'] = venue.get('visual_description')
+                if venue.get('extracted_traits'):
+                    try:
+                        lead['traits_dict'] = json.loads(venue['extracted_traits'])
+                    except:
+                        lead['traits_dict'] = {}
+    elif view == 'history':
+        leads = db.get_lead_history()
+        for lead in leads:
+            lead['replies'] = db.get_lead_replies(lead['id'])
+    elif view == 'booked':
+        leads = db.get_leads_by_status('BOOKED')
+    elif view == 'dm_queue':
+        query = """
+            SELECT l.*, v.name, v.city, vc.instagram_handle
+            FROM outreach_leads l
+            JOIN venues v ON l.venue_id = v.id
+            JOIN venue_contacts vc ON v.id = vc.venue_id
+            WHERE l.pipeline_status IN ('SENT', 'REPLIED')
+            AND vc.email IS NULL
+            AND vc.instagram_handle IS NOT NULL
+        """
+        with db._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            leads = [dict(row) for row in cursor.fetchall()]
+    elif view == 'pending_follow_ups':
+        query = "SELECT l.*, v.name, v.city FROM outreach_leads l JOIN venues v ON l.venue_id = v.id WHERE l.pipeline_status = 'PENDING_FOLLOW_UP'"
+        with db._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query)
+            leads = [dict(row) for row in cursor.fetchall()]
+    else:
+        leads = db.get_pending_leads()
+
     for lead in leads:
-        # success_probability is now fetched from the database in get_pending_leads
         lead['success_prob'] = lead.get('success_probability')
-
-        if lead.get('extracted_traits'):
+        if lead.get('extracted_traits') and 'traits_dict' not in lead:
             try:
                 lead['traits_dict'] = json.loads(lead['extracted_traits'])
             except:
                 lead['traits_dict'] = {}
-    return render_template('index.html', leads=leads, artists=artists, view='pending')
+
+    unmatched = db.get_unmatched_replies() if view == 'history' or active_tab in ['pipeline', 'analytics'] else []
+    artists = db.list_artists()
+
+    # 2. Map & Geographical Intelligence
+    venues = db.get_venues_with_location()
+    clusters = analytics.get_venue_clusters()
+
+    # 3. Analytics & A/B Testing
+    stats = analytics.get_summary_stats()
+    approval_rate = analytics.get_approval_rate()
+    variant_stats = analytics.get_variant_stats()
+    funnel = analytics.get_conversion_funnel()
+    health = analytics.get_scene_health()
+    timeline = analytics.get_outreach_timeline()
+
+    # 4. Settings & Media Library
+    current_config = config_mgr.load_config()
+
+    # 5. System Health & Git Protocols
+    version = "unknown"
+    version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../VERSION.md'))
+    if os.path.exists(version_path):
+        with open(version_path, 'r') as f:
+            version = f.read().strip()
+
+    git_info = {
+        "branch": subprocess.getoutput("git rev-parse --abbrev-ref HEAD"),
+        "commit": subprocess.getoutput("git rev-parse --short HEAD"),
+        "branches": subprocess.getoutput("git branch --format='%(refname:short)'").splitlines()
+    }
+    sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
+    pipeline_history = db.get_pipeline_history()
+    sync_stats = reliability.get_sync_health_stats()
+    stale_branches = reliability.get_stale_branches()
+    audit_trail = db.get_version_audit_trail()
+    ai_usage = db.get_ai_usage_stats(days=7)
+
+    performance_report = None
+    perf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../PERFORMANCE.md'))
+    if os.path.exists(perf_path):
+        with open(perf_path, 'r') as f:
+            performance_report = f.read()
+
+    # 6. Scraper Sources
+    scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
+    scraper_files = [f for f in os.listdir(scrapers_dir) if f.endswith('.py') and f not in ['__init__.py', 'base_scraper.py']]
+
+    return {
+        'active_tab': active_tab,
+        'view': view,
+        'leads': leads,
+        'artists': artists,
+        'unmatched': unmatched,
+        'venues': venues,
+        'clusters': clusters,
+        'stats': stats,
+        'approval_rate': approval_rate,
+        'variant_stats': variant_stats,
+        'funnel': funnel,
+        'health': health,
+        'timeline': timeline,
+        'config': current_config,
+        'version': version,
+        'git_info': git_info,
+        'sync_logs': sync_logs,
+        'pipeline_history': pipeline_history,
+        'sync_stats': sync_stats,
+        'stale_branches': stale_branches,
+        'audit_trail': audit_trail,
+        'ai_usage': ai_usage,
+        'performance_report': performance_report,
+        'files': scraper_files
+    }
+
+@app.route('/')
+def index():
+    tab = request.args.get('tab', 'pipeline')
+    view = request.args.get('view', 'pending')
+    ctx = get_full_dashboard_context(active_tab=tab, view=view)
+    return render_template('index.html', **ctx)
 
 @app.route('/venue/<string:venue_id>')
 def venue_detail(venue_id):
     venue = db.get_venue(venue_id)
     if not venue: return "Venue not found", 404
 
-    # Get all leads for this venue (usually just one, but schema allows more conceptually)
     query = "SELECT * FROM outreach_leads WHERE venue_id = ?"
     with db._get_connection() as conn:
         conn.row_factory = sqlite3.Row
         leads = [dict(row) for row in conn.execute(query, (venue_id,)).fetchall()]
 
-    # Get all replies for these leads
     for lead in leads:
         lead['replies'] = db.get_lead_replies(lead['id'])
 
-    # Get contacts
     query = "SELECT * FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
         conn.row_factory = sqlite3.Row
@@ -110,33 +232,18 @@ def venue_detail(venue_id):
 
 @app.route('/pending_qualification')
 def pending_qualification():
-    leads = db.get_leads_by_status('PENDING_QUALIFICATION')
-    for lead in leads:
-        venue = db.get_venue(lead['venue_id'])
-        lead['name'] = venue['name']
-        lead['city'] = venue['city']
-        lead['image_url'] = venue.get('image_url')
-        lead['visual_description'] = venue.get('visual_description')
-        if venue.get('extracted_traits'):
-            try:
-                lead['traits_dict'] = json.loads(venue['extracted_traits'])
-            except:
-                lead['traits_dict'] = {}
-    return render_template('index.html', leads=leads, view='qualification')
+    ctx = get_full_dashboard_context(active_tab='pipeline', view='qualification')
+    return render_template('index.html', **ctx)
 
 @app.route('/history')
 def history():
-    leads = db.get_lead_history()
-    # Attach replies to each lead for the history view
-    for lead in leads:
-        lead['replies'] = db.get_lead_replies(lead['id'])
-    unmatched = db.get_unmatched_replies()
-    return render_template('index.html', leads=leads, unmatched=unmatched, view='history')
+    ctx = get_full_dashboard_context(active_tab='pipeline', view='history')
+    return render_template('index.html', **ctx)
 
 @app.route('/booked')
 def booked_tracker():
-    leads = db.get_leads_by_status('BOOKED')
-    return render_template('index.html', leads=leads, view='booked')
+    ctx = get_full_dashboard_context(active_tab='pipeline', view='booked')
+    return render_template('index.html', **ctx)
 
 @app.route('/mark_booked/<int:lead_id>', methods=['POST'])
 def mark_booked(lead_id):
@@ -150,19 +257,13 @@ def mark_lost(lead_id):
 
 @app.route('/sources')
 def sources():
-    scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
-    files = [f for f in os.listdir(scrapers_dir) if f.endswith('.py') and f not in ['__init__.py', 'base_scraper.py']]
-    return render_template('sources.html', files=files)
+    ctx = get_full_dashboard_context(active_tab='sources', view='pending')
+    return render_template('index.html', **ctx)
 
 @app.route('/analytics')
 def show_analytics():
-    stats = analytics.get_summary_stats()
-    approval_rate = analytics.get_approval_rate()
-    variant_stats = analytics.get_variant_stats()
-    funnel = analytics.get_conversion_funnel()
-    health = analytics.get_scene_health()
-    timeline = analytics.get_outreach_timeline()
-    return render_template('analytics.html', stats=stats, approval_rate=approval_rate, variant_stats=variant_stats, funnel=funnel, health=health, timeline=timeline)
+    ctx = get_full_dashboard_context(active_tab='analytics', view='pending')
+    return render_template('index.html', **ctx)
 
 @app.route('/export_leads')
 def export_leads():
@@ -176,10 +277,8 @@ def export_leads():
 
 @app.route('/map')
 def show_map():
-    venues = db.get_venues_with_location()
-    clusters = analytics.get_venue_clusters()
-    return render_template('map.html', venues=venues, clusters=clusters)
-
+    ctx = get_full_dashboard_context(active_tab='map', view='pending')
+    return render_template('index.html', **ctx)
 
 @app.route('/plan_tour/<int:cluster_index>')
 def plan_tour(cluster_index):
@@ -199,19 +298,16 @@ def plan_circuit():
         "route": route
     })
 
-
-
 @app.route('/dispatch_circuit', methods=['POST'])
 def dispatch_circuit():
     route = planner.get_circuit_route() if hasattr(planner, 'get_circuit_route') else []
     if not route:
         return jsonify({"error": "No circuit route available"}), 404
 
-    pitch = request.json.get('pitch')
+    pitch = request.json.get('pitch') if request.is_json else request.form.get('pitch')
     if not pitch:
         return jsonify({"error": "Pitch content required"}), 400
 
-    # Collect all venues across all clusters in the circuit
     venues_list = []
     for cluster in route:
         venues_list.extend(cluster['venues'])
@@ -220,14 +316,13 @@ def dispatch_circuit():
     return jsonify(results)
 
 @app.route('/dispatch_tour/<int:cluster_index>', methods=['POST'])
-
 def dispatch_tour(cluster_index):
     clusters = analytics.get_venue_clusters()
     if cluster_index >= len(clusters):
         return jsonify({"error": "Cluster not found"}), 404
 
     cluster = clusters[cluster_index]
-    pitch = request.json.get('pitch')
+    pitch = request.json.get('pitch') if request.is_json else request.form.get('pitch')
 
     if not pitch:
         return jsonify({"error": "Pitch content required"}), 400
@@ -237,36 +332,8 @@ def dispatch_tour(cluster_index):
 
 @app.route('/system')
 def system_status():
-    stats = analytics.get_summary_stats()
-    version = "unknown"
-    version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../VERSION.md'))
-    if os.path.exists(version_path):
-        with open(version_path, 'r') as f:
-            version = f.read().strip()
-
-    git_info = {
-        "branch": subprocess.getoutput("git rev-parse --abbrev-ref HEAD"),
-        "commit": subprocess.getoutput("git rev-parse --short HEAD"),
-        "branches": subprocess.getoutput("git branch --format='%(refname:short)'").splitlines()
-    }
-
-    # Fetch last 10 sync logs
-    sync_logs = [log for log in db.get_latest_system_logs(limit=20) if log['component'] == 'SYNC']
-
-    pipeline_history = db.get_pipeline_history()
-
-    sync_stats = reliability.get_sync_health_stats()
-    stale_branches = reliability.get_stale_branches()
-    audit_trail = db.get_version_audit_trail()
-    ai_usage = db.get_ai_usage_stats(days=7)
-
-    performance_report = None
-    perf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../PERFORMANCE.md'))
-    if os.path.exists(perf_path):
-        with open(perf_path, 'r') as f:
-            performance_report = f.read()
-
-    return render_template('system.html', stats=stats, version=version, git_info=git_info, sync_logs=sync_logs, pipeline_history=pipeline_history, sync_stats=sync_stats, stale_branches=stale_branches, audit_trail=audit_trail, ai_usage=ai_usage, performance_report=performance_report)
+    ctx = get_full_dashboard_context(active_tab='system', view='pending')
+    return render_template('index.html', **ctx)
 
 @app.route('/reset_cycles', methods=['POST'])
 def reset_cycles():
@@ -276,14 +343,11 @@ def reset_cycles():
 
 @app.route('/run_pipeline_now', methods=['POST'])
 def run_pipeline_now():
-    # Trigger a run immediately via the scheduler or directly
     scheduler.add_job(scheduled_pipeline, id='manual_run', replace_existing=True)
     return jsonify({"status": "success", "message": "Pipeline run started in background."})
 
 @app.route('/run_sync', methods=['POST'])
 def run_sync():
-    # Trigger the sync protocol
-    # Note: Using absolute path to sync_repo.py in root
     script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../sync_repo.py'))
     result = subprocess.run([sys.executable, script_path], capture_output=True, text=True)
 
@@ -336,7 +400,6 @@ def simulate_reply(lead_id):
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'POST':
-        # Parse media library
         media_library = []
         names = request.form.getlist('media_name[]')
         urls = request.form.getlist('media_url[]')
@@ -376,9 +439,8 @@ def settings():
         config_mgr.save_config(new_config)
         return redirect(url_for('settings'))
 
-    current_config = config_mgr.load_config()
-    artists = db.list_artists()
-    return render_template('settings.html', config=current_config, artists=artists)
+    ctx = get_full_dashboard_context(active_tab='settings', view='pending')
+    return render_template('index.html', **ctx)
 
 @app.route('/artists/add', methods=['POST'])
 def add_artist():
@@ -398,7 +460,6 @@ def add_artist():
 def delete_artist(artist_id):
     db.delete_artist(artist_id)
     return redirect(url_for('settings'))
-
 
 @app.route('/add_venue_manually', methods=['POST'])
 def add_venue_manually():
@@ -423,10 +484,8 @@ def add_venue_manually():
         'discovery_genre': (config_mgr.get("target_genres") or ["psytrance"])[0]
     }
 
-    # Add to venues table
     db.add_venue(v_data)
 
-    # Trigger background pipeline for qualification and pitch generation
     def run_pipeline_for_manual_venue():
         from main import qualify_and_pitch
         from src.geocoding import GeocodingUtility
@@ -454,14 +513,12 @@ def approve(lead_id):
     pitch = request.form.get('pitch')
     artist_id = request.form.get('artist_id')
 
-    # Update lead status and optionally artist_id
     db.update_lead_status(lead_id, 'APPROVED', pitch=pitch)
     if artist_id:
         with db._get_connection() as conn:
             conn.execute("UPDATE outreach_leads SET artist_id = ? WHERE id = ?", (artist_id, lead_id))
 
     lead = db.get_lead(lead_id)
-
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
@@ -484,7 +541,6 @@ def reject(lead_id):
 def send_reply(reply_id):
     reply_content = request.form.get('reply_content')
 
-    # Fetch lead info via reply_id
     with db._get_connection() as conn:
         conn.row_factory = sqlite3.Row
         reply = conn.execute("SELECT * FROM lead_replies WHERE id = ?", (reply_id,)).fetchone()
@@ -493,7 +549,6 @@ def send_reply(reply_id):
         lead = db.get_lead(reply['lead_id'])
         venue = db.get_venue(lead['venue_id'])
 
-        # Fetch email
         cursor = conn.execute("SELECT email FROM venue_contacts WHERE venue_id = ?", (venue['id'],))
         contact = cursor.fetchone()
 
@@ -501,10 +556,8 @@ def send_reply(reply_id):
         email = contact[0].split(',')[0].strip()
         subject = f"Re: Proposal for Psytrance Night Residency - {venue['name']}"
         if mailer.send_email(email, subject, reply_content):
-            # Update reply as 'SENT' or similar if we had a status,
-            # for now we'll just log success
             db.log_system_event("OUTREACH", "SUCCESS", f"Sent manual reply to {email} for lead {lead['id']}")
-            db.mark_reply_handled(reply_id) # dismiss notification on send
+            db.mark_reply_handled(reply_id)
             return redirect(url_for('history'))
 
     return "Error sending reply", 500
@@ -524,7 +577,6 @@ def requalify(lead_id):
 
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
 
-    # Re-run vibe check
     vibe_result = ai.vibe_check(
         venue['name'],
         venue.get('raw_about_text', ''),
@@ -532,11 +584,9 @@ def requalify(lead_id):
         rating=venue.get('google_rating')
     )
 
-    # Update status if threshold met
     vibe_threshold = config_mgr.get("vibe_threshold") or 6
     new_status = 'PENDING_REVIEW' if vibe_result['vibe_score'] >= vibe_threshold else 'PENDING_QUALIFICATION'
 
-    # Generate pitch if newly qualified
     pitch = lead['generated_pitch']
     if new_status == 'PENDING_REVIEW' and not pitch:
         traits = venue.get('extracted_traits', '{}')
@@ -550,7 +600,6 @@ def requalify(lead_id):
             genre=lead.get('qualified_genre', primary_genre)
         )
 
-    # Update lead
     query = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ?, generated_pitch = ? WHERE id = ?"
     with db._get_connection() as conn:
         conn.execute(query, (vibe_result['vibe_score'], vibe_result['justification'], new_status, pitch, lead_id))
@@ -579,30 +628,17 @@ def regenerate(lead_id):
     )
     return jsonify({"pitch": new_pitch})
 
-if __name__ == '__main__':
-    # Add a weekly job for the pipeline
-    # For now, let's just make it configurable via code or later via UI
-    scheduler.add_job(scheduled_pipeline, 'interval', weeks=1, id='weekly_pipeline')
-    scheduler.start()
-
-    app.run(debug=True, port=5000)
-
-
 @app.route('/calculate_ab_significance')
 def calculate_ab_significance():
     stats = analytics.get_variant_stats()
 
-    # We need at least two variants to compare
     if len(stats) < 2:
         return jsonify({"error": "Need at least two variants with data to calculate significance."})
 
-    # Sort to find top two performing variants by conversion rate
     sorted_variants = sorted(stats.items(), key=lambda item: item[1]['conversion_rate'], reverse=True)
-
     var_a = sorted_variants[0]
     var_b = sorted_variants[1]
 
-    # Simple Chi-Square approximation
     success_a = var_a[1]['interested']
     total_a = var_a[1]['sent']
     success_b = var_b[1]['interested']
@@ -624,13 +660,9 @@ def calculate_ab_significance():
             "variant_b": var_b[0]
         })
 
-    # Chi-square stat = (p1 - p2)^2 / (p_pool * (1 - p_pool) * (1/n1 + 1/n2))
     chi2 = ((p1 - p2)**2) / (p_pool * (1 - p_pool) * ((1/total_a) + (1/total_b)))
-
-    # Roughly, chi2 > 3.84 is p < 0.05 for 1 degree of freedom
     is_significant = chi2 > 3.84
 
-    # Very rough p-value approximation for display purposes
     p_value = 1.0
     if chi2 > 6.63: p_value = 0.01
     elif chi2 > 3.84: p_value = 0.05
@@ -645,37 +677,40 @@ def calculate_ab_significance():
         "variant_b": var_b[0]
     })
 
-
-
 @app.route('/dm_queue')
 def dm_queue():
-    """Dashboard view for the simulated DM queue."""
-    query = """
-        SELECT l.*, v.name, v.city, vc.instagram_handle
-        FROM outreach_leads l
-        JOIN venues v ON l.venue_id = v.id
-        JOIN venue_contacts vc ON v.id = vc.venue_id
-        WHERE l.pipeline_status IN ('SENT', 'REPLIED')
-        AND vc.email IS NULL
-        AND vc.instagram_handle IS NOT NULL
-    """
-    with db._get_connection() as conn:
-        conn.row_factory = __import__('sqlite3').Row
-        cursor = conn.execute(query)
-        leads = [dict(row) for row in cursor.fetchall()]
-    return render_template('index.html', leads=leads, view='dm_queue')
-
+    ctx = get_full_dashboard_context(active_tab='pipeline', view='dm_queue')
+    return render_template('index.html', **ctx)
 
 @app.route('/pending_follow_ups')
 def pending_follow_ups():
-    query = "SELECT l.*, v.name, v.city FROM outreach_leads l JOIN venues v ON l.venue_id = v.id WHERE l.pipeline_status = 'PENDING_FOLLOW_UP'"
-    with db._get_connection() as conn:
-        conn.row_factory = __import__('sqlite3').Row
-        cursor = conn.execute(query)
-        leads = [dict(row) for row in cursor.fetchall()]
-    return render_template('index.html', leads=leads, view='pending_follow_ups')
+    ctx = get_full_dashboard_context(active_tab='pipeline', view='pending_follow_ups')
+    return render_template('index.html', **ctx)
 
 @app.route('/approve_follow_up/<int:lead_id>', methods=['POST'])
 def approve_follow_up(lead_id):
     db.update_lead_status(lead_id, 'FOLLOW_UP_APPROVED')
     return redirect(url_for('pending_follow_ups'))
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown_server():
+    """Graceful shutdown endpoint utilized by tray companion or operator."""
+    print("Initiating graceful application shutdown...")
+    if scheduler.running:
+        scheduler.shutdown(wait=False)
+
+    # Only kill process if not running under pytest / test client
+    if not app.config.get('TESTING'):
+        def term_proc():
+            import time
+            time.sleep(0.5)
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        import threading
+        threading.Thread(target=term_proc, daemon=True).start()
+    return jsonify({"status": "success", "message": "Server shutting down."})
+
+if __name__ == '__main__':
+    scheduler.add_job(scheduled_pipeline, 'interval', weeks=1, id='weekly_pipeline')
+    scheduler.start()
+    app.run(debug=True, port=5000)

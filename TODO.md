@@ -131,6 +131,9 @@
 - [x] Implement AI Token Usage Tracking and Dashboard (v1.1.62)
 - [x] Multi-Artist Collective Support (v1.1.62)
 - [x] Export leads/contacts to CSV (v1.1.63)
+- [x] Unified Single-Page Dashboard Architecture (v1.1.78)
+- [x] Desktop System Tray Companion & Server Management (v1.1.78)
+- [x] Automated Integration Test Suite for Unified Dashboard (v1.1.78)
 
 ---
 

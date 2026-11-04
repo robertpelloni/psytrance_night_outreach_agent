@@ -1,28 +1,1080 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Psytrance Outreach Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psytrance Night Outreach Agent — Unified Command Center</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --bs-body-bg: #0d1117;
+            --bs-body-color: #c9d1d9;
+            --bs-card-bg: #161b22;
+        }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .navbar-custom {
+            background-color: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+        .card-custom {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+        }
+        .nav-tabs .nav-link {
+            color: #8b949e;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: #58a6ff;
+            background: transparent;
+            border-bottom: 2px solid #58a6ff;
+        }
+        .kpi-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: transform 0.15s ease-in-out;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .vibe-high { color: #3fb950; font-weight: bold; }
+        .vibe-mid { color: #d29922; font-weight: bold; }
+        .vibe-low { color: #58a6ff; font-weight: bold; }
+    </style>
+</head>
+<body class="pb-5">
+
+    <!-- Top Command Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top mb-4">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/" data-bs-toggle="tooltip" title="Psytrance Night Outreach Agent — Autonomous Booking Orchestrator">
+                <span class="fs-4">🌌</span>
+                <div>
+                    <strong class="text-white">Psytrance Night Outreach</strong>
+                    <span class="badge bg-warning text-dark ms-2">v{{ version }}</span>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addVenueModal" title="Directly insert a new target venue into the pipeline">
+                    <span>+</span> Add Venue Manually
+                </button>
+                <button id="nav-fetch-btn" onclick="fetchReplies()" class="btn btn-outline-info btn-sm" title="Poll IMAP and Instagram inbox for new venue replies">
+                    📥 Fetch Replies
+                </button>
+                <button id="nav-pipeline-btn" onclick="runPipelineNow()" class="btn btn-primary btn-sm" title="Trigger autonomous hunting, enrichment, and qualification cycle">
+                    ⚡ Run Pipeline Now
+                </button>
+                <button id="nav-sync-btn" onclick="runSync()" class="btn btn-outline-secondary btn-sm" title="Trigger multi-branch intelligent git synchronization protocol">
+                    🔄 Sync Repo
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+
+        <!-- Global KPI Strip -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Total targeted nightlife and electronic spaces in database">
+                    <small class="text-secondary text-uppercase fw-bold">Total Venues</small>
+                    <h3 class="mb-0 text-white">{{ stats.total_venues }}</h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Discovered venues currently pending human-in-the-loop review">
+                    <small class="text-secondary text-uppercase fw-bold">Pending Review</small>
+                    <h3 class="mb-0 text-info">{{ stats.status_breakdown.get('PENDING_REVIEW', 0) }}</h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Dispatches delivered via email or DM outreach">
+                    <small class="text-secondary text-uppercase fw-bold">Pitches Sent</small>
+                    <h3 class="mb-0 text-primary">{{ stats.status_breakdown.get('SENT', 0) }}</h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Confirmed club, warehouse, or festival bookings">
+                    <small class="text-secondary text-uppercase fw-bold">Confirmed Booked</small>
+                    <h3 class="mb-0 text-success">{{ stats.status_breakdown.get('BOOKED', 0) }}</h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Incoming venue replies expressing direct interest">
+                    <small class="text-secondary text-uppercase fw-bold">Interest Rate</small>
+                    <h3 class="mb-0 text-warning">{{ health.interested_rate }}%</h3>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <div class="kpi-card text-center" data-bs-toggle="tooltip" title="Incoming replies requiring immediate action or counter-proposals">
+                    <small class="text-secondary text-uppercase fw-bold">Action Needed</small>
+                    <h3 class="mb-0 {% if attention_count and attention_count > 0 %}text-danger{% else %}text-secondary{% endif %}">
+                        {{ attention_count or 0 }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master High-Value Tab Navigation -->
+        <ul class="nav nav-tabs mb-4 border-secondary" id="masterTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'pipeline' %}active{% endif %}" id="pipeline-tab" data-bs-toggle="tab" data-bs-target="#tab-pipeline" type="button" role="tab" data-bs-toggle="tooltip" title="Human-in-the-loop review queues, unified inbox, and lead pipeline">
+                    📋 Outreach Pipeline & Queues
+                    {% if attention_count and attention_count > 0 %}
+                    <span class="badge bg-danger ms-1">{{ attention_count }}</span>
+                    {% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'map' %}active{% endif %}" id="map-tab" data-bs-toggle="tab" data-bs-target="#tab-map" type="button" role="tab" data-bs-toggle="tooltip" title="Interactive geographical clusters and multi-city tour routing">
+                    🗺️ Geographic Map & Tour Routing
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'analytics' %}active{% endif %}" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#tab-analytics" type="button" role="tab" data-bs-toggle="tooltip" title="Conversion funnel, A/B pitch testing, and statistical significance analysis">
+                    📊 Analytics & A/B Testing
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'settings' %}active{% endif %}" id="settings-tab" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button" role="tab" data-bs-toggle="tooltip" title="Manage collective artists, sound tags, discovery scope, and IMAP credentials">
+                    ⚙️ Settings & Collective Profiles
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'system' %}active{% endif %}" id="system-tab" data-bs-toggle="tab" data-bs-target="#tab-system" type="button" role="tab" data-bs-toggle="tooltip" title="System logs, sync health, version audit trail, and background daemon control">
+                    🖥️ System Health & Sync Protocol
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'sources' %}active{% endif %}" id="sources-tab" data-bs-toggle="tab" data-bs-target="#tab-sources" type="button" role="tab" data-bs-toggle="tooltip" title="Autonomous scraper generator and active event data sources">
+                    🕷️ Scraper Sources
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content Panes -->
+        <div class="tab-content" id="masterTabContent">
+
+            <!-- TAB 1: OUTREACH PIPELINE & QUEUES -->
+            <div class="tab-pane fade {% if active_tab == 'pipeline' %}show active{% endif %}" id="tab-pipeline" role="tabpanel">
+
+                <!-- Queue Sub-Navigation & Filters -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                    <div class="btn-group" role="group">
+                        <a href="/?tab=pipeline&view=pending" class="btn btn-sm {% if view == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Review newly qualified pitches awaiting email or DM dispatch">
+                            Review Ready Leads (Pending)
+                        </a>
+                        <a href="/?tab=pipeline&view=qualification" class="btn btn-sm {% if view == 'qualification' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Raw scraped venues that require AI vibe scoring or manual requalification">
+                            Qualification Filter
+                        </a>
+                        <a href="/?tab=pipeline&view=history" class="btn btn-sm {% if view == 'history' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Unified communication log, replies, negotiation drafting, and simulation">
+                            Inbox & History
+                            {% if attention_count and attention_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ attention_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="/?tab=pipeline&view=booked" class="btn btn-sm {% if view == 'booked' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Successfully booked residencies and events">
+                            Booked Tracker
+                        </a>
+                        <a href="/?tab=pipeline&view=dm_queue" class="btn btn-sm {% if view == 'dm_queue' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Leads with Instagram handles awaiting direct messaging">
+                            Instagram DM Queue
+                        </a>
+                        <a href="/?tab=pipeline&view=pending_follow_ups" class="btn btn-sm {% if view == 'pending_follow_ups' %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Automated follow-ups queued for stale or unresponsive prospects">
+                            Pending Follow-ups
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Unmatched Replies Warning Banner -->
+                {% if unmatched %}
+                <div class="alert alert-warning border-warning bg-dark mb-4 shadow">
+                    <h5 class="alert-heading text-warning d-flex align-items-center gap-2">
+                        <span>⚠️</span> Unmatched Replies Detected (Requires Attention)
+                    </h5>
+                    <p class="small text-white-50">The following incoming messages could not be automatically matched to a venue lead. Review and manually assign them to proceed with AI counter-proposals.</p>
+                    <hr class="border-warning">
+                    <div class="row">
+                        {% for reply in unmatched %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card card-custom border-warning h-100">
+                                <div class="card-body p-3">
+                                    <p class="mb-1 small"><strong>Sender:</strong> <span class="text-info">{{ reply.sender }}</span></p>
+                                    <p class="mb-1 small"><strong>Subject:</strong> {{ reply.subject }}</p>
+                                    <pre class="small text-white-50 p-2 bg-black rounded" style="max-height: 90px; overflow-y: auto;">{{ reply.content }}</pre>
+                                    <form action="/match_unmatched/{{ reply.id }}" method="post" class="mt-2">
+                                        <div class="input-group input-group-sm">
+                                            <select name="lead_id" class="form-select bg-dark text-white border-secondary" required>
+                                                <option value="">Select target lead...</option>
+                                                {% for lead in leads %}
+                                                <option value="{{ lead.id }}">{{ lead.name }} ({{ lead.city }})</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-warning">Match & Analyze</button>
+                                        </div>
+                                    </form>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <form action="/delete_unmatched/{{ reply.id }}" method="post" class="flex-grow-1">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                        </form>
+                                        {% if reply.requires_attention %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="dismissReply({{ reply.id }}, true)">Dismiss Notify</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Leads Grid -->
+                <div class="row">
+                    {% for lead in leads %}
+                    <div class="col-12 mb-4">
+                        <div class="card card-custom">
+                            <div class="card-header d-flex flex-wrap justify-content-between align-items-center bg-dark text-white border-secondary">
+                                <h5 class="mb-0">
+                                    <a href="/venue/{{ lead.venue_id }}" class="text-white text-decoration-none hover-info" data-bs-toggle="tooltip" title="View comprehensive venue profile and contact history">
+                                        {{ lead.name }}
+                                    </a>
+                                    <small class="text-secondary">({{ lead.city }})</small>
+                                </h5>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    {% if lead.negotiation_status %}
+                                    <span class="badge bg-info text-dark" data-bs-toggle="tooltip" title="Current negotiation state and stage">
+                                        Status: {{ lead.negotiation_status }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="badge {% if lead.pipeline_status == 'SENT' or lead.pipeline_status == 'BOOKED' %}bg-success{% elif lead.pipeline_status == 'REJECTED' or lead.pipeline_status == 'LOST' %}bg-danger{% else %}bg-info{% endif %}" data-bs-toggle="tooltip" title="Current lead status in outreach lifecycle">
+                                        {{ lead.pipeline_status }}
+                                    </span>
+                                    <span class="badge {% if lead.vibe_score >= 8 %}bg-success{% elif lead.vibe_score >= 6 %}bg-warning text-dark{% else %}bg-primary{% endif %}" data-bs-toggle="tooltip" title="AI-evaluated vibe fit for underground psychedelic dance music">
+                                        Vibe: {{ lead.vibe_score }}/10
+                                    </span>
+                                    {% if lead.success_prob %}
+                                    <span class="badge {% if lead.success_prob >= 70 %}bg-success{% elif lead.success_prob >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}" data-bs-toggle="tooltip" title="Empirical success probability based on regional density and trait compatibility">
+                                        Success: {{ lead.success_prob }}%
+                                    </span>
+                                    {% endif %}
+                                    {% if lead.pitch_variant %}
+                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="A/B Pitch Variant assigned">
+                                        Var: {{ lead.pitch_variant }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text mb-3"><strong>AI Rationale:</strong> {{ lead.qualification_justification }}</p>
+
+                                {% if view == 'qualification' %}
+                                <div class="mb-3">
+                                    <button id="requalify-btn-{{ lead.id }}" onclick="requalify({{ lead.id }})" class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Force LLM to re-evaluate venue using current vibe threshold">
+                                        Re-run AI Vibe Check
+                                    </button>
+                                </div>
+                                {% endif %}
+
+                                {% if lead.visual_description %}
+                                <div class="mb-3 d-flex gap-3 align-items-start bg-black p-3 rounded border border-secondary">
+                                    {% if lead.image_url %}
+                                    <img src="{{ lead.image_url }}" alt="Venue Image" class="rounded" style="max-width: 180px; max-height: 120px; object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <small class="text-info d-block mb-1">GPT-4o Vision Trait Analysis:</small>
+                                        <p class="small text-white-50 mb-0">{{ lead.visual_description }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if lead.traits_dict %}
+                                <div class="mb-3 d-flex flex-wrap gap-2">
+                                    {% if lead.traits_dict.sound_system %}
+                                    <span class="badge border border-info text-info" data-bs-toggle="tooltip" title="Sound system infrastructure">🔊 {{ lead.traits_dict.sound_system }}</span>
+                                    {% endif %}
+                                    {% if lead.traits_dict.lighting %}
+                                    <span class="badge border border-warning text-warning" data-bs-toggle="tooltip" title="Lighting and visual environment">💡 {{ lead.traits_dict.lighting }}</span>
+                                    {% endif %}
+                                    {% if lead.traits_dict.atmosphere %}
+                                    <span class="badge border border-success text-success" data-bs-toggle="tooltip" title="Venue atmosphere and crowd vibe">✨ {{ lead.traits_dict.atmosphere }}</span>
+                                    {% endif %}
+                                    {% if lead.traits_dict.music_policy %}
+                                    <span class="badge border border-primary text-primary" data-bs-toggle="tooltip" title="Existing musical identity">🎵 {{ lead.traits_dict.music_policy }}</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if view == 'pending' %}
+                                <form action="{{ url_for('approve', lead_id=lead.id) }}" method="post">
+                                    <div class="mb-3">
+                                        {% if lead.instagram %}
+                                        <div class="alert alert-warning bg-dark text-warning border-warning d-flex justify-content-between align-items-center py-2">
+                                            <span>Instagram Contact: <strong>{{ lead.instagram }}</strong></span>
+                                            <button type="button" id="copy-btn-{{ lead.id }}" onclick="copyToClipboard(document.getElementById('pitch-{{ lead.id }}').value, {{ lead.id }})" class="btn btn-sm btn-outline-warning">
+                                                Copy Pitch for DM
+                                            </button>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="row align-items-end mb-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label mb-0 small text-secondary"><strong>Select Billed Artist:</strong></label>
+                                                <select name="artist_id" id="artist-select-{{ lead.id }}" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="regeneratePitch({{ lead.id }})">
+                                                    <option value="">(Default Collective Profile)</option>
+                                                    {% for artist in artists %}
+                                                    <option value="{{ artist.id }}">{{ artist.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                <button type="button" id="regen-btn-{{ lead.id }}" onclick="regeneratePitch({{ lead.id }})" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Re-generate personalized residency proposal using selected artist">
+                                                    Regenerate AI Pitch
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
+                                        <div class="mt-2">
+                                            <small class="text-info">
+                                                💡 Selector Philosophy: Pitch highlights curated media assets matched to venue sound traits.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-success px-4" data-bs-toggle="tooltip" title="Approve pitch and dispatch via SMTP or Instagram DM">
+                                            Approve & Dispatch Outreach
+                                        </button>
+                                    </div>
+                                </form>
+                                <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post" class="mt-2">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Dismiss lead from outreach queue">
+                                        Reject Lead
+                                    </button>
+                                </form>
+                                {% elif view == 'pending_follow_ups' %}
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary"><strong>Generated Pitch Context:</strong></label>
+                                    <pre class="bg-dark text-white p-3 rounded small" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
+                                    <form action="/approve_follow_up/{{ lead.id }}" method="post">
+                                        <button type="submit" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Approve follow-up dispatch for this pending lead">
+                                            Approve Follow-up Dispatch
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary"><strong>Dispatched Pitch:</strong></label>
+                                    <pre class="bg-dark text-white p-3 rounded small" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
+                                </div>
+
+                                {% if lead.replies %}
+                                <div class="mt-4">
+                                    <h6>Incoming Dialogue & Negotiations:</h6>
+                                    {% for reply in lead.replies %}
+                                    <div class="alert {% if reply.sentiment == 'INTERESTED' %}alert-success{% elif reply.sentiment == 'REJECTED' %}alert-danger{% else %}alert-secondary{% endif %} bg-dark text-white border-secondary mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-secondary">{{ reply.received_at }}</small>
+                                            <span class="badge {% if reply.sentiment == 'INTERESTED' %}bg-success{% elif reply.sentiment == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                {{ reply.sentiment }}
+                                            </span>
+                                        </div>
+                                        <p class="mb-2">{{ reply.content }}</p>
+
+                                        {% if reply.draft_response %}
+                                        <div class="mt-3 p-3 bg-black rounded border border-info">
+                                            <small class="text-info d-block mb-1">AI Counter-Proposal Draft:</small>
+                                            <form action="/send_reply/{{ reply.id }}" method="post">
+                                                <textarea name="reply_content" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" rows="4">{{ reply.draft_response }}</textarea>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <button type="submit" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Send counter-proposal to venue contact">
+                                                        Send Response
+                                                    </button>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-success" onclick="markBooked({{ lead.id }})" data-bs-toggle="tooltip" title="Mark this venue as successfully booked">
+                                                            Mark Booked
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" onclick="markLost({{ lead.id }})" data-bs-toggle="tooltip" title="Mark deal as closed/lost">
+                                                            Mark Lost
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <hr class="border-secondary">
+                                <form action="/simulate_reply/{{ lead.id }}" method="post" class="mt-3">
+                                    <label class="form-label text-secondary small">Simulate incoming venue email/DM response:</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="content" class="form-control bg-dark text-white border-secondary" placeholder="e.g., 'We loved the pitch, let's talk about dates next month!'">
+                                        <button type="submit" class="btn btn-outline-info">Analyze & Generate Counter</button>
+                                    </div>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if not leads %}
+                    <div class="col-12">
+                        <div class="alert alert-secondary bg-dark text-white border-secondary text-center py-5">
+                            <h4>No leads found in this view.</h4>
+                            <p class="text-white-50">Click "Run Pipeline Now" to discover and qualify new venues, or add one manually!</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TAB 2: GEOGRAPHIC MAP & TOUR ROUTING -->
+            <div class="tab-pane fade {% if active_tab == 'map' %}show active{% endif %}" id="tab-map" role="tabpanel">
+                <div class="card card-custom p-3 mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <h5 class="mb-0 text-white">Geographic Scene Density & Touring Routes</h5>
+                        <div class="d-flex gap-2">
+                            <select id="vibe-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;" data-bs-toggle="tooltip" title="Filter map pins by minimum AI vibe score">
+                                <option value="0">All Vibes</option>
+                                <option value="8">High Vibe (8+)</option>
+                                <option value="6">Mid Vibe (6+)</option>
+                            </select>
+                            <select id="status-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 160px;" data-bs-toggle="tooltip" title="Filter map pins by outreach pipeline state">
+                                <option value="ALL">All Status</option>
+                                <option value="PENDING_REVIEW">Pending Review</option>
+                                <option value="SENT">Sent</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="BOOKED">Booked</option>
+                            </select>
+                            <button onclick="toggleClusters()" id="cluster-toggle" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Toggle 50km proximity clusters">
+                                Show Hotspots
+                            </button>
+                            <button onclick="planCircuit()" id="circuit-btn" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Calculate optimal multi-city Midwest routing circuit">
+                                🚗 Plan Midwest Circuit
+                            </button>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: ANALYTICS & A/B TESTING -->
+            <div class="tab-pane fade {% if active_tab == 'analytics' %}show active{% endif %}" id="tab-analytics" role="tabpanel">
+
+                <!-- Performance KPI Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-info">
+                            <small class="text-info fw-bold">Response Rate</small>
+                            <h2 class="text-white mt-1 mb-0">{{ health.response_rate }}%</h2>
+                            <small class="text-white-50">Replies received per pitch sent</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-success">
+                            <small class="text-success fw-bold">Booking Rate</small>
+                            <h2 class="text-white mt-1 mb-0">{{ health.booking_rate }}%</h2>
+                            <small class="text-white-50">Bookings achieved per reply</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-warning">
+                            <small class="text-warning fw-bold">Interest Rate</small>
+                            <h2 class="text-white mt-1 mb-0">{{ health.interested_rate }}%</h2>
+                            <small class="text-white-50">Positive sentiment per pitch</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-primary">
+                            <small class="text-primary fw-bold">Approval Rate</small>
+                            <h2 class="text-white mt-1 mb-0">{{ approval_rate }}%</h2>
+                            <small class="text-white-50">Leads approved by operator</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversion Funnel & Outreach Activity Timeline -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-12">
+                        <div class="card card-custom p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0 text-white">Outreach Conversion Funnel</h5>
+                                <a href="/export_leads" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Export all outreach leads and contacts to CSV">
+                                    📥 Export CSV
+                                </a>
+                            </div>
+                            <div class="row text-center g-2">
+                                <div class="col">
+                                    <div class="p-3 bg-secondary rounded">
+                                        <h4 class="mb-0 text-white">{{ funnel.discovered }}</h4>
+                                        <small class="text-uppercase fw-bold">Discovered</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-primary rounded">
+                                        <h4 class="mb-0 text-white">{{ funnel.qualified }}</h4>
+                                        <small class="text-uppercase fw-bold">Qualified</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-info text-dark rounded">
+                                        <h4 class="mb-0">{{ funnel.pitched }}</h4>
+                                        <small class="text-uppercase fw-bold">Pitched</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-warning text-dark rounded">
+                                        <h4 class="mb-0">{{ funnel.replied }}</h4>
+                                        <small class="text-uppercase fw-bold">Replied</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="p-3 bg-success rounded">
+                                        <h4 class="mb-0 text-white">{{ funnel.booked }}</h4>
+                                        <small class="text-uppercase fw-bold">Booked</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="card card-custom p-3">
+                            <h5 class="mb-3 text-white">Outreach Activity Timeline (Dispatched Emails)</h5>
+                            <canvas id="timelineChart" style="max-height: 220px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- A/B Pitch Variant Performance & Chi-Square Significance -->
+                <div class="card card-custom p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-white">A/B Testing: Pitch Variant Conversion & Statistical Significance</h5>
+                        <button id="calc-sig-btn" class="btn btn-sm btn-outline-warning" onclick="calculateSignificance()" data-bs-toggle="tooltip" title="Run Chi-Square test comparing pitch conversion rates">
+                            Calculate Statistical Significance
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0" id="statsTable">
+                            <thead>
+                                <tr>
+                                    <th>Variant</th>
+                                    <th>Total Leads</th>
+                                    <th>Sent/Approved (N)</th>
+                                    <th>Interested Replies</th>
+                                    <th>Conversion Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for variant, v_stats in variant_stats.items() %}
+                                <tr>
+                                    <td><strong class="variant-name">{{ variant }}</strong></td>
+                                    <td>{{ v_stats.total }}</td>
+                                    <td class="variant-sent">{{ v_stats.sent }}</td>
+                                    <td class="variant-replies"><span class="badge bg-success">{{ v_stats.interested }}</span></td>
+                                    <td>
+                                        <span class="badge {% if v_stats.conversion_rate > 20 %}bg-success{% elif v_stats.conversion_rate > 10 %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                            {{ v_stats.conversion_rate }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not variant_stats %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-secondary py-3">No variant statistics recorded yet.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="sig-result" class="mt-3 p-3 bg-black rounded d-none border border-secondary text-info"></div>
+                </div>
+            </div>
+
+            <!-- TAB 4: SETTINGS & COLLECTIVE PROFILES -->
+            <div class="tab-pane fade {% if active_tab == 'settings' %}show active{% endif %}" id="tab-settings" role="tabpanel">
+
+                <!-- Artist Profiles Section -->
+                <div class="card card-custom p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-white">Collective Members & Artist Profiles</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#addArtistForm">
+                            + Add New Artist
+                        </button>
+                    </div>
+
+                    <div class="collapse mb-3" id="addArtistForm">
+                        <form action="/artists/add" method="post" class="card bg-black p-3 border-secondary">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Artist Name*</label>
+                                    <input type="text" name="name" class="form-control form-control-sm bg-dark text-white border-secondary" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Genres (e.g. Darkpsy, Forest, Hi-Tech)</label>
+                                    <input type="text" name="genres" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">EPK Link</label>
+                                    <input type="url" name="epk_link" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Mix Link</label>
+                                    <input type="url" name="mix_link" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label small text-secondary">Bio / Sound Identity</label>
+                                    <input type="text" name="bio" class="form-control form-control-sm bg-dark text-white border-secondary">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small text-secondary">Rate Card / Fee Structure</label>
+                                    <textarea name="rate_card" class="form-control form-control-sm bg-dark text-white border-secondary" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-sm btn-success">Save Artist Profile</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Artist</th>
+                                    <th>Genres</th>
+                                    <th>Links</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for artist in artists %}
+                                <tr>
+                                    <td><strong>{{ artist.name }}</strong></td>
+                                    <td>{{ artist.genres }}</td>
+                                    <td>
+                                        {% if artist.epk_link %}<a href="{{ artist.epk_link }}" target="_blank" class="badge bg-primary text-decoration-none">EPK</a>{% endif %}
+                                        {% if artist.mix_link %}<a href="{{ artist.mix_link }}" target="_blank" class="badge bg-info text-dark text-decoration-none">Mix</a>{% endif %}
+                                    </td>
+                                    <td>
+                                        <form action="/artists/delete/{{ artist.id }}" method="post" onsubmit="return confirm('Delete this artist profile?');" class="d-inline">
+                                            <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not artists %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-secondary py-3">No artists configured yet.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Global Automation & System Settings Form -->
+                <form action="/settings" method="post" class="card card-custom p-4 mb-4">
+                    <h5 class="mb-3 text-white">Autonomous Agent Configuration</h5>
+
+                    <h6 class="text-info mt-2">1. Artist & Collective Identity</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Default Artist Name</label>
+                            <input type="text" name="artist_name" class="form-control bg-dark text-white border-secondary" value="{{ config.artist_name }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Collective Name</label>
+                            <input type="text" name="collective_name" class="form-control bg-dark text-white border-secondary" value="{{ config.collective_name }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">Home City (Anchor)</label>
+                            <input type="text" name="home_city" class="form-control bg-dark text-white border-secondary" value="{{ config.home_city }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Default EPK Link</label>
+                            <input type="url" name="epk_link" class="form-control bg-dark text-white border-secondary" value="{{ config.epk_link }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Default Mix Link</label>
+                            <input type="url" name="mix_link" class="form-control bg-dark text-white border-secondary" value="{{ config.mix_link }}">
+                        </div>
+                    </div>
+
+                    <h6 class="text-info">2. Discovery Scope & Detroit Circuit</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Target Cities (comma-separated)</label>
+                            <input type="text" name="cities" class="form-control bg-dark text-white border-secondary" value="{{ config.cities | join(', ') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Target Sub-Genres (comma-separated)</label>
+                            <input type="text" name="genres" class="form-control bg-dark text-white border-secondary" value="{{ config.target_genres | join(', ') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Detroit Deep Search Queries (one per line)</label>
+                            <textarea name="detroit_queries" class="form-control bg-dark text-white border-secondary" rows="4">{{ config.detroit_search_queries | join('\n') }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Detroit Neighborhoods (one per line)</label>
+                            <textarea name="detroit_hoods" class="form-control bg-dark text-white border-secondary" rows="4">{{ config.detroit_neighborhoods | join('\n') }}</textarea>
+                        </div>
+                    </div>
+
+                    <h6 class="text-info">3. Automation Thresholds & Dispatch Limits</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label small text-secondary">Vibe Threshold (1-10)</label>
+                            <input type="number" name="vibe_threshold" class="form-control bg-dark text-white border-secondary" min="1" max="10" value="{{ config.vibe_threshold }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-secondary">Auto-Approve Threshold (1-10)</label>
+                            <input type="number" name="auto_approve_threshold" class="form-control bg-dark text-white border-secondary" min="1" max="10" value="{{ config.auto_approve_threshold }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-secondary">Daily Outreach Limit</label>
+                            <input type="number" name="daily_outreach_limit" class="form-control bg-dark text-white border-secondary" value="{{ config.daily_outreach_limit }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-secondary">Delay Between Pitches (Min)</label>
+                            <input type="number" name="outreach_delay_min" class="form-control bg-dark text-white border-secondary" value="{{ config.outreach_delay_min }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Follow-Up Delay (Days)</label>
+                            <input type="number" name="follow_up_days" class="form-control bg-dark text-white border-secondary" value="{{ config.follow_up_days }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Max Follow-Ups Per Lead</label>
+                            <input type="number" name="max_follow_ups" class="form-control bg-dark text-white border-secondary" value="{{ config.max_follow_ups }}">
+                        </div>
+                    </div>
+
+                    <h6 class="text-info">4. Negotiation Defaults & Availability</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Rate Card / Fee Info</label>
+                            <textarea name="rate_card" class="form-control bg-dark text-white border-secondary" rows="2">{{ config.rate_card }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Booking Availability Ranges</label>
+                            <textarea name="availability_ranges" class="form-control bg-dark text-white border-secondary" rows="2">{{ config.availability_ranges }}</textarea>
+                        </div>
+                    </div>
+
+                    <h6 class="text-info">5. Inbox Polling (IMAP Credentials)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">IMAP Server</label>
+                            <input type="text" name="imap_server" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_server }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-secondary">IMAP Username</label>
+                            <input type="text" name="imap_user" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_user }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-secondary">IMAP Password</label>
+                            <input type="password" name="imap_password" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_password }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-secondary">IMAP Port</label>
+                            <input type="number" name="imap_port" class="form-control bg-dark text-white border-secondary" value="{{ config.imap_port or 993 }}">
+                        </div>
+                    </div>
+
+                    <h6 class="text-info">6. Media Asset Library (Contextual Match Engine)</h6>
+                    <div id="media-library-container" class="mb-3">
+                        {% for item in config.media_library %}
+                        <div class="row g-2 mb-2 media-item">
+                            <div class="col-md-3">
+                                <input type="text" name="media_name[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Asset Name" value="{{ item.name }}">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="url" name="media_url[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Media Link" value="{{ item.url }}">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="media_tags[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Tags (comma-separated)" value="{{ item.tags | join(', ') }}">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-media w-100">×</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="add-media" class="btn btn-sm btn-outline-info mb-4">+ Add Media Asset</button>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary px-4">Save All Configurations</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 5: SYSTEM HEALTH & SYNC PROTOCOL -->
+            <div class="tab-pane fade {% if active_tab == 'system' %}show active{% endif %}" id="tab-system" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card card-custom p-3 mb-4">
+                            <h5 class="text-white mb-3">Repository & Git Info</h5>
+                            <p class="mb-1"><strong>Branch:</strong> <span class="badge bg-info">{{ git_info.branch }}</span></p>
+                            <p class="mb-1"><strong>Commit:</strong> <code>{{ git_info.commit }}</code></p>
+                            <p class="mb-3"><strong>Release Version:</strong> <span class="badge bg-warning text-dark">v{{ version }}</span></p>
+                            <button onclick="runSync()" class="btn btn-sm btn-outline-primary w-100 mb-2">Trigger Sync Protocol</button>
+                            <button onclick="shutdownServer()" class="btn btn-sm btn-outline-danger w-100" data-bs-toggle="tooltip" title="Gracefully terminate dashboard server and background scheduler">
+                                🛑 Stop / Quit Server
+                            </button>
+                        </div>
+
+                        <div class="card card-custom p-3 mb-4">
+                            <h5 class="text-white mb-3">Sync Reliability (7-day)</h5>
+                            <h2 class="{% if sync_stats.success_rate >= 90 %}text-success{% else %}text-warning{% endif %} mb-0">
+                                {{ sync_stats.success_rate }}%
+                            </h2>
+                            <small class="text-white-50">Protocol success rate</small>
+                            <hr class="border-secondary">
+                            <p class="mb-1"><strong>Total Syncs:</strong> {{ sync_stats.total_syncs }}</p>
+                            <p class="mb-0"><strong>Failures:</strong> <span class="text-danger">{{ sync_stats.failures }}</span></p>
+                        </div>
+
+                        <div class="card card-custom p-3">
+                            <h5 class="text-white mb-3">AI Token Consumption (7-day)</h5>
+                            {% for row in ai_usage %}
+                            <div class="mb-3">
+                                <code class="text-info">{{ row.model }}</code>
+                                <div class="d-flex justify-content-between small text-white-50">
+                                    <span>Prompt: {{ row.prompt }}</span>
+                                    <span>Completion: {{ row.completion }}</span>
+                                </div>
+                                <div class="progress bg-dark mt-1" style="height: 4px;">
+                                    <div class="progress-bar bg-info" style="width: {{ (row.prompt / row.total * 100)|int if row.total > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if not ai_usage %}
+                            <p class="small text-secondary mb-0">No token activity recorded in period.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card card-custom p-3 mb-4">
+                            <h5 class="text-white mb-3">Pipeline Execution Log</h5>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Run ID</th>
+                                            <th>Started</th>
+                                            <th>Duration / End</th>
+                                            <th>Venues</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for run in pipeline_history %}
+                                        <tr>
+                                            <td>{{ run.id }}</td>
+                                            <td><small>{{ run.start_time }}</small></td>
+                                            <td>
+                                                {% if run.end_time %}
+                                                <small>{{ run.end_time }}</small>
+                                                {% else %}
+                                                <span class="badge bg-warning text-dark">RUNNING</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ run.venues_found }}</td>
+                                            <td>
+                                                <span class="badge {% if run.status == 'COMPLETED' %}bg-success{% elif run.status == 'FAILED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    {{ run.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card card-custom p-3 mb-4">
+                            <h5 class="text-white mb-3">Sync Protocol Console Output</h5>
+                            <pre id="sync-output" class="text-white-50 p-3 bg-black rounded" style="height: 220px; overflow-y: auto; font-size: 0.85rem;">Ready to sync...</pre>
+                        </div>
+
+                        <div class="card card-custom p-3">
+                            <h5 class="text-white mb-3">Version Audit Trail</h5>
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-dark table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Commit</th>
+                                            <th>Summary</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for commit in audit_trail %}
+                                        <tr>
+                                            <td><code>{{ commit.commit_hash[:7] }}</code></td>
+                                            <td>
+                                                <small>{{ commit.summary }}</small>
+                                                {% if commit.version_string %}
+                                                <span class="badge bg-warning text-dark ms-1">{{ commit.version_string }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><small class="text-white-50">{{ commit.timestamp }}</small></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: SCRAPER SOURCES -->
+            <div class="tab-pane fade {% if active_tab == 'sources' %}show active{% endif %}" id="tab-sources" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4">
+                            <h5 class="text-white mb-3">AI-Powered Scraper Generator</h5>
+                            <p class="small text-white-50">Generate a custom web scraper dynamically for any electronic music portal or nightlife event directory.</p>
+                            <form action="/add_source" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary">Source Identifier (e.g. DetroitUnderground)</label>
+                                    <input type="text" name="name" class="form-control bg-dark text-white border-secondary" placeholder="ResidentAdvisorDetroit" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary">Example URL to Analyze</label>
+                                    <input type="url" name="url" class="form-control bg-dark text-white border-secondary" placeholder="https://ra.co/events/us/detroit" required>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm">Generate Scraper Class</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4">
+                            <h5 class="text-white mb-3">Active Scraper Modules</h5>
+                            <ul class="list-group list-group-flush">
+                                {% for file in files %}
+                                <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center">
+                                    <span>📦 {{ file }}</span>
+                                    <span class="badge bg-success">Operational</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Add Venue Manually Modal -->
+    <div class="modal fade" id="addVenueModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Add Venue Manually</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/add_venue_manually" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Venue Name*</label>
+                            <input type="text" name="name" class="form-control bg-secondary text-white border-dark" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">City*</label>
+                            <input type="text" name="city" class="form-control bg-secondary text-white border-dark" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Website (Optional)</label>
+                            <input type="url" name="website" class="form-control bg-secondary text-white border-dark">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Notes / Atmosphere / Sound Traits</label>
+                            <textarea name="notes" class="form-control bg-secondary text-white border-dark" rows="3" placeholder="Context for AI culture fit..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success btn-sm">Save & Run Qualification</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tour Planning Modal -->
+    <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-info">
+                <div class="modal-header border-info">
+                    <h5 class="modal-title">Regional Tour Route Orchestrator</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Recommended Route & Booking Strategy:</h6>
+                    <pre id="tour-output" class="bg-black text-info p-3 rounded" style="white-space: pre-wrap; font-size: 0.9rem;"></pre>
+
+                    <h6 class="mt-4">Cluster Pitch Proposal:</h6>
+                    <textarea id="cluster-pitch" class="form-control bg-black text-white border-secondary mb-3" rows="8"></textarea>
+
+                    <div id="dispatch-results" class="alert d-none"></div>
+                </div>
+                <div class="modal-footer border-info">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="dispatch-btn" class="btn btn-info btn-sm">Dispatch Tour Pitch to Route</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            initMap();
+            initCharts();
         });
 
         function copyToClipboard(text, leadId) {
             navigator.clipboard.writeText(text).then(() => {
                 const btn = document.getElementById(`copy-btn-${leadId}`);
-                const originalText = btn.innerText;
-                btn.innerText = 'Copied!';
-                btn.classList.replace('btn-outline-warning', 'btn-success');
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.replace('btn-success', 'btn-outline-warning');
-                }, 2000);
+                if (btn) {
+                    const originalText = btn.innerText;
+                    btn.innerText = 'Copied!';
+                    btn.classList.replace('btn-outline-warning', 'btn-success');
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.replace('btn-success', 'btn-outline-warning');
+                    }, 2000);
+                }
             });
         }
 
@@ -62,24 +1114,7 @@
                 const response = await fetch(`/dismiss_reply/${replyId}?unmatched=${isUnmatched}`, { method: 'POST' });
                 const data = await response.json();
                 if (data.status === 'success') {
-                    const prefix = isUnmatched ? 'unmatched' : 'lead';
-                    const badge = document.getElementById(`attention-badge-${prefix}-${replyId}`);
-                    const btn = document.getElementById(`dismiss-btn-${prefix}-${replyId}`);
-                    if (badge) badge.style.display = 'none';
-                    if (btn) btn.style.display = 'none';
-
-                    const navBadge = document.getElementById('nav-attention-badge');
-                    if (navBadge) {
-                        let currentCount = parseInt(navBadge.innerText);
-                        if (!isNaN(currentCount) && currentCount > 0) {
-                            currentCount--;
-                            if (currentCount === 0) {
-                                navBadge.style.display = 'none';
-                            } else {
-                                navBadge.innerText = currentCount;
-                            }
-                        }
-                    }
+                    location.reload();
                 }
             } catch(e) {
                 console.error("Error dismissing notification: " + e);
@@ -87,13 +1122,13 @@
         }
 
         async function markBooked(leadId) {
-            if (!confirm('Are you sure you want to mark this venue as BOOKED?')) return;
+            if (!confirm('Mark this venue as BOOKED?')) return;
             const response = await fetch(`/mark_booked/${leadId}`, { method: 'POST' });
             if (response.ok) location.reload();
         }
 
         async function markLost(leadId) {
-            if (!confirm('Are you sure you want to mark this lead as LOST?')) return;
+            if (!confirm('Mark this lead as LOST?')) return;
             const response = await fetch(`/mark_lost/${leadId}`, { method: 'POST' });
             if (response.ok) location.reload();
         }
@@ -108,7 +1143,7 @@
                 const response = await fetch(`/requalify/${leadId}`, { method: 'POST' });
                 const data = await response.json();
                 if (data.status === 'success') {
-                    alert(`New Score: ${data.new_score}/10 - Status: ${data.new_status}`);
+                    alert(`New Vibe Score: ${data.new_score}/10 — Status: ${data.new_status}`);
                     location.reload();
                 } else {
                     alert('Error: ' + data.error);
@@ -122,7 +1157,7 @@
         }
 
         async function fetchReplies() {
-            const btn = document.getElementById('fetch-replies-btn');
+            const btn = document.getElementById('nav-fetch-btn');
             const originalText = btn.innerText;
             btn.disabled = true;
             btn.innerText = 'Fetching...';
@@ -132,7 +1167,7 @@
                 const data = await response.json();
                 if (data.status === 'success') {
                     alert(data.message);
-                    if (data.count > 0) location.reload();
+                    location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -143,315 +1178,276 @@
                 btn.innerText = originalText;
             }
         }
+
+        async function runPipelineNow() {
+            const btn = document.getElementById('nav-pipeline-btn');
+            btn.disabled = true;
+            btn.innerText = 'Starting...';
+
+            try {
+                const response = await fetch('/run_pipeline_now', { method: 'POST' });
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                alert('Error starting pipeline: ' + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '⚡ Run Pipeline Now';
+            }
+        }
+
+        async function runSync() {
+            const btn = document.getElementById('nav-sync-btn');
+            const output = document.getElementById('sync-output');
+            btn.disabled = true;
+            btn.innerText = 'Syncing...';
+            if (output) output.innerText = 'Starting Repository Synchronization Protocol...\n';
+
+            try {
+                const response = await fetch('/run_sync', { method: 'POST' });
+                const data = await response.json();
+                if (output) output.innerText += data.output;
+                if (data.status === 'success') {
+                    if (output) output.classList.add('text-success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    if (output) output.classList.add('text-danger');
+                }
+            } catch (error) {
+                if (output) output.innerText += '\nError: ' + error;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '🔄 Sync Repo';
+            }
+        }
+
+        async function shutdownServer() {
+            if (!confirm('Are you sure you want to stop and quit the application server?')) return;
+            try {
+                await fetch('/shutdown', { method: 'POST' });
+                alert('Server shutdown initiated. Closing window.');
+                window.close();
+            } catch(e) {
+                alert('Shutdown signal transmitted.');
+            }
+        }
+
+        // Map & Circuit Handling
+        let map = null;
+        let activeMarkers = [];
+        let clusterMarkers = [];
+        let clustersVisible = false;
+        let circuitPolyline = null;
+        const venues = {{ venues|tojson }};
+        const clusters = {{ clusters|tojson }};
+
+        function initMap() {
+            const mapEl = document.getElementById('map');
+            if (!mapEl) return;
+            map = L.map('map').setView([42.3314, -83.0458], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            updateMapPins();
+
+            const mapTab = document.getElementById('map-tab');
+            if (mapTab) {
+                mapTab.addEventListener('shown.bs.tab', function () {
+                    map.invalidateSize();
+                });
+            }
+
+            const vf = document.getElementById('vibe-filter');
+            const sf = document.getElementById('status-filter');
+            if (vf) vf.addEventListener('change', updateMapPins);
+            if (sf) sf.addEventListener('change', updateMapPins);
+        }
+
+        function updateMapPins() {
+            if (!map) return;
+            activeMarkers.forEach(m => map.removeLayer(m));
+            activeMarkers = [];
+
+            const vibeThreshold = parseInt(document.getElementById('vibe-filter').value) || 0;
+            const statusFilter = document.getElementById('status-filter').value;
+
+            venues.forEach(venue => {
+                if (venue.latitude && venue.longitude) {
+                    if (venue.vibe_score < vibeThreshold) return;
+                    if (statusFilter !== 'ALL' && venue.pipeline_status !== statusFilter) return;
+
+                    const marker = L.circleMarker([venue.latitude, venue.longitude], {
+                        radius: 8,
+                        fillColor: venue.vibe_score >= 8 ? "#3fb950" : (venue.vibe_score >= 6 ? "#d29922" : "#58a6ff"),
+                        color: "#fff",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+
+                    marker.bindPopup(`
+                        <div class="text-dark p-1">
+                            <h6 class="mb-1">${venue.name}</h6>
+                            <p class="mb-1 small text-muted">${venue.city} (${venue.pipeline_status})</p>
+                            <div><strong>Vibe:</strong> ${venue.vibe_score}/10</div>
+                            <hr class="my-1">
+                            <a href="/venue/${venue.id}" class="btn btn-xs btn-primary text-white py-0 px-2 mt-1">Venue Details</a>
+                        </div>
+                    `);
+                    activeMarkers.push(marker);
+                }
+            });
+
+            if (activeMarkers.length > 0) {
+                const group = new L.featureGroup(activeMarkers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        function toggleClusters() {
+            if (!map) return;
+            clustersVisible = !clustersVisible;
+            const btn = document.getElementById('cluster-toggle');
+
+            if (clustersVisible) {
+                btn.innerText = 'Hide Hotspots';
+                btn.classList.replace('btn-outline-info', 'btn-info');
+                clusters.forEach(c => {
+                    const circle = L.circle([c.center.lat, c.center.lon], {
+                        color: '#58a6ff',
+                        fillColor: '#58a6ff',
+                        fillOpacity: 0.2,
+                        radius: 50000
+                    }).addTo(map);
+                    circle.bindTooltip(`Hotspot: ${c.venue_count} venues, Avg Vibe: ${c.avg_vibe.toFixed(1)}`);
+                    clusterMarkers.push(circle);
+                });
+            } else {
+                btn.innerText = 'Show Hotspots';
+                btn.classList.replace('btn-info', 'btn-outline-info');
+                clusterMarkers.forEach(m => map.removeLayer(m));
+                clusterMarkers = [];
+            }
+        }
+
+        function planCircuit() {
+            const btn = document.getElementById('circuit-btn');
+            btn.disabled = true;
+            btn.innerText = 'Calculating Route...';
+
+            fetch('/plan_circuit')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('tour-output').innerText = data.recommendation;
+                    document.getElementById('cluster-pitch').value = "Circuit routing active. See optimal route itinerary above.";
+                    const modal = new bootstrap.Modal(document.getElementById('tourModal'));
+                    modal.show();
+
+                    if (data.route && data.route.length > 1) {
+                        const latlngs = data.route.map(c => [c.center.lat, c.center.lon]);
+                        if (circuitPolyline) map.removeLayer(circuitPolyline);
+                        circuitPolyline = L.polyline(latlngs, {color: '#d29922', weight: 4, dashArray: '8, 8'}).addTo(map);
+                        map.fitBounds(circuitPolyline.getBounds());
+                    }
+                    btn.disabled = false;
+                    btn.innerText = '🚗 Plan Midwest Circuit';
+                })
+                .catch(err => {
+                    alert("Error calculating circuit: " + err);
+                    btn.disabled = false;
+                    btn.innerText = '🚗 Plan Midwest Circuit';
+                });
+        }
+
+        // Charts & Analytics
+        function initCharts() {
+            const ctx = document.getElementById('timelineChart');
+            if (!ctx) return;
+            const timelineData = {{ timeline | tojson }};
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timelineData.map(d => d.date),
+                    datasets: [{
+                        label: 'Dispatched Pitches',
+                        data: timelineData.map(d => d.count),
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+                        x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+                    },
+                    plugins: { legend: { labels: { color: '#c9d1d9' } } }
+                }
+            });
+        }
+
+        function calculateSignificance() {
+            const btn = document.getElementById('calc-sig-btn');
+            const resDiv = document.getElementById('sig-result');
+            btn.disabled = true;
+            btn.innerText = 'Calculating...';
+
+            fetch('/calculate_ab_significance')
+                .then(r => r.json())
+                .then(data => {
+                    resDiv.classList.remove('d-none');
+                    if (data.error) {
+                        resDiv.innerHTML = `<span class="text-danger">${data.error}</span>`;
+                    } else {
+                        resDiv.innerHTML = `<strong>Significance Detected:</strong> ${data.is_significant ? '<span class="text-success">Yes (p < 0.05)</span>' : '<span class="text-warning">No (Need more data)</span>'}<br>
+                                            <strong>Chi-Square Statistic:</strong> ${data.chi2 ? data.chi2.toFixed(2) : 'N/A'}<br>
+                                            <strong>P-Value:</strong> ${data.p_value ? data.p_value.toFixed(4) : 'N/A'}<br>
+                                            <small class="text-white-50">Comparing top variants: <code>${data.variant_a}</code> vs <code>${data.variant_b}</code></small>`;
+                    }
+                    btn.disabled = false;
+                    btn.innerText = 'Calculate Statistical Significance';
+                })
+                .catch(err => {
+                    resDiv.classList.remove('d-none');
+                    resDiv.innerHTML = `<span class="text-danger">Error: ${err}</span>`;
+                    btn.disabled = false;
+                    btn.innerText = 'Calculate Statistical Significance';
+                });
+        }
+
+        // Media Library Form Helper
+        const addMediaBtn = document.getElementById('add-media');
+        if (addMediaBtn) {
+            addMediaBtn.addEventListener('click', function() {
+                const container = document.getElementById('media-library-container');
+                const newItem = document.createElement('div');
+                newItem.className = 'row g-2 mb-2 media-item';
+                newItem.innerHTML = `
+                    <div class="col-md-3">
+                        <input type="text" name="media_name[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Asset Name">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="url" name="media_url[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Media Link">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="media_tags[]" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Tags (comma-separated)">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-media w-100">×</button>
+                    </div>
+                `;
+                container.appendChild(newItem);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('remove-media')) {
+                e.target.closest('.media-item').remove();
+            }
+        });
     </script>
-</head>
-<body class="container mt-5 text-bg-dark">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addVenueModal">+ Add Venue Manually</button>
-        <h1>
-            {% if view == 'history' %}History
-            {% elif view == 'qualification' %}Qualification
-            {% elif view == 'booked' %}Booked Tracker
-            {% else %}Pending Leads{% endif %}
-        </h1>
-        <div class="d-flex gap-3 align-items-center">
-            {% if view == 'history' %}
-            <button id="fetch-replies-btn" onclick="fetchReplies()" class="btn btn-info text-nowrap">Fetch New Replies</button>
-            {% endif %}
-            <div class="btn-group">
-                <a href="/map" class="btn btn-outline-light" data-bs-toggle="tooltip" title="View clustered venues on an interactive map.">Venue Map</a>
-                <a href="/analytics" class="btn btn-outline-info" data-bs-toggle="tooltip" title="View historical performance and engagement analytics.">Analytics</a>
-                <a href="/sources" class="btn btn-outline-success" data-bs-toggle="tooltip" title="Manage data sources like Resident Advisor and Google Maps.">Sources</a>
-                <a href="/settings" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="System settings and configuration.">Settings</a>
-                <a href="/system" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="System logs and proxy health.">System</a>
-            </div>
-            <div class="btn-group ms-2">
-                <a href="/" class="btn {% if view == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Review new AI-generated pitches ready for approval.">Pending</a>
-                <a href="/pending_qualification" class="btn {% if view == 'qualification' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Review raw scraped venues awaiting AI Vibe checks.">Filter</a>
-                <a href="/history" class="btn {% if view == 'history' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Unified Inbox: View sent pitches, simulate replies, and manage negotiations.">
-                    History
-                    {% if attention_count and attention_count > 0 %}
-                    <span id="nav-attention-badge" class="badge bg-danger rounded-pill ms-1">{{ attention_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="/booked" class="btn {% if view == 'booked' %}btn-primary{% else %}btn-outline-primary{% endif %}" data-bs-toggle="tooltip" title="Track successfully booked venues.">Booked</a>
-                <a href="/calculate_ab_significance" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="View current A/B testing stats for pitch variants.">A/B Testing</a>
-                <a href="/dm_queue" class="btn {% if view == 'dm_queue' %}btn-secondary{% else %}btn-outline-secondary{% endif %}" data-bs-toggle="tooltip" title="Queue of Instagram DM outreach leads awaiting action.">DM Queue</a>
-                <a href="/pending_follow_ups" class="btn {% if view == 'pending_follow_ups' %}btn-warning{% else %}btn-outline-warning{% endif %}" data-bs-toggle="tooltip" title="Leads scheduled for follow-up outreach based on their vibe score.">Pending Follow-ups</a>
-            </div>
-        </div>
-    </div>
-
-    {% if view == 'history' and unmatched %}
-    <div class="alert alert-warning border-warning bg-dark mb-4 shadow">
-        <h5 class="alert-heading text-warning"><i class="bi bi-exclamation-triangle"></i> Unmatched Replies Found</h5>
-        <p class="small">The following emails could not be automatically matched to a lead. Please review and assign them manually.</p>
-        <hr class="border-warning">
-        <div class="row">
-            {% for reply in unmatched %}
-            <div class="col-md-6 mb-3">
-                <div class="card text-bg-dark border-warning h-100">
-                    <div class="card-body p-2">
-                        <p class="mb-1 small"><strong>From:</strong> {{ reply.sender }}</p>
-                        <p class="mb-1 small"><strong>Subject:</strong> {{ reply.subject }}</p>
-                        <pre class="small text-white-50 p-1 bg-black rounded" style="max-height: 80px; overflow-y: auto;">{{ reply.content }}</pre>
-                        <form action="/match_unmatched/{{ reply.id }}" method="post" class="mt-2">
-                            <div class="input-group input-group-sm">
-                                <select name="lead_id" class="form-select bg-dark text-white border-secondary">
-                                    <option value="">Assign to Lead...</option>
-                                    {% for lead in leads %}
-                                    <option value="{{ lead.id }}">{{ lead.name }} ({{ lead.city }})</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn btn-warning">Match</button>
-                            </div>
-                        </form>
-                        <form action="/delete_unmatched/{{ reply.id }}" method="post" class="mt-1 d-flex gap-2">
-                            <button type="submit" class="btn btn-sm btn-outline-danger flex-grow-1">Delete</button>
-                            {% if reply.requires_attention %}
-                            <button type="button" id="dismiss-btn-unmatched-{{ reply.id }}" class="btn btn-sm btn-outline-light flex-grow-1" onclick="dismissReply({{ reply.id }}, true)">Dismiss Notify</button>
-                            {% endif %}
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <div class="row mt-4">
-        {% for lead in leads %}
-        <div class="col-12 mb-4">
-            <div class="card text-bg-secondary">
-                <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
-                    <h5 class="mb-0">
-                        <a href="/venue/{{ lead.venue_id }}" class="text-white text-decoration-none hover-info">{{ lead.name }}</a>
-                        <small class="text-secondary">({{ lead.city }})</small>
-                    </h5>
-                    <div>
-                        {% if lead.negotiation_status %}
-                        <span class="badge bg-info border border-light" data-bs-toggle="tooltip" title="Current negotiation state.">
-                            {{ lead.negotiation_status }}
-                        </span>
-                        {% endif %}
-                        <span class="badge {% if lead.pipeline_status == 'SENT' or lead.pipeline_status == 'BOOKED' %}bg-success{% elif lead.pipeline_status == 'REJECTED' or lead.pipeline_status == 'LOST' %}bg-danger{% else %}bg-info{% endif %}">
-                            {{ lead.pipeline_status }}
-                        </span>
-                        <span class="badge {% if lead.vibe_score >= 8 %}bg-success{% else %}bg-primary{% endif %}"
-                              data-bs-toggle="tooltip" title="AI-calculated culture fit based on venue description and social media.">
-                            Vibe Score: {{ lead.vibe_score }}/10
-                        </span>
-                        {% if lead.success_prob %}
-                        <span class="badge {% if lead.success_prob >= 70 %}bg-success{% elif lead.success_prob >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}"
-                              data-bs-toggle="tooltip" title="Empirical success probability based on city history and technical trait alignment.">
-                            Success Prob: {{ lead.success_prob }}%
-                        </span>
-                        {% endif %}
-                        {% if lead.qualified_genre %}
-                        <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Target genre used during qualification.">
-                            Genre: {{ lead.qualified_genre }}
-                        </span>
-                        {% endif %}
-                        {% if lead.pitch_variant %}
-                        <span class="badge bg-dark border border-light" data-bs-toggle="tooltip" title="A/B testing variant used for the pitch.">
-                            Variant: {{ lead.pitch_variant }}
-                        </span>
-                        {% endif %}
-                        {% if lead.follow_up_count and lead.follow_up_count > 0 %}
-                        <span class="badge bg-warning text-dark">
-                            Follow-ups: {{ lead.follow_up_count }}
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="card-text"><strong>Why:</strong> {{ lead.qualification_justification }}</p>
-
-                    {% if view == 'qualification' %}
-                    <div class="mb-3">
-                        <button id="requalify-btn-{{ lead.id }}" onclick="requalify({{ lead.id }})" class="btn btn-outline-info btn-sm">Re-run AI Vibe Check</button>
-                    </div>
-                    {% endif %}
-
-                    {% if lead.visual_description %}
-                    <div class="mb-3 d-flex gap-3 align-items-start bg-black p-3 rounded border border-secondary">
-                        {% if lead.image_url %}
-                        <img src="{{ lead.image_url }}" alt="Venue Image" class="rounded" style="max-width: 200px; max-height: 150px; object-fit: cover;">
-                        {% endif %}
-                        <div>
-                            <small class="text-info d-block mb-1">Vision-Enriched Analysis:</small>
-                            <p class="small mb-0">{{ lead.visual_description }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if lead.traits_dict %}
-                    <div class="mb-3">
-                        <div class="d-flex flex-wrap gap-2">
-                            {% if lead.traits_dict.sound_system %}
-                            <span class="badge border border-info text-info" data-bs-toggle="tooltip" title="Sound System Trait">🔊 {{ lead.traits_dict.sound_system }}</span>
-                            {% endif %}
-                            {% if lead.traits_dict.lighting %}
-                            <span class="badge border border-warning text-warning" data-bs-toggle="tooltip" title="Lighting Trait">💡 {{ lead.traits_dict.lighting }}</span>
-                            {% endif %}
-                            {% if lead.traits_dict.atmosphere %}
-                            <span class="badge border border-success text-success" data-bs-toggle="tooltip" title="Atmosphere Trait">✨ {{ lead.traits_dict.atmosphere }}</span>
-                            {% endif %}
-                            {% if lead.traits_dict.music_policy %}
-                            <span class="badge border border-primary text-primary" data-bs-toggle="tooltip" title="Music Policy Trait">🎵 {{ lead.traits_dict.music_policy }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if view == 'pending' %}
-                    <form action="{{ url_for('approve', lead_id=lead.id) }}" method="post">
-                        <div class="mb-3">
-                            {% if lead.instagram %}
-                            <div class="alert alert-warning bg-dark text-warning border-warning d-flex justify-content-between align-items-center py-2">
-                                <span>No email? Try Instagram: <strong>{{ lead.instagram }}</strong></span>
-                                <button type="button" id="copy-btn-{{ lead.id }}"
-                                        onclick="copyToClipboard(document.getElementById('pitch-{{ lead.id }}').value, {{ lead.id }})"
-                                        class="btn btn-sm btn-outline-warning">
-                                    Copy Pitch for DM
-                                </button>
-                            </div>
-                            {% endif %}
-
-                            <div class="row align-items-end mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label mb-0"><strong>Select Billed Artist:</strong></label>
-                                    <select name="artist_id" id="artist-select-{{ lead.id }}" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="regeneratePitch({{ lead.id }})">
-                                        <option value="">(Default Profile)</option>
-                                        {% for artist in artists %}
-                                        <option value="{{ artist.id }}">{{ artist.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-6 text-end">
-                                    <button type="button" id="regen-btn-{{ lead.id }}"
-                                            onclick="regeneratePitch({{ lead.id }})"
-                                            class="btn btn-sm btn-outline-info">
-                                        Regenerate AI Pitch
-                                    </button>
-                                </div>
-                            </div>
-                            <textarea id="pitch-{{ lead.id }}" name="pitch" class="form-control bg-dark text-white border-secondary" rows="8">{{ lead.generated_pitch }}</textarea>
-                            <div class="mt-2">
-                                <small class="text-info">
-                                    <i class="bi bi-info-circle"></i> AI Contextual Match: The pitch above includes media selected based on venue traits.
-                                </small>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success px-4">Approve & Send Email</button>
-                        </div>
-                    </form>
-                    <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post">
-                        <button type="submit" class="btn btn-outline-danger">Reject</button>
-                    </form>
-                    {% else %}
-                        <div class="mb-3">
-                            <label class="form-label"><strong>Pitch Used:</strong></label>
-                            <pre class="bg-dark text-white p-3 rounded" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
-                        </div>
-
-                        {% if lead.replies %}
-                        <div class="mt-4">
-                            <h6>Incoming Replies:</h6>
-                            {% for reply in lead.replies %}
-                            <div class="alert {% if reply.sentiment == 'INTERESTED' %}alert-success{% elif reply.sentiment == 'REJECTED' %}alert-danger{% else %}alert-light{% endif %} bg-dark text-white border-secondary mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-secondary">{{ reply.received_at }}</small>
-                                    <span class="badge {% if reply.sentiment == 'INTERESTED' %}bg-success{% elif reply.sentiment == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">{{ reply.sentiment }}</span>
-                                </div>
-                                <p class="mb-0 mt-1">
-                                    {{ reply.content }}
-                                    {% if reply.requires_attention %}
-                                    <span id="attention-badge-lead-{{ reply.id }}" class="badge bg-danger ms-2">Needs Attention</span>
-                                    <button id="dismiss-btn-lead-{{ reply.id }}" class="btn btn-sm btn-outline-light ms-2" onclick="dismissReply({{ reply.id }}, false)">Dismiss</button>
-                                    {% endif %}
-                                </p>
-
-                                {% if reply.draft_response %}
-                                <div class="mt-3 p-2 bg-black rounded border border-info">
-                                    <small class="text-info d-block mb-1">AI Drafted Reply:</small>
-                                    <form action="/send_reply/{{ reply.id }}" method="post">
-                                        <textarea name="reply_content" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" rows="5">{{ reply.draft_response }}</textarea>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <button type="submit" class="btn btn-sm btn-info">Send Edited Reply</button>
-
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-success" onclick="markBooked({{ lead.id }})">Mark as Booked</button>
-                                                <button type="button" class="btn btn-outline-danger" onclick="markLost({{ lead.id }})">Mark as Lost</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <hr class="border-secondary">
-                        <form action="/simulate_reply/{{ lead.id }}" method="post" class="mt-3">
-                            <label class="form-label text-secondary small">Simulate incoming email reply:</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" name="content" class="form-control bg-dark text-white border-secondary" placeholder="Type a reply to analyze sentiment...">
-                                <button type="submit" class="btn btn-outline-secondary">Analyze & Store</button>
-                            </div>
-                        </form>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-        {% if not leads %}
-        <div class="col-12">
-            <div class="alert alert-info bg-dark text-info border-info">
-                {% if view == 'history' %}No history found.{% else %}No pending leads to review. Keep hunting!{% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Add Venue Manually Modal -->
-    <div class="modal fade" id="addVenueModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Add Venue Manually</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form action="/add_venue_manually" method="post">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label text-info">Venue Name*</label>
-                            <input type="text" name="name" class="form-control bg-secondary text-white border-dark" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-info">City*</label>
-                            <input type="text" name="city" class="form-control bg-secondary text-white border-dark" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-info">Website (Optional)</label>
-                            <input type="url" name="website" class="form-control bg-secondary text-white border-dark">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-info">Notes / Description / Vibes</label>
-                            <textarea name="notes" class="form-control bg-secondary text-white border-dark" rows="3" placeholder="Paste context for the AI vibe check..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-secondary">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Save & Qualify</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>

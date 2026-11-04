@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.1.78] - 2026-11-04
+
+### Added
+- **Unified Single-Page Command Center (`src/dashboard/templates/index.html`)**: Fully consolidated all disparate dashboard pages (`/map`, `/analytics`, `/settings`, `/system`, `/sources`, `/pending_qualification`, `/history`, `/booked`, `/dm_queue`, `/pending_follow_ups`) into a single priority-ranked interface with master tabs, quick-action header buttons, global KPI cards, and tooltips.
+- **Desktop System Tray Companion (`src/dashboard/tray.py`, `tray.sh`)**: Built desktop tray companion with options to monitor status, open dashboard, trigger outreach pipeline, fetch inbox replies, execute repository sync protocol, and gracefully stop/quit servers. Added headless terminal/CLI daemon fallback for environments without graphical displays.
+- **Graceful Server Shutdown Endpoint (`/shutdown`)**: Added secure endpoint in `app.py` enabling operator and companion process termination with testing environment safety guards.
+- **Unified Dashboard Integration Test Suite (`tests/test_unified_dashboard.py`)**: Added full automated testing suite verifying master tab parameters, backward-compatible route rendering, tray companion handlers, and shutdown endpoint.
+
+### Changed
+- **Repository Hygiene Hardening**: Added `MagicMock/`, `.pytest_cache/`, and coverage artifacts to `.gitignore` to prevent version control pollution during test runs.
+
 ## [1.1.77] - 2026-07-13
 
 ### Added

@@ -250,4 +250,22 @@ The system is modular:
         │     HITL Dashboard (Flask)       │
         │  Review · Map · Analytics · Tour │
         └──────────────────────────────────┘
+                         ▲
+                         │
+        ┌──────────────────────────────────┐
+        │   Desktop System Tray / Daemon   │
+        │      (src/dashboard/tray.py)     │
+        └──────────────────────────────────┘
+```
+
+## Desktop Companion & System Tray
+
+Launch the companion via `./tray.sh`:
+- In desktop environments, provides an icon in the system tray to Open Dashboard, Trigger Pipeline, Fetch Replies, Run Repository Sync, and Gracefully Quit application servers.
+- In headless/terminal environments, automatically falls back to an interactive CLI or background daemon monitor.
+```bash
+./tray.sh               # Auto-detects desktop or CLI
+./tray.sh --check-status # Queries server status
+./tray.sh --cmd status  # Executes one-off command
+./tray.sh --shutdown-server # Gracefully stops Flask server and daemon
 ```

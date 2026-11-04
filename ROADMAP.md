@@ -193,9 +193,20 @@ Expand beyond email into automated social media outreach assistance.
 
 Expand reply parsing logic to deeply integrate sentiment and trigger automatic follow-ups.
 
-- [ ] Implement sentiment analysis for incoming DM responses to auto-tag lead warmth
-- [ ] Build automated follow-up triggers for positive DM leads (low-friction guidelines)
-- [ ] Add DM lead tracking visibility to the HITL dashboard
+- [x] Implement sentiment analysis for incoming DM responses to auto-tag lead warmth
+- [x] Build automated follow-up triggers for positive DM leads (low-friction guidelines)
+- [x] Add DM lead tracking visibility to the HITL dashboard
+
+---
+
+### Phase 51: Unified Command Center & Desktop System Tray Companion (v1.1.78)
+
+Consolidate fragmented dashboard subpages and provide system daemon management.
+
+- [x] Consolidate map, analytics, settings, sources, queues, and system health into a single unified dashboard (`index.html`)
+- [x] Implement desktop companion (`tray.py` and `tray.sh`) with headless CLI fallback
+- [x] Add graceful `/shutdown` server management endpoint
+- [x] Add automated test suite for unified dashboard architecture (`tests/test_unified_dashboard.py`)
 
 ## Backlog / Future Ideas
 
