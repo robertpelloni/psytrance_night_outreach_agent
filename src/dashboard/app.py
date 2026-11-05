@@ -537,6 +537,82 @@ def reject(lead_id):
     db.update_lead_status(lead_id, 'REJECTED')
     return redirect(url_for('index'))
 
+@app.route('/bulk_action', methods=['POST'])
+def bulk_action():
+    """Perform batch approvals, rejections, or requalifications asynchronously."""
+    import threading
+    action = request.form.get('action')
+    lead_ids = request.form.getlist('lead_ids[]')
+
+    if not lead_ids and request.is_json:
+        action = request.json.get('action')
+        lead_ids = request.json.get('lead_ids', [])
+
+    if not action or not lead_ids:
+        if request.is_json:
+            return jsonify({"error": "Missing action or lead IDs"}), 400
+        return redirect(request.referrer or url_for('index'))
+
+    lead_ids = [int(i) for i in lead_ids if str(i).isdigit()]
+
+    def process_batch(ids, act):
+        primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+        for lid in ids:
+            try:
+                if act == 'approve':
+                    lead = db.get_lead(lid)
+                    if not lead: continue
+                    pitch = lead.get('generated_pitch')
+                    if not pitch:
+                        venue = db.get_venue(lead['venue_id'])
+                        pitch = ai.generate_pitch(
+                            venue['name'],
+                            lead['qualification_justification'],
+                            epk_link=config_mgr.get("epk_link"),
+                            mix_link=config_mgr.get("mix_link"),
+                            traits=venue.get('extracted_traits'),
+                            media_library=config_mgr.get("media_library"),
+                            genre=primary_genre
+                        )
+                    db.update_lead_status(lid, 'APPROVED', pitch=pitch)
+                    query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
+                    with db._get_connection() as conn:
+                        cursor = conn.execute(query, (lead['venue_id'],))
+                        contact = cursor.fetchone()
+                    if contact and contact[0]:
+                        email = contact[0].split(',')[0].strip()
+                        subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
+                        if mailer.send_email(email, subject, pitch):
+                            db.update_lead_status(lid, 'SENT')
+                elif act == 'reject':
+                    db.update_lead_status(lid, 'REJECTED')
+                elif act == 'requalify':
+                    lead = db.get_lead(lid)
+                    if not lead: continue
+                    venue = db.get_venue(lead['venue_id'])
+                    if not venue: continue
+                    vibe_res = ai.vibe_check(
+                        venue['name'],
+                        venue.get('raw_about_text', ''),
+                        genre=lead.get('qualified_genre', primary_genre),
+                        rating=venue.get('google_rating')
+                    )
+                    vibe_thresh = config_mgr.get("vibe_threshold") or 6
+                    new_st = 'PENDING_REVIEW' if vibe_res['vibe_score'] >= vibe_thresh else 'PENDING_QUALIFICATION'
+                    q = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ? WHERE id = ?"
+                    with db._get_connection() as conn:
+                        conn.execute(q, (vibe_res['vibe_score'], vibe_res['justification'], new_st, lid))
+            except Exception as e:
+                db.log_system_event("DASHBOARD_BULK", "ERROR", f"Error processing lead {lid}: {e}")
+
+    thread = threading.Thread(target=process_batch, args=(lead_ids, action))
+    thread.daemon = True
+    thread.start()
+
+    if request.is_json:
+        return jsonify({"status": "processing", "count": len(lead_ids), "action": action})
+    return redirect(request.referrer or url_for('index'))
+
 @app.route('/send_reply/<int:reply_id>', methods=['POST'])
 def send_reply(reply_id):
     reply_content = request.form.get('reply_content')

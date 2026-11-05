@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.79] - 2026-11-04
+
+### Added
+- **Asynchronous Bulk Lead Actions (`/bulk_action`)**: Added threaded batch actions in `src/dashboard/app.py` for batch approvals, rejections, and AI requalifications without blocking UI response times.
+- **Interactive Batch Selection UI (`index.html`)**: Added Select All checkbox, item check triggers, and Batch Approve / Batch Reject / Batch Re-score buttons in the outreach pipeline views.
+- **Automated Bulk Action Tests (`tests/test_bulk_actions.py`)**: Added integration test coverage for batch approvals, status updates, email dispatching, and parameter validation.
+
 ## [1.1.78] - 2026-11-04
 
 ### Added

@@ -134,6 +134,8 @@
 - [x] Unified Single-Page Dashboard Architecture (v1.1.78)
 - [x] Desktop System Tray Companion & Server Management (v1.1.78)
 - [x] Automated Integration Test Suite for Unified Dashboard (v1.1.78)
+- [x] Refine "Pending Qualification" view with bulk approval actions (v1.1.79)
+- [x] Automated Integration Test Suite for Bulk Actions (v1.1.79)
 
 ---
 
