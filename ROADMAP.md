@@ -209,6 +209,18 @@ Consolidate fragmented dashboard subpages and provide system daemon management.
 - [x] Add graceful `/shutdown` server management endpoint
 - [x] Add automated test suite for unified dashboard architecture (`tests/test_unified_dashboard.py`)
 
+---
+
+### Phase 52: Pipeline Activity Digests & Comparison Analytics (v1.1.80 - v1.1.81)
+
+Operational intelligence, side-by-side venue matrix evaluation, and periodic email summaries.
+
+- [x] Implement side-by-side venue matrix comparison endpoint and interactive modal (`/compare_venues`)
+- [x] Implement pipeline digest generator (`DigestGenerator` in `src/digest_generator.py`)
+- [x] Add dashboard preview and instant dispatch endpoints (`/preview_digest`, `/send_digest`)
+- [x] Integrate pipeline activity digest modal into unified dashboard Analytics tab
+- [x] Add automated test suite for digest generation and dashboard integration (`tests/test_digest_generator.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

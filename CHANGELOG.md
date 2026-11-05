@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.81] - 2026-11-05
+
+### Added
+- **Pipeline Activity Digest Generator (`src/digest_generator.py`)**: Built `DigestGenerator` module to aggregate outreach metrics over customizable rolling windows (daily, weekly, monthly), including qualified leads, sent pitches, inbound replies by sentiment, booked venues, and AI token consumption.
+- **HTML & Plain Text Digest Rendering**: Formats activity digests with styled HTML badges and responsive layout for email clients, alongside plain text fallbacks.
+- **Dashboard Digest Preview & Dispatch (`/preview_digest`, `/send_digest`)**: Added preview and instant send endpoints in `src/dashboard/app.py`.
+- **Interactive Digest Modal (`index.html`)**: Added modal with dynamic time window selector, recipient email override, and embedded live iframe preview.
+- **Digest Generator Test Suite (`tests/test_digest_generator.py`)**: Added unit and integration tests verifying metric calculation, message formatting, mailer dispatching, and dashboard routes.
+
 ## [1.1.80] - 2026-11-04
 
 ### Added

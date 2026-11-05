@@ -161,7 +161,7 @@
 
 ## 🟢 Medium Priority
 
-- [ ] Add monthly/weekly email digest of pipeline activity
+- [x] Add monthly/weekly email digest of pipeline activity (v1.1.81)
 - [ ] Add Facebook Events / Eventbrite / Meetup scrapers
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [ ] Add collaborative filtering (if rejected at A, suggest B)

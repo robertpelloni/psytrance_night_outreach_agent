@@ -680,6 +680,27 @@ def compare_venues():
 
     return jsonify({"venues": results})
 
+@app.route('/preview_digest', methods=['GET'])
+def preview_digest():
+    """Generates an HTML preview of the pipeline activity digest."""
+    from src.digest_generator import DigestGenerator
+    days = request.args.get('days', default=7, type=int)
+    generator = DigestGenerator(db_path=db.db_path)
+    metrics = generator.collect_metrics(days=days)
+    return generator.render_html_digest(metrics)
+
+@app.route('/send_digest', methods=['POST'])
+def send_digest():
+    """Triggers dispatch of the pipeline activity digest via email."""
+    from src.digest_generator import DigestGenerator
+    data = request.get_json(silent=True) or {}
+    recipient = data.get('recipient_email')
+    days = int(data.get('days', 7))
+
+    generator = DigestGenerator(db_path=db.db_path, mailer=mailer)
+    result = generator.dispatch_digest(recipient_email=recipient, days=days)
+    return jsonify(result)
+
 @app.route('/requalify/<int:lead_id>', methods=['POST'])
 def requalify(lead_id):
     lead = db.get_lead(lead_id)

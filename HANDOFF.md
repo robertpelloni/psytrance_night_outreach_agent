@@ -42,6 +42,13 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 | 49 | DM queue dashboard, multi-city scaling | v1.1.75 |
 | 49 | Tour routing module, A/B analytics | v1.1.76 |
 
+### Session v1.1.81 — Periodic Pipeline Activity Digest Generator
+
+- **Activity Digest Generator**: Implemented `src/digest_generator.py` (`DigestGenerator`) aggregating rolling pipeline statistics (leads qualified, pitches sent, inbound replies by sentiment, booked venues, tokens consumed, and attention alerts) over configurable timeframes (24 hours, 7 days, 30 days).
+- **HTML & Plain Text Formatting**: Formats digests into clean email layouts and plain text representations with inline response snippets.
+- **Dashboard Modal & Endpoints**: Added `/preview_digest` (HTML preview) and `/send_digest` (mailer dispatch) endpoints, integrated into the unified dashboard under the Analytics tab with live iframe previews and manual recipient overrides.
+- **Validation**: Added `tests/test_digest_generator.py` (4/4 passing) and performed Playwright visual verification (`/home/jules/verification/digest_modal_preview.png`).
+
 ### Session v1.1.80 — Venue Comparison View & Side-by-Side Analytics
 
 - **Venue Comparison Endpoint**: Implemented `/compare_venues` in `src/dashboard/app.py` returning aligned comparative schema fields (ratings, capacity, venue type, neighborhood, extracted traits, vibe scores, success probability, pipeline status).

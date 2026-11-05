@@ -269,3 +269,16 @@ Launch the companion via `./tray.sh`:
 ./tray.sh --cmd status  # Executes one-off command
 ./tray.sh --shutdown-server # Gracefully stops Flask server and daemon
 ```
+
+## Pipeline Activity Email Digests
+
+Generate and dispatch periodic email digests of outreach activity:
+- Available directly from the Analytics tab on the Unified Dashboard via the **"Email Pipeline Digest"** button.
+- Select from 24 Hours (Daily), 7 Days (Weekly), or 30 Days (Monthly) summary windows.
+- Preview the formatted HTML digest in the embedded viewer and specify an optional recipient email override.
+- Or trigger programmatic dispatch via Python:
+```python
+from src.digest_generator import DigestGenerator
+generator = DigestGenerator()
+result = generator.dispatch_digest(recipient_email="booking@psycollective.org", days=7)
+```
