@@ -16,3 +16,7 @@ database/*.sqlite
 database/*.db-wal
 database/*.db-shm
 midwest_circuit_map.html
+MagicMock/
+.pytest_cache/
+.coverage
+htmlcov/
