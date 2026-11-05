@@ -186,6 +186,7 @@ Expand beyond email into automated social media outreach assistance.
 - [x] Add dashboard notification for new replies requiring attention (v1.1.64)
 - [x] Implement per-run and per-day token budget alerts
 - [x] Refine "Pending Qualification" view with bulk approval actions (v1.1.79)
+- [x] Add venue comparison view (side-by-side) (v1.1.80)
 
 ---
 

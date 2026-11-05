@@ -211,6 +211,7 @@
                         {% if view == 'qualification' %}
                         <button type="button" class="btn btn-sm btn-outline-info" onclick="executeBulkAction('requalify')">Batch Re-score</button>
                         {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="openVenueComparison()">Compare Venues</button>
                     </div>
                     {% endif %}
                 </div>
@@ -266,7 +267,7 @@
                             <div class="card-header d-flex flex-wrap justify-content-between align-items-center bg-dark text-white border-secondary">
                                 <div class="d-flex align-items-center gap-2">
                                     {% if view in ['pending', 'qualification'] %}
-                                    <input class="form-check-input lead-select-checkbox" type="checkbox" value="{{ lead.id }}">
+                                    <input class="form-check-input lead-select-checkbox" type="checkbox" value="{{ lead.id }}" data-venue-id="{{ lead.venue_id }}">
                                     {% endif %}
                                     <h5 class="mb-0">
                                         <a href="/venue/{{ lead.venue_id }}" class="text-white text-decoration-none hover-info" data-bs-toggle="tooltip" title="View comprehensive venue profile and contact history">
@@ -1042,6 +1043,34 @@
         </div>
     </div>
 
+    <!-- Venue Comparison Modal -->
+    <div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title">Venue Side-by-Side Comparison</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="compare-results" class="table-responsive">
+                        <table class="table table-dark table-bordered table-striped" id="compare-table">
+                            <thead>
+                                <tr id="compare-headers">
+                                    <th>Metric / Attribute</th>
+                                </tr>
+                            </thead>
+                            <tbody id="compare-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tour Planning Modal -->
     <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -1080,6 +1109,73 @@
             initMap();
             initCharts();
         });
+
+        async function openVenueComparison() {
+            const checkedBoxes = Array.from(document.querySelectorAll('.lead-select-checkbox:checked'));
+            const venueIds = checkedBoxes.map(cb => cb.getAttribute('data-venue-id')).filter(id => id);
+
+            if (venueIds.length < 2) {
+                alert('Please select at least 2 venues to compare side-by-side.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/compare_venues', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ venue_ids: venueIds })
+                });
+                const data = await response.json();
+                if (!data.venues || data.venues.length === 0) {
+                    alert('No venue data found for comparison.');
+                    return;
+                }
+
+                const headersRow = document.getElementById('compare-headers');
+                const tbody = document.getElementById('compare-body');
+
+                headersRow.innerHTML = '<th>Metric / Attribute</th>';
+                data.venues.forEach(v => {
+                    headersRow.innerHTML += `<th class="text-info">${v.name}</th>`;
+                });
+
+                const attributes = [
+                    { label: 'City', key: 'city' },
+                    { label: 'Vibe Score', key: 'vibe_score', formatter: v => v != null ? `${v}/10` : 'N/A' },
+                    { label: 'Pipeline Status', key: 'pipeline_status' },
+                    { label: 'Success Probability', key: 'success_probability', formatter: v => v != null ? `${(v <= 1 ? (v * 100).toFixed(0) : v)}%` : 'N/A' },
+                    { label: 'Google Rating', key: 'google_rating', formatter: v => v != null ? `${v} ⭐` : 'N/A' },
+                    { label: 'Venue Type', key: 'venue_type' },
+                    { label: 'Capacity', key: 'capacity' },
+                    { label: 'Neighborhood', key: 'neighborhood' },
+                    { label: 'Sound System Trait', key: 'traits', formatter: t => t.sound_system || 'N/A' },
+                    { label: 'Lighting Trait', key: 'traits', formatter: t => t.lighting || 'N/A' },
+                    { label: 'Atmosphere Trait', key: 'traits', formatter: t => t.atmosphere || 'N/A' },
+                    { label: 'Website', key: 'website', formatter: w => w ? `<a href="${w}" target="_blank" class="text-info">${w}</a>` : 'N/A' }
+                ];
+
+                tbody.innerHTML = '';
+                attributes.forEach(attr => {
+                    let rowHtml = `<tr><td><strong>${attr.label}</strong></td>`;
+                    data.venues.forEach(v => {
+                        let val = v[attr.key];
+                        if (attr.formatter) {
+                            val = attr.formatter(val);
+                        } else if (val == null || val === '') {
+                            val = 'N/A';
+                        }
+                        rowHtml += `<td>${val}</td>`;
+                    });
+                    rowHtml += '</tr>';
+                    tbody.innerHTML += rowHtml;
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('compareModal'));
+                modal.show();
+            } catch (e) {
+                alert('Error loading comparison: ' + e);
+            }
+        }
 
         function toggleSelectAll(master) {
             document.querySelectorAll('.lead-select-checkbox').forEach(cb => {

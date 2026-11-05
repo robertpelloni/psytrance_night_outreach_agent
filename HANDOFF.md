@@ -42,6 +42,12 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 | 49 | DM queue dashboard, multi-city scaling | v1.1.75 |
 | 49 | Tour routing module, A/B analytics | v1.1.76 |
 
+### Session v1.1.80 — Venue Comparison View & Side-by-Side Analytics
+
+- **Venue Comparison Endpoint**: Implemented `/compare_venues` in `src/dashboard/app.py` returning aligned comparative schema fields (ratings, capacity, venue type, neighborhood, extracted traits, vibe scores, success probability, pipeline status).
+- **Interactive Comparison Modal**: Integrated side-by-side venue matrix modal in `src/dashboard/templates/index.html`.
+- **Validation**: Added `tests/test_venue_comparison.py` (2/2 passing) and verified all regression suites.
+
 ### Session v1.1.79 — Bulk Lead Actions & Qualification Enhancements
 
 - **Asynchronous Bulk Lead Operations**: Added `/bulk_action` endpoint in `src/dashboard/app.py` using background threads for non-blocking batch approvals, rejections, and requalifications.

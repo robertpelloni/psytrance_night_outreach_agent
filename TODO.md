@@ -163,7 +163,7 @@
 
 - [ ] Add monthly/weekly email digest of pipeline activity
 - [ ] Add Facebook Events / Eventbrite / Meetup scrapers
-- [ ] Add venue comparison view (side-by-side)
+- [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [ ] Add collaborative filtering (if rejected at A, suggest B)
 
 ---

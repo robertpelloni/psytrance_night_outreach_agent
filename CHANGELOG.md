@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.80] - 2026-11-04
+
+### Added
+- **Venue Comparison View (`/compare_venues`)**: Added endpoint in `src/dashboard/app.py` returning side-by-side venue comparative metadata (vibe score, traits, capacity, venue type, status, ratings).
+- **Interactive Comparison Modal (`index.html`)**: Added comparison modal and multi-select trigger in the unified dashboard pipeline view.
+- **Venue Comparison Test Suite (`tests/test_venue_comparison.py`)**: Added automated unit and integration tests verifying comparison data extraction and traits formatting.
+
 ## [1.1.79] - 2026-11-04
 
 ### Added
