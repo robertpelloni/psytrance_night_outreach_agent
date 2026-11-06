@@ -136,6 +136,11 @@
 - [x] Automated Integration Test Suite for Unified Dashboard (v1.1.78)
 - [x] Refine "Pending Qualification" view with bulk approval actions (v1.1.79)
 - [x] Automated Integration Test Suite for Bulk Actions (v1.1.79)
+- [x] Add venue comparison view (side-by-side) (v1.1.80)
+- [x] Add monthly/weekly email digest of pipeline activity (v1.1.81)
+- [x] Calibrate AI vibe check prompts for Detroit underground and acoustic setups (v1.1.82)
+- [x] Midwest-Toronto circuit optimization with cross-border touring logistics (v1.1.82)
+- [x] Automated Integration Test Suite for Circuit Optimizer (v1.1.82)
 
 ---
 
@@ -161,9 +166,9 @@
 
 ## 🟢 Medium Priority
 
-- [ ] Add monthly/weekly email digest of pipeline activity
+- [x] Add monthly/weekly email digest of pipeline activity (v1.1.81)
 - [ ] Add Facebook Events / Eventbrite / Meetup scrapers
-- [ ] Add venue comparison view (side-by-side)
+- [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [ ] Add collaborative filtering (if rejected at A, suggest B)
 
 ---

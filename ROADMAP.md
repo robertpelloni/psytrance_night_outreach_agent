@@ -186,6 +186,7 @@ Expand beyond email into automated social media outreach assistance.
 - [x] Add dashboard notification for new replies requiring attention (v1.1.64)
 - [x] Implement per-run and per-day token budget alerts
 - [x] Refine "Pending Qualification" view with bulk approval actions (v1.1.79)
+- [x] Add venue comparison view (side-by-side) (v1.1.80)
 
 ---
 
@@ -207,6 +208,30 @@ Consolidate fragmented dashboard subpages and provide system daemon management.
 - [x] Implement desktop companion (`tray.py` and `tray.sh`) with headless CLI fallback
 - [x] Add graceful `/shutdown` server management endpoint
 - [x] Add automated test suite for unified dashboard architecture (`tests/test_unified_dashboard.py`)
+
+---
+
+### Phase 52: Pipeline Activity Digests & Comparison Analytics (v1.1.80 - v1.1.81)
+
+Operational intelligence, side-by-side venue matrix evaluation, and periodic email summaries.
+
+- [x] Implement side-by-side venue matrix comparison endpoint and interactive modal (`/compare_venues`)
+- [x] Implement pipeline digest generator (`DigestGenerator` in `src/digest_generator.py`)
+- [x] Add dashboard preview and instant dispatch endpoints (`/preview_digest`, `/send_digest`)
+- [x] Integrate pipeline activity digest modal into unified dashboard Analytics tab
+- [x] Add automated test suite for digest generation and dashboard integration (`tests/test_digest_generator.py`)
+
+---
+
+### Phase 53: Detroit Vibe Calibration & Midwest-Toronto Circuit Optimization (v1.1.82)
+
+Refine underground acoustic vibe checks and optimize multi-city touring circuits spanning Detroit to Toronto.
+
+- [x] Calibrate AI vibe check prompts with strict 6.5 minimum threshold and sound system evaluation (Funktion-One, Void, d&b)
+- [x] Support decimal-precision vibe thresholds across configuration schema and dashboard settings UI
+- [x] Anchor multi-city tour routing to Detroit with proximity connections across the Midwest corridor (Chicago, Grand Rapids, Columbus, Cleveland) and Toronto
+- [x] Inject international touring logistics (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet / gear declaration, USD/CAD currency guidance)
+- [x] Add automated test suite for tour planning and cross-border circuit optimization (`tests/test_circuit_optimizer.py`)
 
 ## Backlog / Future Ideas
 

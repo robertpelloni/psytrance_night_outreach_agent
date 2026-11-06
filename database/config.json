@@ -24,8 +24,8 @@
     "artist_name": "",
     "collective_name": "",
     "home_city": "Detroit",
-    "vibe_threshold": 5,
-    "auto_approve_threshold": 9,
+    "vibe_threshold": 6.5,
+    "auto_approve_threshold": 9.0,
     "follow_up_days": 7,
     "max_follow_ups": 2,
     "detroit_search_queries": [

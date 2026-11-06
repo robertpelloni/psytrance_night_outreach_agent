@@ -42,6 +42,19 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 | 49 | DM queue dashboard, multi-city scaling | v1.1.75 |
 | 49 | Tour routing module, A/B analytics | v1.1.76 |
 
+### Session v1.1.81 — Periodic Pipeline Activity Digest Generator
+
+- **Activity Digest Generator**: Implemented `src/digest_generator.py` (`DigestGenerator`) aggregating rolling pipeline statistics (leads qualified, pitches sent, inbound replies by sentiment, booked venues, tokens consumed, and attention alerts) over configurable timeframes (24 hours, 7 days, 30 days).
+- **HTML & Plain Text Formatting**: Formats digests into clean email layouts and plain text representations with inline response snippets.
+- **Dashboard Modal & Endpoints**: Added `/preview_digest` (HTML preview) and `/send_digest` (mailer dispatch) endpoints, integrated into the unified dashboard under the Analytics tab with live iframe previews and manual recipient overrides.
+- **Validation**: Added `tests/test_digest_generator.py` (4/4 passing) and performed Playwright visual verification (`/home/jules/verification/digest_modal_preview.png`).
+
+### Session v1.1.80 — Venue Comparison View & Side-by-Side Analytics
+
+- **Venue Comparison Endpoint**: Implemented `/compare_venues` in `src/dashboard/app.py` returning aligned comparative schema fields (ratings, capacity, venue type, neighborhood, extracted traits, vibe scores, success probability, pipeline status).
+- **Interactive Comparison Modal**: Integrated side-by-side venue matrix modal in `src/dashboard/templates/index.html`.
+- **Validation**: Added `tests/test_venue_comparison.py` (2/2 passing) and verified all regression suites.
+
 ### Session v1.1.79 — Bulk Lead Actions & Qualification Enhancements
 
 - **Asynchronous Bulk Lead Operations**: Added `/bulk_action` endpoint in `src/dashboard/app.py` using background threads for non-blocking batch approvals, rejections, and requalifications.
@@ -55,10 +68,17 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 - **Graceful Shutdown**: Implemented `/shutdown` endpoint in `src/dashboard/app.py` with testing safeguards.
 - **Validation**: Added `tests/test_unified_dashboard.py` and validated via Playwright headless screenshot verification.
 
+### Session v1.1.82 — Detroit Vibe Calibration & Midwest-Toronto Circuit Optimizer
+
+- **Detroit Underground Vibe Calibration**: Refined `AIEngine.vibe_check()` in `src/ai_engine.py` with prompts evaluating underground corridors (Russell Industrial, Eastern Market, Hamtramck, Milwaukee Junction) and acoustic setups (Funktion-One, Void, d&b), calibrated around a strict 6.5 threshold with explicit rejection criteria for mainstream VIP/bottle service clubs.
+- **Float-Precision Vibe Threshold Support**: Enabled decimal-precision vibe thresholds across `database/config.json`, `src/config_manager.py`, `src/dashboard/app.py`, `src/dashboard/templates/index.html`, and `src/dashboard/templates/settings.html`.
+- **Midwest-Toronto Circuit Optimizer**: Enhanced `TourPlanner` in `src/tour_planner.py`: anchors routing in Detroit, links regional Midwest stops, and connects to Toronto with international touring considerations (cross-border customs, ATA Carnet / gear declaration, USD/CAD currency guidance).
+- **Validation**: Added `tests/test_circuit_optimizer.py` (4/4 passing; overall test suite 101 passed, 4 skipped) and verified visual components (`settings_vibe_threshold.png` and `circuit_routing_view.png`).
+
 ## Current State
 
-- **Version**: 1.1.79
+- **Version**: 1.1.82
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with bulk processing
+- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, and digest previews
 - **Companion Launcher**: `./tray.sh`
-- **Remaining Open Items**: Weekly email digest, additional scrapers (Facebook/Eventbrite), venue comparison view
+- **Remaining Open Items**: Additional scrapers (Facebook Events, Eventbrite, Meetup), collaborative filtering (if rejected at A, suggest B), email open/click tracking

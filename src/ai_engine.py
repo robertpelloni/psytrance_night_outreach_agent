@@ -103,38 +103,41 @@ class AIEngine:
         identity_note = f"\nOutreach Identity: {identity}" if identity else ""
 
         prompt = f"""
-Analyze this venue description and social media context to determine if it is suitable
-for a {genre} night in the Detroit area.
+Analyze this venue description, acoustic specs, and cultural context to determine if it is suitable
+for a {genre} night in the Detroit underground music ecosystem.
 
 Venue Name: {venue_name}
 {rating_context}
 Context/Description: {raw_text}
 {identity_note}
 
-Detroit Scene Context: Detroit is the birthplace of techno and has a rich underground
-electronic music tradition. While techno dominates, there is a growing psytrance and
-psychedelic scene. Venues that already host underground electronic music, have immersive
-visual setups, or support experimental/DIY culture are strong candidates even if they
-don't explicitly mention psytrance.
+Detroit Underground Ecosystem Context:
+Detroit is a cornerstone of electronic music culture. Beyond its techno roots, there is a vibrant, selective
+psychedelic and experimental underground. Venues that foster authentic underground dance music culture,
+support DIY initiatives, or maintain audiophile sound and psychedelic visual setups are prime candidates.
+We operate under a strict 6.5 vibe threshold: only venues rated 6.5 or higher qualify for automated outreach.
 
-Criteria for high score (7-10):
-- References to 'underground', 'atmospheric', '{genre}', 'high-quality audio', 'immersive', 'experimental'.
-- Mentions of high-quality sound systems (Funktion-One, Void, d&b audiotechnik, L-Acoustics).
-- Immersive visual elements: projection mapping, lasers, UV art, psychedelic décor.
-- Open-minded music policy or history of hosting diverse electronic genres.
-- DIY or warehouse-style spaces — these are core to the Detroit underground.
-- Proximity to Detroit's underground corridors (Corktown, Midtown, Southwest, Hamtramck).
-- Any mention of 'psychedelic', 'trance', 'tribal', or 'transformational' events.
-
-Criteria for low score (1-3):
-- Primarily mainstream/top-40 sports bar or lounge.
-- Strictly commercial EDM or bottle-service club.
-- Venue that only hosts live bands with no electronic music history.
+Scoring Criteria:
+- Exceptional Vibe (8.0 - 10.0):
+  * Dedicated underground dance music venue, warehouse, or loft space in core corridors (Eastern Market, Milwaukee Junction, Corktown, Hamtramck, Southwest).
+  * High-fidelity sound reinforcement (Funktion-One, Void Acoustics, Danley, d&b audiotechnik, L-Acoustics).
+  * History of hosting underground techno, trance, psytrance, ambient, or modular synthesizer showcases.
+  * Robust visual production (projection mapping, lasers, psychedelic tapestry/UV art, haze/lighting control).
+  * Direct resonance with our artist/collective branding and sound aesthetic.
+- Qualified & Receptive Vibe (6.5 - 7.9):
+  * Eclectic arts space, industrial DIY room, or indie nightclub with an adventurous programming policy.
+  * Quality audio setup, dark dance floor aesthetic, and openness to community-driven promotions.
+  * May require providing supplemental visual production or sound reinforcement.
+- Borderline / High Friction (4.0 - 6.4):
+  * Multi-format bar or rock club occasionally doing electronic events, but lacking immersive audio/visual ethos.
+  * Corporate promoter restrictions or restrictive sound limits.
+- Incompatible (1.0 - 3.9):
+  * Top-40/commercial EDM bottle-service clubs, sports lounges, acoustic coffeehouses, or banquets.
 
 Output JSON format:
 {{
-  "vibe_score": (1-10),
-  "justification": "Detailed explanation incorporating social context and Detroit scene knowledge"
+  "vibe_score": (1.0 to 10.0, decimal allowed e.g. 6.5, 7.5, 8.5),
+  "justification": "Detailed explanation incorporating acoustic traits, corridor location, and artist alignment"
 }}
 """
         try:

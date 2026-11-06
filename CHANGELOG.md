@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## [1.1.82] - 2026-11-05
+
+### Added
+- **Detroit Underground Vibe Calibration (`src/ai_engine.py`)**: Calibrated AI vibe scoring prompts with strict 6.5 minimum threshold, dedicated evaluation for acoustic performance (Funktion-One, Void Acoustics, d&b audiotechnik, Danley), underground corridors (Russell Industrial, Eastern Market, Hamtramck, Milwaukee Junction), and rejection criteria for mainstream VIP/bottle service clubs.
+- **Float-Precision Vibe Threshold Support**: Enabled decimal-precision vibe thresholds across `database/config.json`, `src/config_manager.py`, and dashboard settings views.
+- **Midwest-Toronto Circuit Optimizer (`src/tour_planner.py`)**: Enhanced tour routing logic to anchor circuits in Detroit, link regional Midwest stops (Ferndale, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus), and integrate Toronto with international touring considerations (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet / gear manifests, USD/CAD dual currency notes).
+- **Tour Routing Test Suite (`tests/test_circuit_optimizer.py`)**: Added dedicated integration tests for Detroit-anchored routing, cross-border itinerary annotations, and strict 6.5 vibe threshold filtering.
+
+## [1.1.81] - 2026-11-05
+
+### Added
+- **Pipeline Activity Digest Generator (`src/digest_generator.py`)**: Built `DigestGenerator` module to aggregate outreach metrics over customizable rolling windows (daily, weekly, monthly), including qualified leads, sent pitches, inbound replies by sentiment, booked venues, and AI token consumption.
+- **HTML & Plain Text Digest Rendering**: Formats activity digests with styled HTML badges and responsive layout for email clients, alongside plain text fallbacks.
+- **Dashboard Digest Preview & Dispatch (`/preview_digest`, `/send_digest`)**: Added preview and instant send endpoints in `src/dashboard/app.py`.
+- **Interactive Digest Modal (`index.html`)**: Added modal with dynamic time window selector, recipient email override, and embedded live iframe preview.
+- **Digest Generator Test Suite (`tests/test_digest_generator.py`)**: Added unit and integration tests verifying metric calculation, message formatting, mailer dispatching, and dashboard routes.
+
+## [1.1.80] - 2026-11-04
+
+### Added
+- **Venue Comparison View (`/compare_venues`)**: Added endpoint in `src/dashboard/app.py` returning side-by-side venue comparative metadata (vibe score, traits, capacity, venue type, status, ratings).
+- **Interactive Comparison Modal (`index.html`)**: Added comparison modal and multi-select trigger in the unified dashboard pipeline view.
+- **Venue Comparison Test Suite (`tests/test_venue_comparison.py`)**: Added automated unit and integration tests verifying comparison data extraction and traits formatting.
+
 ## [1.1.79] - 2026-11-04
 
 ### Added

@@ -90,17 +90,20 @@ class AnalyticsEngine:
                 return round((res[0] / res[1]) * 100, 1)
             return 0
 
-    def get_venue_clusters(self, radius_km=50):
+    def get_venue_clusters(self, radius_km=60, min_vibe=None):
         """
         Identifies clusters of venues within a specific radius.
-        Simple implementation using Haversine or simple distance for nearby venues.
+        Supports filtering by minimum vibe threshold (e.g. 6.5) to assemble
+        high-priority touring clusters across Midwest hubs and Toronto.
         """
         query = """
-        SELECT v.id, v.name, v.latitude, v.longitude, l.vibe_score, l.pipeline_status
+        SELECT v.id, v.name, v.city, v.latitude, v.longitude, l.vibe_score, l.pipeline_status
         FROM venues v
         JOIN outreach_leads l ON v.id = l.venue_id
         WHERE v.latitude IS NOT NULL AND v.longitude IS NOT NULL
         """
+        if min_vibe is not None:
+            query += f" AND l.vibe_score >= {float(min_vibe)}"
         with self._get_connection() as conn:
             conn.row_factory = sqlite3.Row
             venues = [dict(row) for row in conn.execute(query).fetchall()]

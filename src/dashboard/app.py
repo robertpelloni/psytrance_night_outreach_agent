@@ -420,8 +420,8 @@ def settings():
             "artist_name": request.form.get('artist_name'),
             "collective_name": request.form.get('collective_name'),
             "home_city": request.form.get('home_city', 'Detroit'),
-            "vibe_threshold": int(request.form.get('vibe_threshold', 6)),
-            "auto_approve_threshold": int(request.form.get('auto_approve_threshold', 9)),
+            "vibe_threshold": float(request.form.get('vibe_threshold', 6.5)),
+            "auto_approve_threshold": float(request.form.get('auto_approve_threshold', 9.0)),
             "daily_outreach_limit": int(request.form.get('daily_outreach_limit', 10)),
             "outreach_delay_min": int(request.form.get('outreach_delay_min', 5)),
             "follow_up_days": int(request.form.get('follow_up_days', 7)),
@@ -597,7 +597,7 @@ def bulk_action():
                         genre=lead.get('qualified_genre', primary_genre),
                         rating=venue.get('google_rating')
                     )
-                    vibe_thresh = config_mgr.get("vibe_threshold") or 6
+                    vibe_thresh = float(config_mgr.get("vibe_threshold") or 6.5)
                     new_st = 'PENDING_REVIEW' if vibe_res['vibe_score'] >= vibe_thresh else 'PENDING_QUALIFICATION'
                     q = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ? WHERE id = ?"
                     with db._get_connection() as conn:
@@ -644,6 +644,63 @@ def dismiss_reply(reply_id):
     db.mark_reply_handled(reply_id, is_unmatched=is_unmatched)
     return jsonify({"status": "success"})
 
+@app.route('/compare_venues', methods=['POST'])
+def compare_venues():
+    """Retrieve side-by-side comparative metadata for specified venue IDs."""
+    venue_ids = request.json.get('venue_ids', []) if request.is_json else request.form.getlist('venue_ids[]')
+    if not venue_ids:
+        return jsonify({"error": "No venue IDs provided"}), 400
+
+    results = []
+    for vid in venue_ids[:5]:
+        v = db.get_venue(vid)
+        if not v:
+            continue
+        traits = {}
+        if v.get('extracted_traits'):
+            try:
+                traits = json.loads(v['extracted_traits'])
+            except:
+                traits = {}
+        lead = db.get_lead_by_venue_id(vid)
+        results.append({
+            "id": v['id'],
+            "name": v['name'],
+            "city": v['city'],
+            "website": v.get('website'),
+            "google_rating": v.get('google_rating'),
+            "venue_type": v.get('venue_type') or 'Club / Event Space',
+            "capacity": v.get('capacity') or 'N/A',
+            "neighborhood": v.get('neighborhood') or 'N/A',
+            "vibe_score": lead.get('vibe_score') if lead else None,
+            "pipeline_status": lead.get('pipeline_status') if lead else 'UNCONTACTED',
+            "success_probability": lead.get('success_probability') if lead else None,
+            "traits": traits
+        })
+
+    return jsonify({"venues": results})
+
+@app.route('/preview_digest', methods=['GET'])
+def preview_digest():
+    """Generates an HTML preview of the pipeline activity digest."""
+    from src.digest_generator import DigestGenerator
+    days = request.args.get('days', default=7, type=int)
+    generator = DigestGenerator(db_path=db.db_path)
+    metrics = generator.collect_metrics(days=days)
+    return generator.render_html_digest(metrics)
+
+@app.route('/send_digest', methods=['POST'])
+def send_digest():
+    """Triggers dispatch of the pipeline activity digest via email."""
+    from src.digest_generator import DigestGenerator
+    data = request.get_json(silent=True) or {}
+    recipient = data.get('recipient_email')
+    days = int(data.get('days', 7))
+
+    generator = DigestGenerator(db_path=db.db_path, mailer=mailer)
+    result = generator.dispatch_digest(recipient_email=recipient, days=days)
+    return jsonify(result)
+
 @app.route('/requalify/<int:lead_id>', methods=['POST'])
 def requalify(lead_id):
     lead = db.get_lead(lead_id)
@@ -660,8 +717,8 @@ def requalify(lead_id):
         rating=venue.get('google_rating')
     )
 
-    vibe_threshold = config_mgr.get("vibe_threshold") or 6
-    new_status = 'PENDING_REVIEW' if vibe_result['vibe_score'] >= vibe_threshold else 'PENDING_QUALIFICATION'
+    vibe_threshold = float(config_mgr.get("vibe_threshold") or 6.5)
+    new_status = 'PENDING_REVIEW' if float(vibe_result.get('vibe_score', 0)) >= vibe_threshold else 'PENDING_QUALIFICATION'
 
     pitch = lead['generated_pitch']
     if new_status == 'PENDING_REVIEW' and not pitch:

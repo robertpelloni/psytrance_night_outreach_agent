@@ -149,7 +149,7 @@ Configure via the Dashboard **Settings** page or by editing `database/config.jso
 | **Home City** | Primary city (triggers neighborhood-specific search strategies). |
 | **EPK Link** | Electronic Press Kit URL — linked in every pitch. |
 | **Mix Link** | Showcase mix URL — linked in every pitch. |
-| **Vibe Threshold** | Minimum score (1-10) to generate a pitch. Default: 6. |
+| **Vibe Threshold** | Minimum score (1-10) to generate a pitch. Default: 6.5 (supports float precision). Calibrated for underground acoustics and corridor aesthetics. |
 | **Auto-Approve Threshold** | Vibe score for automatic approval without human review. Default: 9. |
 | **Follow-Up Days** | Days to wait before sending a follow-up. Default: 7. |
 | **Max Follow-Ups** | Maximum follow-up emails per lead. Default: 2. |
@@ -268,4 +268,17 @@ Launch the companion via `./tray.sh`:
 ./tray.sh --check-status # Queries server status
 ./tray.sh --cmd status  # Executes one-off command
 ./tray.sh --shutdown-server # Gracefully stops Flask server and daemon
+```
+
+## Pipeline Activity Email Digests
+
+Generate and dispatch periodic email digests of outreach activity:
+- Available directly from the Analytics tab on the Unified Dashboard via the **"Email Pipeline Digest"** button.
+- Select from 24 Hours (Daily), 7 Days (Weekly), or 30 Days (Monthly) summary windows.
+- Preview the formatted HTML digest in the embedded viewer and specify an optional recipient email override.
+- Or trigger programmatic dispatch via Python:
+```python
+from src.digest_generator import DigestGenerator
+generator = DigestGenerator()
+result = generator.dispatch_digest(recipient_email="booking@psycollective.org", days=7)
 ```
