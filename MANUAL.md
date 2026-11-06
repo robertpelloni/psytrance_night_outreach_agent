@@ -114,25 +114,28 @@ python src/dashboard/app.py
 ```
 Access at: **http://localhost:5000**
 
-### Dashboard Tabs
+### Dashboard Tabs (Unified Command Center)
+
+The dashboard consolidates all subsystems into a single-page interface with prominent priority tabs:
 
 | Tab | Purpose |
 |-----|---------|
-| **Pending** | Review qualified leads sorted by vibe score. Edit pitches, approve & send, or reject. |
-| **History** | View all SENT/REJECTED leads with reply threads, sentiment tags, and AI-drafted responses. |
-| **Map** | Interactive Leaflet.js map with venue markers, vibe-score coloring, status/vibe filters, hotspot clusters, and AI tour planning. |
-| **Analytics** | Total venues, approval rate, status breakdown, city distribution, A/B variant performance. |
-| **Sources** | View active scrapers and generate new ones from a URL via AI. |
-| **Settings** | Configure cities, genres, EPK/mix links, and vibe threshold. |
-| **System** | Git status, branch health, sync reliability, version audit trail, manual sync trigger. |
+| **Pipeline Queues** | Review pending qualified leads, history of dispatched pitches, booked gigs, Instagram/Facebook DM queues, and scheduled follow-ups. Supports multi-selection for bulk operations and venue comparison. |
+| **Circuit Map & Tour Routing** | Interactive Leaflet.js map showing Detroit and Midwest hubs (with Toronto), vibe scores, proximity clusters, and automated tour routing with cross-border logistics. |
+| **Analytics & A/B Engine** | Funnel conversion statistics, scene health KPIs, warmth distribution, Chi-Square A/B variant significance testing, and periodic activity digest previews. |
+| **Settings & Artist Management** | Configure target cities, genres, vibe threshold (with float precision, e.g. 6.5), collective artist profiles, media libraries, Detroit neighborhood search queries, and dispatch throttles. |
+| **System & Scraper Sources** | Live health monitors, git synchronization logs, token usage tracking, and scraper generator from URL. |
 
 ### Key Workflows
 
 - **Approve & Send**: Edit the AI-generated pitch, click "Approve & Send Email" → dispatches via SMTP → status changes to SENT.
+- **Bulk Lead Operations**: Use checkboxes to select multiple pending leads and click **"Batch Approve"**, **"Batch Reject"**, or **"Batch Re-Score"**. Background workers process AI pitches asynchronously without blocking the UI.
+- **Side-by-Side Venue Matrix Comparison**: Check 2 or more leads in the pipeline table and click **"Compare Selected"** to launch an interactive comparison modal evaluating vibe scores, success probabilities, sound systems, capacities, venue types, and extracted traits.
 - **Regenerate Pitch**: Click "Regenerate AI Pitch" for a fresh take on the same venue.
 - **Instagram DM**: If a venue has an IG handle but no email, click "Copy Pitch for DM" to clipboard the pitch text.
 - **Reply Negotiation**: When a venue replies, the AI analyzes sentiment and drafts a response. You can edit the draft and send it from the History view.
-- **Tour Planning**: On the Map tab, click "Show Hotspots" to see venue clusters, then click a cluster to generate an AI tour itinerary and unified cluster pitch.
+- **Tour Planning & Midwest-Toronto Circuit**: Under Circuit Map, view optimized touring itineraries that anchor in Detroit and link Midwest hubs (Ferndale, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus) and Toronto with cross-border guidance (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet gear declarations, and USD/CAD currency guidance).
+- **Activity Digests**: In the Analytics tab, click **"Email Pipeline Digest"** to preview and dispatch rolling metrics across 24h, 7d, or 30d periods.
 
 ---
 
