@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.82] - 2026-11-05
+
+### Added
+- **Detroit Underground Vibe Calibration (`src/ai_engine.py`)**: Calibrated AI vibe scoring prompts with strict 6.5 minimum threshold, dedicated evaluation for acoustic performance (Funktion-One, Void Acoustics, d&b audiotechnik, Danley), underground corridors (Russell Industrial, Eastern Market, Hamtramck, Milwaukee Junction), and rejection criteria for mainstream VIP/bottle service clubs.
+- **Float-Precision Vibe Threshold Support**: Enabled decimal-precision vibe thresholds across `database/config.json`, `src/config_manager.py`, and dashboard settings views.
+- **Midwest-Toronto Circuit Optimizer (`src/tour_planner.py`)**: Enhanced tour routing logic to anchor circuits in Detroit, link regional Midwest stops (Ferndale, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus), and integrate Toronto with international touring considerations (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet / gear manifests, USD/CAD dual currency notes).
+- **Tour Routing Test Suite (`tests/test_circuit_optimizer.py`)**: Added dedicated integration tests for Detroit-anchored routing, cross-border itinerary annotations, and strict 6.5 vibe threshold filtering.
+
 ## [1.1.81] - 2026-11-05
 
 ### Added

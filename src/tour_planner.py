@@ -27,15 +27,24 @@ class TourPlanner:
         if not clusters:
             return []
 
-        # Start with the cluster that has the highest average vibe
-        sorted_clusters = sorted(clusters, key=lambda x: x['avg_vibe'], reverse=True)
-        unvisited = sorted_clusters[1:]
+        # Detroit approximate coordinates: 42.3314, -83.0458
+        detroit_lat, detroit_lon = 42.3314, -83.0458
 
-        route = [sorted_clusters[0]]
-        current_cluster = sorted_clusters[0]
+        # Prioritize starting from a cluster near the Detroit hub if available,
+        # otherwise start from the cluster with the highest average vibe.
+        detroit_clusters = [
+            c for c in clusters
+            if any(v.get('city', '').lower() == 'detroit' for v in c.get('venues', [])) or
+               self._haversine(detroit_lat, detroit_lon, c['center']['lat'], c['center']['lon']) < 80
+        ]
+        start_cluster = detroit_clusters[0] if detroit_clusters else max(clusters, key=lambda x: x['avg_vibe'])
+
+        unvisited = [c for c in clusters if c != start_cluster]
+        route = [start_cluster]
+        current_cluster = start_cluster
 
         while unvisited:
-            # Find nearest neighbor
+            # Find nearest neighbor, calculating distance including cross-border connections to Toronto
             nearest = min(
                 unvisited,
                 key=lambda c: self._haversine(
@@ -49,16 +58,17 @@ class TourPlanner:
 
         return route
 
-    def plan_optimized_tour(self, cluster_index=None):
+    def plan_optimized_tour(self, cluster_index=None, min_vibe=6.5, artist_id=None):
         """
         Takes clusters of venues and uses AI to suggest an optimal
-        visiting sequence and outreach strategy for a tour.
-        If cluster_index is None, it plans a multi-city circuit across all clusters.
+        visiting sequence and outreach strategy for a tour across the Midwest circuit
+        and Toronto (Ontario), filtered by high-vibe threshold (6.5+) and incorporating
+        the artist identity system.
         """
         if not self.ai or not self.ai.client:
             return "Tour Planning requires an active AI Engine."
 
-        clusters = self.analytics.get_venue_clusters()
+        clusters = self.analytics.get_venue_clusters(min_vibe=min_vibe)
         if not clusters:
             return "No clusters available for planning."
 
@@ -88,14 +98,34 @@ class TourPlanner:
         if best_variant:
             variant_advice = f"\n4. Note: Analytics show our '{best_variant}' pitch variant converts best. Tailor the suggested outreach strategy to align with the tone of this variant."
 
+        # Load artist identity context
+        identity_info = self.ai._get_identity_context(artist_id=artist_id)
+        identity_context = identity_info.get("context", "")
+        identity_note = f"\nArtist / Collective Identity:\n{identity_context}\n" if identity_context else ""
+
+        # Check for Toronto venues in route to append cross-border customs/logistics
+        has_toronto = any(
+            any('toronto' in (v.get('city', '') or '').lower() or 'ontario' in (v.get('city', '') or '').lower() for v in c.get('venues', []))
+            for c in route_clusters
+        )
+        cross_border_note = (
+            "\nSpecial Logistics for Toronto / Ontario: Include cross-border travel requirements "
+            "(Detroit-Windsor Ambassador Bridge or Tunnel border crossing, equipment ATA carnets / gear declarations, "
+            "and CAD/USD settlement tips)."
+            if has_toronto else ""
+        )
+
         prompt = f"""
         Plan an optimal psytrance tour route for {tour_scope} based on the following venues:
         {chr(10).join(venues_summary)}
+        {identity_note}
+        Circuit Focus: Midwest corridor anchored in Detroit (Chicago, Ann Arbor, Grand Rapids, Cleveland, Columbus) expanding to Toronto.
+        Vibe Standard: High-vibe qualification threshold (>= {min_vibe}/10).
 
         Provide:
         1. An optimal visiting sequence (route) that minimizes travel time between venues and clusters.
-        2. A cohesive 'tour pitch' strategy that emphasizes the connection between these venues and our multi-city presence.
-        3. Logistics advice for this specific route. {variant_advice}
+        2. A cohesive 'tour pitch' strategy emphasizing our artist branding and regional presence.
+        3. Logistics advice for this specific route.{cross_border_note} {variant_advice}
 
         Return as a structured recommendation.
         """
@@ -109,12 +139,12 @@ class TourPlanner:
         except Exception as e:
             return f"Error planning tour: {e}"
 
-    def generate_cluster_pitch(self, cluster_index=0):
-        """Generates a unified tour residency pitch for all venues in a cluster."""
+    def generate_cluster_pitch(self, cluster_index=0, min_vibe=6.5, artist_id=None):
+        """Generates a unified tour residency pitch for all venues in a cluster incorporating artist branding."""
         if not self.ai or not self.ai.client:
             return None
 
-        clusters = self.analytics.get_venue_clusters()
+        clusters = self.analytics.get_venue_clusters(min_vibe=min_vibe)
         if not clusters or cluster_index >= len(clusters):
             return None
 
@@ -122,8 +152,17 @@ class TourPlanner:
         venues_list = cluster['venues']
         venues_names = ", ".join([v['name'] for v in venues_list])
 
+        identity_info = self.ai._get_identity_context(artist_id=artist_id)
+        artist_name = identity_info.get("artist_name") or "our collective"
+        epk = identity_info.get("epk_link", "")
+        mix = identity_info.get("mix_link", "")
+        links = []
+        if epk: links.append(f"EPK: {epk}")
+        if mix: links.append(f"Live Mix: {mix}")
+        links_str = f" ({', '.join(links)})" if links else ""
+
         prompt = f"""
-        Write a professional cold email proposing a psytrance 'regional residency tour'.
+        Write a professional cold email proposing a psytrance 'regional residency tour' on behalf of {artist_name}{links_str}.
         We are reaching out to a group of top-tier venues in this region: {venues_names}.
 
         The pitch should:

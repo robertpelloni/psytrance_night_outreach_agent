@@ -221,6 +221,18 @@ Operational intelligence, side-by-side venue matrix evaluation, and periodic ema
 - [x] Integrate pipeline activity digest modal into unified dashboard Analytics tab
 - [x] Add automated test suite for digest generation and dashboard integration (`tests/test_digest_generator.py`)
 
+---
+
+### Phase 53: Detroit Vibe Calibration & Midwest-Toronto Circuit Optimization (v1.1.82)
+
+Refine underground acoustic vibe checks and optimize multi-city touring circuits spanning Detroit to Toronto.
+
+- [x] Calibrate AI vibe check prompts with strict 6.5 minimum threshold and sound system evaluation (Funktion-One, Void, d&b)
+- [x] Support decimal-precision vibe thresholds across configuration schema and dashboard settings UI
+- [x] Anchor multi-city tour routing to Detroit with proximity connections across the Midwest corridor (Chicago, Grand Rapids, Columbus, Cleveland) and Toronto
+- [x] Inject international touring logistics (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet / gear declaration, USD/CAD currency guidance)
+- [x] Add automated test suite for tour planning and cross-border circuit optimization (`tests/test_circuit_optimizer.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

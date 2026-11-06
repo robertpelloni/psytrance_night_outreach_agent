@@ -149,7 +149,7 @@ Configure via the Dashboard **Settings** page or by editing `database/config.jso
 | **Home City** | Primary city (triggers neighborhood-specific search strategies). |
 | **EPK Link** | Electronic Press Kit URL — linked in every pitch. |
 | **Mix Link** | Showcase mix URL — linked in every pitch. |
-| **Vibe Threshold** | Minimum score (1-10) to generate a pitch. Default: 6. |
+| **Vibe Threshold** | Minimum score (1-10) to generate a pitch. Default: 6.5 (supports float precision). Calibrated for underground acoustics and corridor aesthetics. |
 | **Auto-Approve Threshold** | Vibe score for automatic approval without human review. Default: 9. |
 | **Follow-Up Days** | Days to wait before sending a follow-up. Default: 7. |
 | **Max Follow-Ups** | Maximum follow-up emails per lead. Default: 2. |
