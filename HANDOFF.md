@@ -82,10 +82,16 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 - **Venue Detail UI**: Added "Curator Annotations & Scene Intelligence" form and chronological timeline to `src/dashboard/templates/venue_detail.html`.
 - **Validation**: Added unit and integration tests in `tests/test_venue_notes.py` (2/2 passing) and visually verified UI via Playwright (`venue_notes_view.png`).
 
+### Session v1.1.84 — Curator Intelligence in AI Prompt Engine
+
+- **AI Prompt Ingestion**: Updated `AIEngine.generate_pitch()` and `AIEngine.vibe_check()` (`src/ai_engine.py`) to accept curator field annotations and inject them into prompt context, tailoring pitches with sound engineer preferences, sound specs, and door policies.
+- **Pipeline Call-Site Propagation**: Wired `db.get_venue_notes(venue_id)` into `main.py` (`qualify_and_pitch`) and `src/dashboard/app.py` (`/bulk_action`, `/requalify`, `/regenerate`).
+- **Validation**: Added unit tests in `tests/test_notes_in_pitch.py` (2/2 passing).
+
 ## Current State
 
-- **Version**: 1.1.83
+- **Version**: 1.1.84
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, digest previews, and venue annotations
+- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, digest previews, venue annotations, and note-informed AI pitch generation
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Additional scrapers (Facebook Events, Eventbrite, Meetup), email open/click tracking

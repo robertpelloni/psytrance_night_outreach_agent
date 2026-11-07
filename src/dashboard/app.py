@@ -585,6 +585,7 @@ def bulk_action():
                     pitch = lead.get('generated_pitch')
                     if not pitch:
                         venue = db.get_venue(lead['venue_id'])
+                        notes = db.get_venue_notes(lead['venue_id'])
                         pitch = ai.generate_pitch(
                             venue['name'],
                             lead['qualification_justification'],
@@ -592,7 +593,8 @@ def bulk_action():
                             mix_link=config_mgr.get("mix_link"),
                             traits=venue.get('extracted_traits'),
                             media_library=config_mgr.get("media_library"),
-                            genre=primary_genre
+                            genre=primary_genre,
+                            notes=notes
                         )
                     db.update_lead_status(lid, 'APPROVED', pitch=pitch)
                     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
@@ -743,6 +745,7 @@ def requalify(lead_id):
     pitch = lead['generated_pitch']
     if new_status == 'PENDING_REVIEW' and not pitch:
         traits = venue.get('extracted_traits', '{}')
+        notes = db.get_venue_notes(venue['id'])
         pitch = ai.generate_pitch(
             venue['name'],
             vibe_result['justification'],
@@ -750,7 +753,8 @@ def requalify(lead_id):
             mix_link=config_mgr.get("mix_link"),
             traits=traits,
             media_library=config_mgr.get("media_library"),
-            genre=lead.get('qualified_genre', primary_genre)
+            genre=lead.get('qualified_genre', primary_genre),
+            notes=notes
         )
 
     query = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ?, generated_pitch = ? WHERE id = ?"
@@ -769,6 +773,7 @@ def regenerate(lead_id):
     artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
 
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+    notes = db.get_venue_notes(venue['id'])
     new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
@@ -777,7 +782,8 @@ def regenerate(lead_id):
         traits=venue.get('extracted_traits'),
         media_library=config_mgr.get("media_library"),
         genre=primary_genre,
-        artist_id=artist_id
+        artist_id=artist_id,
+        notes=notes
     )
     return jsonify({"pitch": new_pitch})
 

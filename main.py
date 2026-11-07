@@ -225,6 +225,7 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         # Note: Do NOT explicitly close the connection here in the main loop if we are using the patched mock
         # which shares a single connection object across threads/tests. We let the db manager or pytest handle it.
 
+        venue_notes = db.get_venue_notes(v_id) if hasattr(db, 'get_venue_notes') else []
         pitch = ai.generate_pitch(
             v_data["name"],
             vibe_result["justification"],
@@ -234,7 +235,8 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             media_library=config.get("media_library"),
             genre=qualify_genre,
             variant=variant,
-            is_dm=is_dm
+            is_dm=is_dm,
+            notes=venue_notes
         )
         status = "PENDING_REVIEW"
     else:

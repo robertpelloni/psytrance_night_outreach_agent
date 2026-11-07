@@ -146,6 +146,7 @@
 - [x] Add seed import command: `python main.py --seed`
 - [x] Add "Add Venue Manually" form to dashboard
 - [x] Add venue notes/annotations system (v1.1.83)
+- [x] Deep integration of curator annotations into AI pitch generation and vibe checking (v1.1.84)
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 

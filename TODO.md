@@ -143,6 +143,8 @@
 - [x] Automated Integration Test Suite for Circuit Optimizer (v1.1.82)
 - [x] Venue notes & confidential curator annotations system (v1.1.83)
 - [x] Automated Integration Test Suite for Venue Notes (v1.1.83)
+- [x] Ingest curator annotations into AI pitch generation and vibe check prompts (v1.1.84)
+- [x] Automated Integration Test Suite for Notes Injection into Pitch Prompts (v1.1.84)
 
 ---
 

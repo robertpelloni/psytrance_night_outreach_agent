@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.84] - 2026-11-05
+
+### Added
+- **Curator Intelligence in AI Engine (`src/ai_engine.py`)**: Enhanced `AIEngine.generate_pitch()` and `AIEngine.vibe_check()` to ingest confidential curator notes and field annotations, dynamically incorporating sound engineer preferences, sound specs, and door policies into AI-generated pitches and re-evaluations.
+- **Pipeline & Dashboard Call-Site Propagation**: Wired `db.get_venue_notes()` into `main.py` (`qualify_and_pitch`) and `src/dashboard/app.py` (`/bulk_action`, `/requalify`, `/regenerate`).
+- **Venue Notes AI Injection Test Suite (`tests/test_notes_in_pitch.py`)**: Added unit tests verifying prompt formatting and context propagation for curator notes in pitch generation and vibe scoring.
+
 ## [1.1.83] - 2026-11-05
 
 ### Added

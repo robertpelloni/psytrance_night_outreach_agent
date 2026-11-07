@@ -93,7 +93,7 @@ class AIEngine:
         except Exception:
             return {"context": "", "artist_name": "", "epk_link": "", "mix_link": ""}
 
-    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None, artist_id=None):
+    def vibe_check(self, venue_name, raw_text, genre="psytrance", rating=None, artist_id=None, notes=None):
         if not self.client:
             print("No OpenAI client configured. Returning default vibe score.")
             return {"vibe_score": 5, "justification": "AI not configured."}
@@ -102,6 +102,14 @@ class AIEngine:
         identity = self._get_identity_context(artist_id=artist_id)["context"]
         identity_note = f"\nOutreach Identity: {identity}" if identity else ""
 
+        notes_context = ""
+        if notes:
+            if isinstance(notes, list):
+                notes_items = [f"- {n.get('author', 'Curator')}: {n.get('note', '')}" if isinstance(n, dict) else f"- {n}" for n in notes]
+                notes_context = "\nCurator Confidential Intelligence & Field Notes:\n" + "\n".join(notes_items) + "\n"
+            else:
+                notes_context = f"\nCurator Confidential Intelligence & Field Notes:\n{notes}\n"
+
         prompt = f"""
 Analyze this venue description, acoustic specs, and cultural context to determine if it is suitable
 for a {genre} night in the Detroit underground music ecosystem.
@@ -109,7 +117,7 @@ for a {genre} night in the Detroit underground music ecosystem.
 Venue Name: {venue_name}
 {rating_context}
 Context/Description: {raw_text}
-{identity_note}
+{notes_context}{identity_note}
 
 Detroit Underground Ecosystem Context:
 Detroit is a cornerstone of electronic music culture. Beyond its techno roots, there is a vibrant, selective
@@ -380,6 +388,7 @@ Output JSON format:
         variant="Professional",
         artist_id=None,
         is_dm=False,
+        notes=None,
     ):
         if not self.client:
             return "Hey, we would love to play at your venue!"
@@ -406,6 +415,14 @@ Output JSON format:
         traits_context = ""
         if traits:
             traits_context = f"Deeply integrate these venue traits into the pitch to show authentic engagement:\n{traits}"
+
+        notes_context = ""
+        if notes:
+            if isinstance(notes, list):
+                notes_items = [f"- {n.get('author', 'Curator')}: {n.get('note', '')}" if isinstance(n, dict) else f"- {n}" for n in notes]
+                notes_context = "\nCurator Confidential Intelligence & Field Notes (incorporate relevant nuances):\n" + "\n".join(notes_items) + "\n"
+            else:
+                notes_context = f"\nCurator Confidential Intelligence & Field Notes (incorporate relevant nuances):\n{notes}\n"
 
         if identity:
             identity_context = f"Our identity: {identity}\n"
@@ -451,6 +468,7 @@ dark progressive to full-power nighttime sets.
 Please include these links:
 {links_context}
 {traits_context}
+{notes_context}
 
 Key pitch elements:
 - Position this as filling a gap: Detroit has world-class techno but very few regular psytrance events.
