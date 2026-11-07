@@ -135,6 +135,7 @@ The dashboard consolidates all subsystems into a single-page interface with prom
 - **Instagram DM**: If a venue has an IG handle but no email, click "Copy Pitch for DM" to clipboard the pitch text.
 - **Reply Negotiation**: When a venue replies, the AI analyzes sentiment and drafts a response. You can edit the draft and send it from the History view.
 - **Tour Planning & Midwest-Toronto Circuit**: Under Circuit Map, view optimized touring itineraries that anchor in Detroit and link Midwest hubs (Ferndale, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus) and Toronto with cross-border guidance (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet gear declarations, and USD/CAD currency guidance).
+- **Venue Notes & Scene Intelligence**: On any venue detail page, record private curator notes and intelligence regarding sound engineer preferences, sound specs, and door policies.
 - **Activity Digests**: In the Analytics tab, click **"Email Pipeline Digest"** to preview and dispatch rolling metrics across 24h, 7d, or 30d periods.
 
 ---

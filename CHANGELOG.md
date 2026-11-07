@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.83] - 2026-11-05
+
+### Added
+- **Venue Notes & Curator Intelligence (`src/db_manager.py`)**: Added `venue_notes` database table, schema migrations, and methods `add_venue_note()` and `get_venue_notes()` enabling curators to record private, timestamped notes regarding sound specs, door policies, and promoter intelligence.
+- **Venue Notes API (`src/dashboard/app.py`)**: Added `/venue/<venue_id>/notes` GET and POST endpoints for retrieving and recording annotations.
+- **Curator Notes UI (`src/dashboard/templates/venue_detail.html`)**: Added an interactive "Curator Annotations & Scene Intelligence" card with submission form and chronological note feed on venue detail pages.
+- **Venue Notes Test Suite (`tests/test_venue_notes.py`)**: Added unit and integration tests verifying note insertion, retrieval, and API responses.
+
 ## [1.1.82] - 2026-11-05
 
 ### Added

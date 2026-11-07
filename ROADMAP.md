@@ -145,7 +145,7 @@
 - [x] Create `database/detroit_venues_seed.json` with 30 seed venues
 - [x] Add seed import command: `python main.py --seed`
 - [x] Add "Add Venue Manually" form to dashboard
-- [ ] Add venue notes/annotations system
+- [x] Add venue notes/annotations system (v1.1.83)
 
 ### Phase 45: Reply Automation & Negotiation Engine (v1.1.54)
 

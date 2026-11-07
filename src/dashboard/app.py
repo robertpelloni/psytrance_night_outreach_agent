@@ -228,7 +228,27 @@ def venue_detail(venue_id):
         venue['traits_dict'] = {}
 
     warmth = analytics.get_venue_warmth(venue_id)
-    return render_template('venue_detail.html', venue=venue, leads=leads, contacts=contacts, warmth=warmth)
+    notes = db.get_venue_notes(venue_id)
+    return render_template('venue_detail.html', venue=venue, leads=leads, contacts=contacts, warmth=warmth, notes=notes)
+
+@app.route('/venue/<string:venue_id>/notes', methods=['GET', 'POST'])
+def venue_notes_api(venue_id):
+    """API endpoint to get or add private curator notes for a venue."""
+    if request.method == 'POST':
+        note = request.form.get('note') or (request.json.get('note') if request.is_json else None)
+        author = request.form.get('author') or (request.json.get('author') if request.is_json else 'Curator')
+        if not note:
+            if request.is_json:
+                return jsonify({"error": "Note text is required"}), 400
+            return redirect(url_for('venue_detail', venue_id=venue_id))
+
+        note_id = db.add_venue_note(venue_id, note, author=author)
+        if request.is_json:
+            return jsonify({"status": "success", "note_id": note_id, "note": note, "author": author})
+        return redirect(url_for('venue_detail', venue_id=venue_id))
+
+    notes = db.get_venue_notes(venue_id)
+    return jsonify({"venue_id": venue_id, "notes": notes})
 
 @app.route('/pending_qualification')
 def pending_qualification():
