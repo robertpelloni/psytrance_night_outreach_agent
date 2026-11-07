@@ -141,14 +141,22 @@ class AnalyticsEngine:
                     visited.add(v2['id'])
 
             if len(current_cluster) > 1:
+                center_lat = sum(v['latitude'] for v in current_cluster) / len(current_cluster)
+                center_lon = sum(v['longitude'] for v in current_cluster) / len(current_cluster)
+                max_radius = max(
+                    haversine(center_lat, center_lon, v['latitude'], v['longitude'])
+                    for v in current_cluster
+                )
                 clusters.append({
                     "center": {
-                        "lat": sum(v['latitude'] for v in current_cluster) / len(current_cluster),
-                        "lon": sum(v['longitude'] for v in current_cluster) / len(current_cluster)
+                        "lat": round(center_lat, 4),
+                        "lon": round(center_lon, 4)
                     },
                     "venue_count": len(current_cluster),
                     "venues": current_cluster,
-                    "avg_vibe": sum(v['vibe_score'] for v in current_cluster) / len(current_cluster)
+                    "avg_vibe": round(sum(v['vibe_score'] for v in current_cluster) / len(current_cluster), 1),
+                    "cluster_radius_km": round(max_radius, 1),
+                    "est_intercity_drive_hrs": round(max_radius / 80.0, 1)  # Est. @ 80 km/h avg speed
                 })
 
         return sorted(clusters, key=lambda x: x['venue_count'], reverse=True)

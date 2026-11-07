@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.85] - 2026-11-05
+
+### Added
+- **DBSCAN Dynamic Density & Transit Clustering Metrics (`src/analytics.py`)**: Enhanced `AnalyticsEngine.get_venue_clusters()` to calculate geographic bounding-box radius (`cluster_radius_km`) and inter-city transit drive times (`est_intercity_drive_hrs`) at nominal transit speed (80 km/h) for venue clusters.
+- **Active Touring Clusters & Transit Densities UI (`src/dashboard/templates/index.html`)**: Integrated corridor density metrics, cluster span radius badges, and drive-time calculations into the Geographic Map & Circuit Optimizer tab with quick-filter links.
+- **Advanced Dynamic Clustering Test Suite (`tests/test_advanced_clustering.py`)**: Added comprehensive tests verifying cluster radius calculation, inter-city driving time estimation, and bounding-box perimeter analysis for DBSCAN geographic groupings.
+
 ## [1.1.84] - 2026-11-05
 
 ### Added

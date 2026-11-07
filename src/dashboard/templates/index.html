@@ -493,6 +493,35 @@
                         </div>
                     </div>
                     <div id="map"></div>
+
+                    <!-- Cluster Transit & Regional Density Corridor Breakdown -->
+                    {% if clusters %}
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-white mb-0"><i class="bi bi-geo-alt-fill text-warning me-2"></i>Active Touring Clusters & Transit Densities</h6>
+                            <span class="badge bg-secondary">{{ clusters|length }} Regional Corridors</span>
+                        </div>
+                        <div class="row g-2">
+                            {% for c in clusters %}
+                            <div class="col-md-4">
+                                <div class="p-2 bg-dark rounded border border-secondary small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-info">Cluster #{{ loop.index }} ({{ c.venue_count }} venues)</strong>
+                                        <span class="badge bg-purple">Avg Vibe: {{ c.avg_vibe }}</span>
+                                    </div>
+                                    <div class="text-secondary mt-1">
+                                        Radius: <span class="text-white">{{ c.cluster_radius_km }} km</span> |
+                                        Drive: <span class="text-white">~{{ c.est_intercity_drive_hrs }} hrs</span>
+                                    </div>
+                                    <div class="text-white-50 mt-1 text-truncate">
+                                        {% for v in c.venues %}{{ v.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

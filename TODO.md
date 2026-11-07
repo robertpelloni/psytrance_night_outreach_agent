@@ -171,6 +171,10 @@
 ## 🟢 Medium Priority
 
 - [x] Add monthly/weekly email digest of pipeline activity (v1.1.81)
+- [x] Add Detroit underground vibe calibration & Midwest-Toronto circuit optimization (v1.1.82)
+- [x] Add venue curator notes & field intelligence table/UI (v1.1.83)
+- [x] Inject curator notes into AI pitch & vibe re-evaluation engine (v1.1.84)
+- [x] Implement DBSCAN dynamic density & transit clustering metrics (v1.1.85)
 - [ ] Add Facebook Events / Eventbrite / Meetup scrapers
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [ ] Add collaborative filtering (if rejected at A, suggest B)

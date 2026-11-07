@@ -286,3 +286,10 @@ from src.digest_generator import DigestGenerator
 generator = DigestGenerator()
 result = generator.dispatch_digest(recipient_email="booking@psycollective.org", days=7)
 ```
+
+## Geographic Clustering & Transit Corridor Optimization
+
+Analyze touring density and transit times in the **Geographic Map & Circuit Optimizer** tab:
+- **DBSCAN Clustering**: Identifies regional venue density groups within configurable distance thresholds (`eps` in kilometers) and minimum venue counts.
+- **Dynamic Cluster Span**: Calculates exact bounding-box radial spans (`cluster_radius_km`) and estimated highway transit drive times (`est_intercity_drive_hrs` at 80 km/h) for routing logistics.
+- **Corridor Filter Badges**: Click any cluster corridor card to instantly filter the venues table and map view to that regional touring market.

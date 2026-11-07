@@ -234,6 +234,28 @@ Refine underground acoustic vibe checks and optimize multi-city touring circuits
 - [x] Inject international touring logistics (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet / gear declaration, USD/CAD currency guidance)
 - [x] Add automated test suite for tour planning and cross-border circuit optimization (`tests/test_circuit_optimizer.py`)
 
+---
+
+### Phase 54: Curator Intelligence & Venue Field Notes (v1.1.83 - v1.1.84)
+
+Internal note-taking and sound engineer/curator intelligence embedded into AI qualification and pitch generation.
+
+- [x] Implement `venue_notes` database schema and data manager methods (`src/db_manager.py`)
+- [x] Expose REST endpoints for note management (`/venue/<id>/notes`)
+- [x] Add curator intelligence timeline and interactive submission form to venue detail views
+- [x] Wire curator notes into `AIEngine.generate_pitch()` and `AIEngine.vibe_check()` for context-aware pitch generation
+- [x] Add automated test suites for note storage and pitch integration (`tests/test_venue_notes.py`, `tests/test_notes_in_pitch.py`)
+
+---
+
+### Phase 55: DBSCAN Dynamic Density & Transit Clustering Metrics (v1.1.85)
+
+Algorithmic cluster geometry calculation and inter-city corridor transit estimation.
+
+- [x] Calculate cluster bounding-box radius (`cluster_radius_km`) and estimated transit drive times (`est_intercity_drive_hrs`) in `AnalyticsEngine.get_venue_clusters()`
+- [x] Display corridor density badges, transit drive times, and quick-filter buttons in Geographic Map & Circuit Optimizer dashboard tab
+- [x] Add automated test suite for dynamic clustering and perimeter transit metrics (`tests/test_advanced_clustering.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

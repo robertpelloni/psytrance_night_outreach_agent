@@ -1,8 +1,15 @@
-# HANDOFF - v1.1.77
+# HANDOFF - v1.1.85
 
 ## Session Summary
 
-This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INTELLIGENT MERGE**. All branches reconciled, documentation synchronized, version bumped to v1.1.77.
+This session advanced the platform across multiple key milestones:
+1. **Single-Page Command Center Consolidation (v1.1.78)**: Reorganized all 10 fragmented dashboard views into a unified single-page layout (`src/dashboard/templates/index.html`) with interactive Bootstrap tabs, sticky action bars, full-page modals, and complete backward-compatibility routes.
+2. **Interactive System Tray Icon & Process Management (v1.1.79)**: Implemented `src/systray.py` using `pystray` with graceful headless CLI fallback, allowing service inspection and server shutdown.
+3. **Side-by-Side Venue Matrix Comparison (v1.1.80)**: Added multi-lead checkbox selection and modal comparative matrix (`/compare_venues`).
+4. **Pipeline Activity Digest Engine (v1.1.81)**: Implemented `DigestGenerator` (`src/digest_generator.py`) supporting 24h, 7d, and 30d HTML/text digests with dashboard preview and SMTP delivery.
+5. **Detroit Underground Vibe Calibration & Midwest-Toronto Circuit Optimization (v1.1.82)**: Calibrated AI vibe scoring prompts with strict 6.5 threshold and acoustic sound system evaluation; anchored tour routing to Detroit with Midwest regional stops and cross-border Toronto routing logistics.
+6. **Venue Curator Intelligence & Field Notes (v1.1.83 - v1.1.84)**: Added `venue_notes` SQLite table, interactive curator notes UI, REST endpoints, and dynamic injection into AI pitch and vibe re-evaluation.
+7. **DBSCAN Dynamic Density & Transit Clustering Metrics (v1.1.85)**: Added bounding-box cluster radius (`cluster_radius_km`) and estimated drive time (`est_intercity_drive_hrs`) calculation in `AnalyticsEngine.get_venue_clusters()`, with interactive corridor badges and filters on the Geographic Map tab.
 
 ### STEP 1: Upstream Tracking
 
