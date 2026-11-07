@@ -123,3 +123,12 @@ CREATE TABLE IF NOT EXISTS unmatched_replies (
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     requires_attention BOOLEAN DEFAULT 1
 );
+
+CREATE TABLE IF NOT EXISTS venue_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    venue_id TEXT NOT NULL,
+    author TEXT DEFAULT 'Curator',
+    note TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(venue_id) REFERENCES venues(id)
+);

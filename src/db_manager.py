@@ -129,6 +129,32 @@ class DatabaseManager:
             except sqlite3.OperationalError as e:
                 print(f"Migration error on 'unmatched_replies.requires_attention': {e}")
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS venue_notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                venue_id TEXT NOT NULL,
+                author TEXT DEFAULT 'Curator',
+                note TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(venue_id) REFERENCES venues(id)
+            )
+        """)
+
+    def add_venue_note(self, venue_id, note, author="Curator"):
+        """Adds a private curator note/annotation for a venue."""
+        query = "INSERT INTO venue_notes (venue_id, author, note) VALUES (?, ?, ?)"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (str(venue_id), author, note))
+            return cursor.lastrowid
+
+    def get_venue_notes(self, venue_id):
+        """Retrieves all notes/annotations for a venue ordered by creation timestamp descending."""
+        query = "SELECT * FROM venue_notes WHERE venue_id = ? ORDER BY created_at DESC"
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (str(venue_id),))
+            return [dict(row) for row in cursor.fetchall()]
+
     def add_venue(self, venue_data):
         query = """
         INSERT OR IGNORE INTO venues (id, name, city, website, google_rating, tags, raw_about_text, extracted_traits, latitude, longitude, image_url, visual_description, address, phone, venue_type, capacity, neighborhood, source)

@@ -75,10 +75,17 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 - **Midwest-Toronto Circuit Optimizer**: Enhanced `TourPlanner` in `src/tour_planner.py`: anchors routing in Detroit, links regional Midwest stops, and connects to Toronto with international touring considerations (cross-border customs, ATA Carnet / gear declaration, USD/CAD currency guidance).
 - **Validation**: Added `tests/test_circuit_optimizer.py` (4/4 passing; overall test suite 101 passed, 4 skipped) and verified visual components (`settings_vibe_threshold.png` and `circuit_routing_view.png`).
 
+### Session v1.1.83 — Venue Notes & Curator Scene Intelligence
+
+- **Venue Notes Persistence**: Added `venue_notes` table to SQLite schema with `add_venue_note` and `get_venue_notes` methods in `DatabaseManager` (`src/db_manager.py`).
+- **Venue Notes API**: Added `/venue/<venue_id>/notes` GET and POST routes in `src/dashboard/app.py` for recording private annotations.
+- **Venue Detail UI**: Added "Curator Annotations & Scene Intelligence" form and chronological timeline to `src/dashboard/templates/venue_detail.html`.
+- **Validation**: Added unit and integration tests in `tests/test_venue_notes.py` (2/2 passing) and visually verified UI via Playwright (`venue_notes_view.png`).
+
 ## Current State
 
-- **Version**: 1.1.82
+- **Version**: 1.1.83
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, and digest previews
+- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, digest previews, and venue annotations
 - **Companion Launcher**: `./tray.sh`
-- **Remaining Open Items**: Additional scrapers (Facebook Events, Eventbrite, Meetup), collaborative filtering (if rejected at A, suggest B), email open/click tracking
+- **Remaining Open Items**: Additional scrapers (Facebook Events, Eventbrite, Meetup), email open/click tracking

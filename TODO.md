@@ -141,6 +141,8 @@
 - [x] Calibrate AI vibe check prompts for Detroit underground and acoustic setups (v1.1.82)
 - [x] Midwest-Toronto circuit optimization with cross-border touring logistics (v1.1.82)
 - [x] Automated Integration Test Suite for Circuit Optimizer (v1.1.82)
+- [x] Venue notes & confidential curator annotations system (v1.1.83)
+- [x] Automated Integration Test Suite for Venue Notes (v1.1.83)
 
 ---
 
