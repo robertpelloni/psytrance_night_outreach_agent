@@ -372,6 +372,18 @@ Hierarchical corridor clustering, circuit transit logistics, carbon estimation, 
 - [x] Wire transit metrics strip, clustering algorithm controls, and paired media assets into `#tourModal` in `src/dashboard/templates/index.html`
 - [x] Add unit and integration tests (`tests/test_tour_routing_enhanced.py`)
 
+---
+
+### Phase 66: Collaborative Filtering Midwest Acoustic Weighting & Contingency Pitching (v1.1.96)
+
+Audio architecture weighting for sound systems (Funktion-One, Void, Danley, d&b, PK Sound) and automated contingency pitch generation for alternative venues.
+
+- [x] Enhance `RecommendationEngine` with explicit acoustic rig scoring and composite affinity rebalancing
+- [x] Implement `generate_contingency_pitch()` in `RecommendationEngine` supporting turnkey regional residency and touring proposals
+- [x] Add `POST /api/recommendations/pitch/<target_venue_id>/<alt_venue_id>` endpoint in `src/dashboard/app.py`
+- [x] Integrate inline "Draft Pitch" triggers and live contingency pitch preview box into `#recModal` in `src/dashboard/templates/index.html`
+- [x] Add automated unit and integration tests (`tests/test_recommendation_contingency.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

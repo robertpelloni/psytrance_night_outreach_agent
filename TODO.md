@@ -157,6 +157,10 @@
 - [x] Circuit transit distance, drive hours, rest days, and CO2 calculation (v1.1.95)
 - [x] Tour modal logistics strip and simulation controls (v1.1.95)
 - [x] Automated Integration Test Suite for Enhanced Tour Routing (v1.1.95)
+- [x] Collaborative filtering Midwest scene acoustic weighting & sound system rigs (v1.1.96)
+- [x] Contingency pitch generation for sibling alternative venues (v1.1.96)
+- [x] Interactive contingency pitch preview and dispatch in recommendations modal (v1.1.96)
+- [x] Automated Integration Test Suite for Collaborative Filtering Contingency Pitching (v1.1.96)
 
 ---
 

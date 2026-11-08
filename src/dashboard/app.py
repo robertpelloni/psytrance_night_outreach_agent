@@ -447,6 +447,29 @@ def fetch_replies():
             "message": str(e)
         }), 500
 
+@app.route('/api/recommendations/pitch/<target_id>/<alt_id>', methods=['POST'])
+def generate_recommendation_contingency_pitch(target_id, alt_id):
+    """
+    Generates a tailored contingency pitch to an alternative venue when a lead is stalled or rejected.
+    """
+    data = request.get_json(silent=True) or {}
+    artist_id = data.get('artist_id')
+
+    try:
+        rec_engine = RecommendationEngine(db_manager=db)
+        result = rec_engine.generate_contingency_pitch(
+            target_venue_id=str(target_id),
+            alt_venue_id=str(alt_id),
+            ai_engine=ai,
+            artist_id=artist_id
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @app.route('/simulate_reply/<int:lead_id>', methods=['POST'])
 def simulate_reply(lead_id):
     content = request.form.get('content')

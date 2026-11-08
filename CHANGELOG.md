@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.96] - 2026-11-08
+
+### Added
+- **Collaborative Filtering Midwest Scene Acoustic Weighting (`src/recommendation_engine.py`)**: Enhanced `RecommendationEngine` with explicit audio architecture scoring prioritizing underground psytrance and techno acoustic rigs (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) alongside capacity, proximity, and historical outcomes.
+- **Contingency Alternative Pitch Generator (`src/recommendation_engine.py`)**: Added `generate_contingency_pitch(target_venue_id, alt_venue_id, ai_engine, artist_id)` generating turnkey regional residency and touring proposals targeting sibling alternative venues when an original lead stalls or rejects.
+- **Contingency Pitch Generation API (`src/dashboard/app.py`)**: Added `POST /api/recommendations/pitch/<target_venue_id>/<alt_venue_id>` endpoint returning structured JSON subjects and bodies.
+- **Interactive Contingency Pitching in Sibling Venue Modal (`src/dashboard/templates/index.html`)**: Added inline "Draft Pitch" buttons and dynamic preview box in `#recModal`, enabling operators to draft, view, and inspect contingency pitches instantly without leaving the unified command center.
+- **Collaborative Filtering Contingency Test Suite (`tests/test_recommendation_contingency.py`)**: Added unit and integration tests verifying acoustic sound system weighting, Haversine proximity bonuses, turnkey fallback pitch generation, and dashboard REST endpoint execution.
+
 ## [1.1.95] - 2026-11-08
 
 ### Added

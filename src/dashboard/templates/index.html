@@ -2093,10 +2093,23 @@
                                 </div>
                                 <div class="small text-secondary mb-2">${r.reasoning}</div>
                                 ${traits ? `<div class="mb-3">${traits}</div>` : ''}
-                                <div class="mt-auto d-flex gap-2">
-                                    <a href="/venue/${r.venue_id}" target="_blank" class="btn btn-outline-info btn-sm flex-grow-1">
-                                        View Venue Dossier
-                                    </a>
+                                <div class="mt-auto d-flex flex-column gap-2">
+                                    <div class="d-flex gap-2">
+                                        <a href="/venue/${r.venue_id}" target="_blank" class="btn btn-outline-info btn-sm flex-grow-1">
+                                            View Venue Dossier
+                                        </a>
+                                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="draftContingencyPitch('${venueId}', '${r.venue_id}', '${r.name}')">
+                                            ✉️ Draft Pitch
+                                        </button>
+                                    </div>
+                                    <div id="pitch-box-${r.venue_id}" class="d-none mt-2 p-2 bg-black border border-warning rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-warning fw-bold">Contingency Pitch Preview</span>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0" onclick="document.getElementById('pitch-box-${r.venue_id}').classList.add('d-none')">✕</button>
+                                        </div>
+                                        <input type="text" id="subj-${r.venue_id}" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" readonly>
+                                        <textarea id="body-${r.venue_id}" class="form-control form-control-sm bg-dark text-white border-secondary" rows="4" readonly></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2110,6 +2123,36 @@
                         Failed to calculate venue recommendations: ${err.message}
                     </div>
                 `;
+            }
+        }
+
+        // Draft Contingency Pitch for Sibling Alternative
+        async function draftContingencyPitch(targetId, altId, altName) {
+            const pitchBox = document.getElementById(`pitch-box-${altId}`);
+            const subjInput = document.getElementById(`subj-${altId}`);
+            const bodyArea = document.getElementById(`body-${altId}`);
+
+            if (pitchBox) pitchBox.classList.remove('d-none');
+            if (subjInput) subjInput.value = 'Generating contextual contingency pitch...';
+            if (bodyArea) bodyArea.value = 'Analyzing venue acoustic alignment and collective EPK details...';
+
+            try {
+                const res = await fetch(`/api/recommendations/pitch/${targetId}/${altId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (subjInput) subjInput.value = data.subject || `Psytrance Night Residency - ${altName}`;
+                    if (bodyArea) bodyArea.value = data.pitch || '';
+                } else {
+                    if (subjInput) subjInput.value = 'Error generating pitch';
+                    if (bodyArea) bodyArea.value = data.message || 'Unable to draft pitch.';
+                }
+            } catch (err) {
+                if (subjInput) subjInput.value = 'Network error';
+                if (bodyArea) bodyArea.value = err.message;
             }
         }
 

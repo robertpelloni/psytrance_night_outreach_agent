@@ -158,16 +158,22 @@ class RecommendationEngine:
             c_cap = cand.get("capacity") or 300
             cap_ratio = min(t_cap, c_cap) / max(t_cap, c_cap) if max(t_cap, c_cap) > 0 else 0.5
 
-            # 4. Lead Vibe / Conversion Quality Bonus
+            # 4. Acoustic Profile Bonus (Premium underground sound systems)
+            acoustic_systems = ["funktion-one", "void acoustics", "danley", "d&b audiotechnik", "pk sound"]
+            shared_sound = any(sys in cand_traits and sys in target_traits for sys in acoustic_systems)
+            sound_bonus = 0.10 if shared_sound else (0.05 if any(sys in cand_traits for sys in acoustic_systems) else 0.0)
+
+            # 5. Lead Vibe / Conversion Quality Bonus
             vibe_score = cand.get("vibe_score") or 0.0
-            vibe_bonus = min(float(vibe_score) / 10.0, 1.0) * 0.2
+            vibe_bonus = min(float(vibe_score) / 10.0, 1.0) * 0.15
 
             # Composite Affinity Calculation (0.0 to 1.0 scale)
             composite_score = (
-                (trait_sim * 0.40) +
-                (geo_score * 0.30) +
+                (trait_sim * 0.35) +
+                (geo_score * 0.25) +
                 (type_score * 0.15) +
-                (cap_ratio * 0.15) +
+                (cap_ratio * 0.10) +
+                sound_bonus +
                 vibe_bonus
             )
             composite_score = round(min(composite_score, 1.0), 3)
@@ -205,3 +211,104 @@ class RecommendationEngine:
         # Rank by match score descending
         recommendations.sort(key=lambda x: x["match_score"], reverse=True)
         return recommendations[:limit]
+
+    def generate_contingency_pitch(
+        self,
+        target_venue_id: str,
+        alt_venue_id: str,
+        ai_engine=None,
+        artist_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Generates a tailored outreach email pitching the alternative sibling venue
+        when a primary prospect has stalled, rejected, or presents a scheduling conflict.
+        Incorporates collective branding and acoustic alignment.
+        """
+        conn = self.db._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM venues WHERE id = ?", (target_venue_id,))
+        target = cursor.fetchone()
+        cursor.execute("SELECT * FROM venues WHERE id = ?", (alt_venue_id,))
+        alt = cursor.fetchone()
+
+        if not target or not alt:
+            return {"status": "error", "message": "Target or alternate venue not found"}
+
+        col_names = [d[0] for d in cursor.description]
+        target_dict = dict(zip(col_names, target))
+        alt_dict = dict(zip(col_names, alt))
+
+        # Acoustic traits
+        alt_traits = list(self._extract_trait_set(alt_dict))[:5]
+        target_name = target_dict.get("name", "our circuit target")
+        alt_name = alt_dict.get("name")
+        alt_city = alt_dict.get("city", "Detroit")
+
+        identity_info = ai_engine._get_identity_context(artist_id=artist_id) if ai_engine else {}
+        artist_name = identity_info.get("artist_name") or "our collective"
+        epk = identity_info.get("epk_link", "")
+        mix = identity_info.get("mix_link", "")
+
+        prompt = f"""
+        Write a professional, highly targeted cold outreach email pitching a psytrance night residency at {alt_name} ({alt_city}).
+        Context: We are actively routing our regional Midwest tour (anchored in Detroit). While coordinating circuit dates near {target_name},
+        we identified {alt_name} as the premier acoustic match for our sound.
+
+        Venue Details:
+        - Venue: {alt_name}
+        - Market: {alt_city}
+        - Notable traits: {', '.join(alt_traits)}
+        - Artist/Collective: {artist_name}
+        {f"- EPK: {epk}" if epk else ""}
+        {f"- Live Mix: {mix}" if mix else ""}
+
+        Philosophy:
+        - Selector, Not Promoter: Focus on artistic curation, acoustic immersion, and scene building.
+        - Tone: Underground, respectful, low friction, proposing a turnkey psytrance club night.
+
+        Return a JSON object with:
+        {{
+            "subject": "...",
+            "body": "..."
+        }}
+        """
+
+        if ai_engine and ai_engine.client:
+            try:
+                resp = ai_engine.client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"}
+                )
+                parsed = json.loads(resp.choices[0].message.content)
+                return {
+                    "status": "success",
+                    "target_venue": target_name,
+                    "alt_venue": alt_name,
+                    "subject": parsed.get("subject"),
+                    "pitch": parsed.get("body")
+                }
+            except Exception as e:
+                logger.error(f"Error generating contingency pitch via AI: {e}")
+
+        # Fallback template
+        subject = f"Psytrance Night Residency Proposal - {alt_name} / {alt_city}"
+        body = (
+            f"Hi {alt_name} team,\n\n"
+            f"We are coordinating regional Midwest circuit dates for {artist_name} and wanted to connect with your team directly. "
+            f"Given your outstanding acoustic reputation and underground aesthetic in {alt_city}, your space is an ideal fit "
+            f"for a curated psytrance night.\n\n"
+            f"We handle turnkey production, decor, and regional underground promotion.\n\n"
+            f"{f'Press Kit: {epk}' if epk else ''}\n"
+            f"{f'Recent Mix: {mix}' if mix else ''}\n\n"
+            f"Would you be open to exploring a trial residency date next month?\n\n"
+            f"Best regards,\n{artist_name}"
+        )
+        return {
+            "status": "success",
+            "target_venue": target_name,
+            "alt_venue": alt_name,
+            "subject": subject,
+            "pitch": body
+        }
