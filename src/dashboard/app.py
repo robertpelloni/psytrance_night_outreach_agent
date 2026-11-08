@@ -326,11 +326,34 @@ def plan_tour(cluster_index):
 
 @app.route('/plan_circuit')
 def plan_circuit():
-    recommendation = planner.plan_optimized_tour(cluster_index=None)
-    route = planner.get_circuit_route() if hasattr(planner, 'get_circuit_route') else []
+    method = request.args.get('method', 'dbscan')
+    min_vibe = float(request.args.get('min_vibe', 6.5))
+    artist_id = request.args.get('artist_id')
+    recommendation = planner.plan_optimized_tour(cluster_index=None, min_vibe=min_vibe, artist_id=artist_id)
+    route = planner.get_circuit_route(method=method, min_vibe=min_vibe) if hasattr(planner, 'get_circuit_route') else []
+    logistics = planner.compute_circuit_logistics(route_clusters=route, method=method, min_vibe=min_vibe, artist_id=artist_id) if hasattr(planner, 'compute_circuit_logistics') else {}
     return jsonify({
         "recommendation": recommendation,
-        "route": route
+        "route": route,
+        "logistics": logistics
+    })
+
+@app.route('/api/tour/simulate_circuit', methods=['POST'])
+def simulate_circuit():
+    """Simulates multi-segment tour logistics with customizable clustering strategy."""
+    data = request.get_json(silent=True) or {}
+    method = data.get('method', 'dbscan')
+    min_vibe = float(data.get('min_vibe', 6.5))
+    artist_id = data.get('artist_id')
+
+    route = planner.get_circuit_route(method=method, min_vibe=min_vibe)
+    logistics = planner.compute_circuit_logistics(route_clusters=route, method=method, min_vibe=min_vibe, artist_id=artist_id)
+    return jsonify({
+        "status": "success",
+        "method": method,
+        "min_vibe": min_vibe,
+        "route": route,
+        "logistics": logistics
     })
 
 @app.route('/dispatch_circuit', methods=['POST'])

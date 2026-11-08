@@ -1,4 +1,4 @@
-# HANDOFF - v1.1.94
+# HANDOFF - v1.1.95
 
 ## Session Summary
 
@@ -100,11 +100,19 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.94
+- **Version**: 1.1.95
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper
+
+### Session v1.1.95 — Tour Routing & Transit Corridor Analytics
+
+- **Hierarchical Corridor Clustering**: Enhanced `AnalyticsEngine.get_venue_clusters()` with single-linkage hierarchical agglomerative clustering (`method='hierarchical'`) to group venue corridors along highway transit routes alongside default radial DBSCAN.
+- **Circuit Transit Logistics & Footprint Computation**: Built `compute_circuit_logistics()` in `TourPlanner` calculating total driving distance (km), highway drive time (85 km/h), recommended rest day distribution, carbon footprint (0.17 kg CO2/km), and matching collective media packs.
+- **Interactive Tour Modal UI**: Enhanced `#tourModal` with clustering algorithm selector, live transit logistics metric strip (Transit km, Drive Time, Rest Days, CO2 Footprint), paired EPK/Mix media tags, and recalculation triggers.
+- **API Simulation Endpoints**: Added `POST /api/tour/simulate_circuit` and enriched `GET /plan_circuit`.
+- **Validation**: Added `tests/test_tour_routing_enhanced.py` (4/4 passing) and verified frontend rendering via Playwright (`/home/jules/verification/tour_circuit_transit_modal.png`).
 
 ### Session v1.1.94 — Command Center Automated Test Suite & Map Visual Verification
 

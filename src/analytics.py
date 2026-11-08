@@ -90,11 +90,19 @@ class AnalyticsEngine:
                 return round((res[0] / res[1]) * 100, 1)
             return 0
 
-    def get_venue_clusters(self, radius_km=60, min_vibe=None):
+    def get_venue_clusters(self, radius_km=60, min_vibe=None, method='dbscan'):
         """
-        Identifies clusters of venues within a specific radius.
+        Identifies clusters of venues within a specific radius or transit corridor.
         Supports filtering by minimum vibe threshold (e.g. 6.5) to assemble
         high-priority touring clusters across Midwest hubs and Toronto.
+
+        Args:
+            radius_km: Distance threshold in kilometers.
+            min_vibe: Minimum lead vibe score filter.
+            method: Clustering strategy:
+                - 'dbscan' / 'radial': Radial distance threshold grouping.
+                - 'hierarchical' / 'agglomerative': Hierarchical single-linkage agglomerative clustering
+                   merging closest venues into geographic corridors until the linkage distance exceeds radius_km.
         """
         query = """
         SELECT v.id, v.name, v.city, v.latitude, v.longitude, l.vibe_score, l.pipeline_status
@@ -111,9 +119,6 @@ class AnalyticsEngine:
         if not venues:
             return []
 
-        clusters = []
-        visited = set()
-
         import math
 
         def haversine(lat1, lon1, lat2, lon2):
@@ -124,40 +129,76 @@ class AnalyticsEngine:
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
             return R * c
 
-        for i, v1 in enumerate(venues):
-            if v1['id'] in visited:
-                continue
+        raw_clusters = []
 
-            current_cluster = [v1]
-            visited.add(v1['id'])
-
-            for j, v2 in enumerate(venues):
-                if v1['id'] == v2['id'] or v2['id'] in visited:
+        if str(method).lower() in ['hierarchical', 'agglomerative', 'hdbscan']:
+            # Hierarchical Agglomerative Single-Linkage Clustering
+            groups = [[v] for v in venues]
+            while len(groups) > 1:
+                min_dist = float('inf')
+                best_pair = None
+                for i in range(len(groups)):
+                    for j in range(i + 1, len(groups)):
+                        # Single-linkage distance between two clusters
+                        for v1 in groups[i]:
+                            for v2 in groups[j]:
+                                d = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
+                                if d < min_dist:
+                                    min_dist = d
+                                    best_pair = (i, j)
+                if best_pair is not None and min_dist <= radius_km:
+                    i, j = best_pair
+                    merged = groups[i] + groups[j]
+                    groups.pop(j)
+                    groups[i] = merged
+                else:
+                    break
+            raw_clusters = [g for g in groups if len(g) > 1]
+        else:
+            # Default DBSCAN / Radial clustering
+            visited = set()
+            for i, v1 in enumerate(venues):
+                if v1['id'] in visited:
                     continue
 
-                dist = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
-                if dist <= radius_km:
-                    current_cluster.append(v2)
-                    visited.add(v2['id'])
+                current_cluster = [v1]
+                visited.add(v1['id'])
 
-            if len(current_cluster) > 1:
-                center_lat = sum(v['latitude'] for v in current_cluster) / len(current_cluster)
-                center_lon = sum(v['longitude'] for v in current_cluster) / len(current_cluster)
-                max_radius = max(
-                    haversine(center_lat, center_lon, v['latitude'], v['longitude'])
-                    for v in current_cluster
-                )
-                clusters.append({
-                    "center": {
-                        "lat": round(center_lat, 4),
-                        "lon": round(center_lon, 4)
-                    },
-                    "venue_count": len(current_cluster),
-                    "venues": current_cluster,
-                    "avg_vibe": round(sum(v['vibe_score'] for v in current_cluster) / len(current_cluster), 1),
-                    "cluster_radius_km": round(max_radius, 1),
-                    "est_intercity_drive_hrs": round(max_radius / 80.0, 1)  # Est. @ 80 km/h avg speed
-                })
+                for j, v2 in enumerate(venues):
+                    if v1['id'] == v2['id'] or v2['id'] in visited:
+                        continue
+
+                    dist = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
+                    if dist <= radius_km:
+                        current_cluster.append(v2)
+                        visited.add(v2['id'])
+
+                if len(current_cluster) > 1:
+                    raw_clusters.append(current_cluster)
+
+        clusters = []
+        for current_cluster in raw_clusters:
+            center_lat = sum(v['latitude'] for v in current_cluster) / len(current_cluster)
+            center_lon = sum(v['longitude'] for v in current_cluster) / len(current_cluster)
+            max_radius = max(
+                haversine(center_lat, center_lon, v['latitude'], v['longitude'])
+                for v in current_cluster
+            )
+            vibe_scores = [v['vibe_score'] for v in current_cluster if v.get('vibe_score') is not None]
+            avg_vibe = round(sum(vibe_scores) / len(vibe_scores), 1) if vibe_scores else 0.0
+
+            clusters.append({
+                "center": {
+                    "lat": round(center_lat, 4),
+                    "lon": round(center_lon, 4)
+                },
+                "venue_count": len(current_cluster),
+                "venues": current_cluster,
+                "avg_vibe": avg_vibe,
+                "cluster_radius_km": round(max_radius, 1),
+                "est_intercity_drive_hrs": round(max_radius / 80.0, 1),  # Est. @ 80 km/h avg speed
+                "clustering_method": method
+            })
 
         return sorted(clusters, key=lambda x: x['venue_count'], reverse=True)
 

@@ -1378,15 +1378,71 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-white border-info">
                 <div class="modal-header border-info">
-                    <h5 class="modal-title">Regional Tour Route Orchestrator</h5>
+                    <h5 class="modal-title">🚗 Regional Tour Route & Transit Orchestrator</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Algorithm & Simulation Controls -->
+                    <div class="card bg-black border-secondary p-3 mb-3">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-5">
+                                <label class="form-label small text-info fw-bold mb-1">Clustering Strategy</label>
+                                <select id="tour-cluster-method" class="form-select form-select-sm bg-dark text-white border-secondary">
+                                    <option value="dbscan" selected>DBSCAN / Radial Density (60 km)</option>
+                                    <option value="hierarchical">Hierarchical Agglomerative (Transit Corridors)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small text-info fw-bold mb-1">Min Vibe Filter</label>
+                                <input type="number" id="tour-min-vibe" class="form-control form-control-sm bg-dark text-white border-secondary" value="6.5" step="0.1" min="1" max="10">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="planCircuit(true)">
+                                    🔄 Recalculate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transit Corridor Logistics Summary Strip -->
+                    <div id="tour-logistics-strip" class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Total Transit</div>
+                                <div id="tour-dist-val" class="fw-bold text-warning fs-6">0.0 km</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Drive Time</div>
+                                <div id="tour-time-val" class="fw-bold text-info fs-6">0.0 hrs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Rest Days</div>
+                                <div id="tour-rest-val" class="fw-bold text-success fs-6">0 Days</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">CO₂ Footprint</div>
+                                <div id="tour-co2-val" class="fw-bold text-light fs-6">0.0 kg</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <h6>Recommended Route & Booking Strategy:</h6>
                     <pre id="tour-output" class="bg-black text-info p-3 rounded" style="white-space: pre-wrap; font-size: 0.9rem;"></pre>
 
+                    <!-- Paired EPK / Media Link strip -->
+                    <div id="tour-media-container" class="mb-3 d-none">
+                        <label class="form-label small text-info fw-bold mb-1">Attached Tour EPK & Media Pack</label>
+                        <div id="tour-media-links" class="d-flex gap-2 flex-wrap"></div>
+                    </div>
+
                     <h6 class="mt-4">Cluster Pitch Proposal:</h6>
-                    <textarea id="cluster-pitch" class="form-control bg-black text-white border-secondary mb-3" rows="8"></textarea>
+                    <textarea id="cluster-pitch" class="form-control bg-black text-white border-secondary mb-3" rows="7"></textarea>
 
                     <div id="dispatch-results" class="alert d-none"></div>
                 </div>
@@ -1816,18 +1872,47 @@
             }
         }
 
-        function planCircuit() {
+        function planCircuit(isRecalculate = false) {
             const btn = document.getElementById('circuit-btn');
-            btn.disabled = true;
-            btn.innerText = 'Calculating Route...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Calculating Route...';
+            }
 
-            fetch('/plan_circuit')
+            const methodSelect = document.getElementById('tour-cluster-method');
+            const minVibeInput = document.getElementById('tour-min-vibe');
+            const method = methodSelect ? methodSelect.value : 'dbscan';
+            const minVibe = minVibeInput ? minVibeInput.value : '6.5';
+
+            fetch(`/plan_circuit?method=${encodeURIComponent(method)}&min_vibe=${encodeURIComponent(minVibe)}`)
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('tour-output').innerText = data.recommendation;
+                    document.getElementById('tour-output').innerText = data.recommendation || 'No route generated.';
                     document.getElementById('cluster-pitch').value = "Circuit routing active. See optimal route itinerary above.";
-                    const modal = new bootstrap.Modal(document.getElementById('tourModal'));
-                    modal.show();
+
+                    // Update Logistics strip
+                    if (data.logistics) {
+                        document.getElementById('tour-dist-val').innerText = `${data.logistics.total_distance_km || 0.0} km`;
+                        document.getElementById('tour-time-val').innerText = `${data.logistics.total_drive_hours || 0.0} hrs`;
+                        document.getElementById('tour-rest-val').innerText = `${data.logistics.recommended_rest_days || 0} Days`;
+                        document.getElementById('tour-co2-val').innerText = `${data.logistics.est_carbon_kg || 0.0} kg`;
+
+                        const mediaCont = document.getElementById('tour-media-container');
+                        const mediaLinks = document.getElementById('tour-media-links');
+                        if (mediaCont && mediaLinks && data.logistics.paired_media && data.logistics.paired_media.length > 0) {
+                            mediaCont.classList.remove('d-none');
+                            mediaLinks.innerHTML = data.logistics.paired_media.map(m => `
+                                <a href="${m.url}" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none py-2 px-3">
+                                    🎵 ${m.title}
+                                </a>
+                            `).join('');
+                        }
+                    }
+
+                    if (!isRecalculate) {
+                        const modal = new bootstrap.Modal(document.getElementById('tourModal'));
+                        modal.show();
+                    }
 
                     if (data.route && data.route.length > 1) {
                         const latlngs = data.route.map(c => [c.center.lat, c.center.lon]);
@@ -1835,13 +1920,17 @@
                         circuitPolyline = L.polyline(latlngs, {color: '#d29922', weight: 4, dashArray: '8, 8'}).addTo(map);
                         map.fitBounds(circuitPolyline.getBounds());
                     }
-                    btn.disabled = false;
-                    btn.innerText = '🚗 Plan Midwest Circuit';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🚗 Plan Midwest Circuit';
+                    }
                 })
                 .catch(err => {
                     alert("Error calculating circuit: " + err);
-                    btn.disabled = false;
-                    btn.innerText = '🚗 Plan Midwest Circuit';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🚗 Plan Midwest Circuit';
+                    }
                 });
         }
 

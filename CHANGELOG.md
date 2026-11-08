@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.95] - 2026-11-08
+
+### Added
+- **Hierarchical Agglomerative Clustering for Transit Corridors (`src/analytics.py`)**: Added single-linkage hierarchical agglomerative clustering support (`method='hierarchical'`) in `AnalyticsEngine.get_venue_clusters()`, enabling discovery of geographic travel corridors alongside DBSCAN radial groupings.
+- **Circuit Transit Logistics & Footprint Computation (`src/tour_planner.py`)**: Implemented `compute_circuit_logistics()` in `TourPlanner` calculating total circuit transit distance (km), estimated highway driving hours (85 km/h), recommended rest day allocation, estimated van carbon footprint (kg CO2), and tailored media asset pairings (EPK/Mix).
+- **Tour Routing Simulation API (`src/dashboard/app.py`)**: Added `POST /api/tour/simulate_circuit` and enriched `GET /plan_circuit` to return logistics metrics for dynamic route customization.
+- **Tour Routing & Transit Corridor UI (`src/dashboard/templates/index.html`)**: Enhanced `#tourModal` with clustering algorithm selector, live transit logistics metric strip (Transit km, Drive Time, Rest Days, CO2 Footprint), paired EPK/Mix media tags, and recalculation triggers.
+- **Tour Routing Enhanced Test Suite (`tests/test_tour_routing_enhanced.py`)**: Added automated unit and integration tests verifying hierarchical clustering, transit logistics calculations, and API endpoints.
+
 ## [1.1.94] - 2026-11-08
 
 ### Added

@@ -153,6 +153,10 @@
 - [x] Automated Integration Test Suite for Feedback Triage (v1.1.93)
 - [x] Command Center automated test suite expansion across all modal controls (v1.1.94)
 - [x] Playwright visual layout inspection and screenshot verification of consolidated Map tab (v1.1.94)
+- [x] Hierarchical agglomerative clustering & transit corridor analytics (v1.1.95)
+- [x] Circuit transit distance, drive hours, rest days, and CO2 calculation (v1.1.95)
+- [x] Tour modal logistics strip and simulation controls (v1.1.95)
+- [x] Automated Integration Test Suite for Enhanced Tour Routing (v1.1.95)
 
 ---
 

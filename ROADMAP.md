@@ -360,6 +360,18 @@ Comprehensive verification and automated testing of unified dashboard architectu
 - [x] Verify geocoding missing venues endpoints and email engagement metrics strip
 - [x] Conduct Playwright visual layout inspection and screenshot verification of consolidated Map tab
 
+---
+
+### Phase 65: Tour Routing & Transit Corridor Analytics (v1.1.95)
+
+Hierarchical corridor clustering, circuit transit logistics, carbon estimation, and media asset matching.
+
+- [x] Implement hierarchical agglomerative clustering in `AnalyticsEngine.get_venue_clusters(method='hierarchical')`
+- [x] Add circuit transit logistics calculation (`compute_circuit_logistics()`) in `TourPlanner` (transit km, drive hrs, rest days, CO2 footprint)
+- [x] Expose `POST /api/tour/simulate_circuit` and enriched `GET /plan_circuit` in `src/dashboard/app.py`
+- [x] Wire transit metrics strip, clustering algorithm controls, and paired media assets into `#tourModal` in `src/dashboard/templates/index.html`
+- [x] Add unit and integration tests (`tests/test_tour_routing_enhanced.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

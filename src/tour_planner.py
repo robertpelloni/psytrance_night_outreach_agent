@@ -18,33 +18,31 @@ class TourPlanner:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
         return R * c
 
-    def get_circuit_route(self):
+    def get_circuit_route(self, clusters=None, method='dbscan', min_vibe=6.5):
         """
         Calculates an optimal route connecting the centers of all identified venue clusters.
-        Uses a nearest-neighbor approach starting from the cluster with the highest average vibe.
+        Uses a nearest-neighbor approach starting from the Detroit hub (or highest average vibe cluster).
         """
-        clusters = self.analytics.get_venue_clusters()
+        if clusters is None:
+            clusters = self.analytics.get_venue_clusters(method=method, min_vibe=min_vibe)
         if not clusters:
             return []
 
         # Detroit approximate coordinates: 42.3314, -83.0458
         detroit_lat, detroit_lon = 42.3314, -83.0458
 
-        # Prioritize starting from a cluster near the Detroit hub if available,
-        # otherwise start from the cluster with the highest average vibe.
         detroit_clusters = [
             c for c in clusters
-            if any(v.get('city', '').lower() == 'detroit' for v in c.get('venues', [])) or
+            if any((v.get('city', '') or '').lower() == 'detroit' for v in c.get('venues', [])) or
                self._haversine(detroit_lat, detroit_lon, c['center']['lat'], c['center']['lon']) < 80
         ]
-        start_cluster = detroit_clusters[0] if detroit_clusters else max(clusters, key=lambda x: x['avg_vibe'])
+        start_cluster = detroit_clusters[0] if detroit_clusters else max(clusters, key=lambda x: x.get('avg_vibe', 0))
 
         unvisited = [c for c in clusters if c != start_cluster]
         route = [start_cluster]
         current_cluster = start_cluster
 
         while unvisited:
-            # Find nearest neighbor, calculating distance including cross-border connections to Toronto
             nearest = min(
                 unvisited,
                 key=lambda c: self._haversine(
@@ -57,6 +55,75 @@ class TourPlanner:
             current_cluster = nearest
 
         return route
+
+    def compute_circuit_logistics(self, route_clusters=None, method='dbscan', min_vibe=6.5, artist_id=None):
+        """
+        Calculates operational tour transit metrics across the circuit:
+        - Total transit distance (km)
+        - Estimated driving hours (at 85 km/h highway nominal transit speed)
+        - Recommended rest days (1 rest day for every 400 km or 5+ hrs driving)
+        - Estimated CO2 footprint (approx 0.17 kg CO2 / km for tour van)
+        - Paired artist media assets for the circuit
+        """
+        if route_clusters is None:
+            route_clusters = self.get_circuit_route(method=method, min_vibe=min_vibe)
+
+        if not route_clusters:
+            return {
+                "total_distance_km": 0.0,
+                "total_drive_hours": 0.0,
+                "recommended_rest_days": 0,
+                "est_carbon_kg": 0.0,
+                "leg_details": [],
+                "paired_media": []
+            }
+
+        legs = []
+        total_dist = 0.0
+
+        for i in range(len(route_clusters) - 1):
+            c1 = route_clusters[i]
+            c2 = route_clusters[i + 1]
+            dist = self._haversine(c1['center']['lat'], c1['center']['lon'], c2['center']['lat'], c2['center']['lon'])
+            drive_hrs = round(dist / 85.0, 1)
+            total_dist += dist
+
+            c1_cities = list({v.get('city') for v in c1.get('venues', []) if v.get('city')})
+            c2_cities = list({v.get('city') for v in c2.get('venues', []) if v.get('city')})
+            origin_name = c1_cities[0] if c1_cities else f"Cluster {i+1}"
+            dest_name = c2_cities[0] if c2_cities else f"Cluster {i+2}"
+
+            legs.append({
+                "from_cluster": i + 1,
+                "to_cluster": i + 2,
+                "origin": origin_name,
+                "destination": dest_name,
+                "distance_km": round(dist, 1),
+                "drive_hours": drive_hrs
+            })
+
+        total_drive_hrs = round(total_dist / 85.0, 1)
+        # Recommendation: 1 rest day for every 400 km or 5h driving
+        rest_days = max(1, math.ceil(total_dist / 400.0)) if total_dist > 250 else 0
+        carbon_kg = round(total_dist * 0.17, 1)
+
+        # Contextual media matching
+        identity_info = self.ai._get_identity_context(artist_id=artist_id)
+        paired_media = []
+        if identity_info.get("epk_link"):
+            paired_media.append({"title": "Electronic Press Kit (EPK)", "url": identity_info["epk_link"]})
+        if identity_info.get("mix_link"):
+            paired_media.append({"title": "Headline Live Mix", "url": identity_info["mix_link"]})
+
+        return {
+            "total_distance_km": round(total_dist, 1),
+            "total_drive_hours": total_drive_hrs,
+            "recommended_rest_days": rest_days,
+            "est_carbon_kg": carbon_kg,
+            "leg_details": legs,
+            "paired_media": paired_media,
+            "cluster_count": len(route_clusters)
+        }
 
     def plan_optimized_tour(self, cluster_index=None, min_vibe=6.5, artist_id=None):
         """
