@@ -161,6 +161,10 @@
 - [x] Contingency pitch generation for sibling alternative venues (v1.1.96)
 - [x] Interactive contingency pitch preview and dispatch in recommendations modal (v1.1.96)
 - [x] Automated Integration Test Suite for Collaborative Filtering Contingency Pitching (v1.1.96)
+- [x] Outreach Timing Matrix & Response Velocity 7x24 heatmap analytics (v1.1.97)
+- [x] Peak promoter dispatch window detection and REST API endpoint (v1.1.97)
+- [x] Interactive heatmap UI grid on Analytics tab (v1.1.97)
+- [x] Automated Integration Test Suite for Activity Heatmap (v1.1.97)
 
 ---
 

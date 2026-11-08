@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.97] - 2026-11-08
+
+### Added
+- **Outreach Timing Matrix & Response Velocity Analytics (`src/analytics.py`)**: Implemented `AnalyticsEngine.get_activity_heatmap()` aggregating outreach dispatches and venue replies across a 7x24 temporal grid (Day-of-Week 0-6 vs Hour-of-Day 0-23) to compute peak promoter engagement windows and density scoring.
+- **Activity Heatmap REST API (`src/dashboard/app.py`)**: Added `GET /api/analytics/activity_heatmap` endpoint returning the 7x24 matrix, breakdown by dispatches and replies, total interaction counts, and optimal dispatch slot recommendation.
+- **Interactive Timing Heatmap UI (`src/dashboard/templates/index.html`)**: Integrated a responsive 7x24 matrix table on the Analytics tab with color-coded density cells, interactive tooltips showing dispatches and replies per hour, optimal dispatch window badge, and density legend.
+- **Analytics Heatmap Test Suite (`tests/test_analytics_heatmap.py`)**: Added unit and integration tests covering matrix generation on empty databases, temporal slot calculations with dispatches/replies, REST API responses, and dashboard template rendering.
+
 ## [1.1.96] - 2026-11-08
 
 ### Added

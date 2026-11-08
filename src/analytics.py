@@ -326,3 +326,78 @@ class AnalyticsEngine:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(query).fetchall()
             return [{"date": row['outreach_date'], "count": row['count']} for row in rows]
+
+    def get_activity_heatmap(self):
+        """
+        Aggregates outreach dispatches and venue responses into a 7x24 temporal heatmap
+        (day of week: 0=Sunday to 6=Saturday, hour: 0-23).
+        Computes the optimal booking agent dispatch windows for underground electronic music scenes.
+        """
+        day_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        matrix = [[0 for _ in range(24)] for _ in range(7)]
+        outreach_counts = [[0 for _ in range(24)] for _ in range(7)]
+        reply_counts = [[0 for _ in range(24)] for _ in range(7)]
+
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+
+            # Query outreach dispatches
+            outreach_query = """
+            SELECT
+                CAST(strftime('%w', last_outreach_at) AS INTEGER) as dow,
+                CAST(strftime('%H', last_outreach_at) AS INTEGER) as hour,
+                COUNT(*) as count
+            FROM outreach_leads
+            WHERE last_outreach_at IS NOT NULL
+            GROUP BY dow, hour
+            """
+            for row in conn.execute(outreach_query).fetchall():
+                dow = row['dow']
+                hour = row['hour']
+                if 0 <= dow < 7 and 0 <= hour < 24:
+                    outreach_counts[dow][hour] = row['count']
+                    matrix[dow][hour] += row['count']
+
+            # Query inbound replies
+            reply_query = """
+            SELECT
+                CAST(strftime('%w', received_at) AS INTEGER) as dow,
+                CAST(strftime('%H', received_at) AS INTEGER) as hour,
+                COUNT(*) as count
+            FROM lead_replies
+            WHERE received_at IS NOT NULL
+            GROUP BY dow, hour
+            """
+            for row in conn.execute(reply_query).fetchall():
+                dow = row['dow']
+                hour = row['hour']
+                if 0 <= dow < 7 and 0 <= hour < 24:
+                    reply_counts[dow][hour] = row['count']
+                    # Replies carry higher weight in calculating engagement density
+                    matrix[dow][hour] += (row['count'] * 2)
+
+        # Calculate peak engagement slot
+        max_val = 0
+        best_slot = {"day": "Tue", "hour": 14, "intensity": 0, "description": "Tuesday 2:00 PM (Default recommended window)"}
+        for d in range(7):
+            for h in range(24):
+                val = matrix[d][h]
+                if val > max_val:
+                    max_val = val
+                    hour_label = f"{h % 12 or 12}:00 {'AM' if h < 12 else 'PM'}"
+                    best_slot = {
+                        "day": day_names[d],
+                        "hour": h,
+                        "intensity": val,
+                        "description": f"{day_names[d]} at {hour_label}"
+                    }
+
+        return {
+            "days": day_names,
+            "matrix": matrix,
+            "outreach_counts": outreach_counts,
+            "reply_counts": reply_counts,
+            "best_window": best_slot,
+            "total_outreach_events": sum(sum(r) for r in outreach_counts),
+            "total_reply_events": sum(sum(r) for r in reply_counts)
+        }

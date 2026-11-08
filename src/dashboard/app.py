@@ -142,6 +142,14 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
     funnel = analytics.get_conversion_funnel()
     health = analytics.get_scene_health()
     timeline = analytics.get_outreach_timeline()
+    try:
+        activity_heatmap = analytics.get_activity_heatmap()
+    except Exception as e:
+        activity_heatmap = {
+            "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            "matrix": [[0]*24 for _ in range(7)],
+            "best_window": {"description": "Tuesday at 2:00 PM"}
+        }
 
     # 4. Settings & Media Library
     current_config = config_mgr.load_config()
@@ -193,6 +201,7 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
         'funnel': funnel,
         'health': health,
         'timeline': timeline,
+        'activity_heatmap': activity_heatmap,
         'config': current_config,
         'version': version,
         'git_info': git_info,
@@ -1159,6 +1168,15 @@ def analyze_venue_visuals(venue_id):
             "visual_description": description,
             "image_url": image_url
         })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/analytics/activity_heatmap', methods=['GET'])
+def api_activity_heatmap():
+    """Returns the 7x24 activity heatmap and peak engagement windows."""
+    try:
+        data = analytics.get_activity_heatmap()
+        return jsonify({"status": "success", "heatmap": data})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

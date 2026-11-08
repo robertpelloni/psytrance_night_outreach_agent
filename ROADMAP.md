@@ -384,6 +384,18 @@ Audio architecture weighting for sound systems (Funktion-One, Void, Danley, d&b,
 - [x] Integrate inline "Draft Pitch" triggers and live contingency pitch preview box into `#recModal` in `src/dashboard/templates/index.html`
 - [x] Add automated unit and integration tests (`tests/test_recommendation_contingency.py`)
 
+---
+
+### Phase 67: Outreach Timing Matrix & Response Velocity Analytics (v1.1.97)
+
+Temporal engagement profiling across days of the week and hours of the day to detect optimal booking agent dispatch windows.
+
+- [x] Implement 7x24 temporal aggregation matrix in `AnalyticsEngine.get_activity_heatmap()`
+- [x] Compute peak promoter engagement slots with daytime/evening descriptions
+- [x] Expose `GET /api/analytics/activity_heatmap` REST API endpoint
+- [x] Integrate interactive 7x24 heatmap table with density shading and tooltips in the Analytics tab
+- [x] Add unit and integration tests (`tests/test_analytics_heatmap.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

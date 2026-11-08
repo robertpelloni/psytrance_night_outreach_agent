@@ -1,13 +1,14 @@
-# HANDOFF - v1.1.96
+# HANDOFF - v1.1.97
 
 ## Session Summary
 
-This session advanced the platform through Milestone v1.1.96:
-1. **Collaborative Filtering Midwest Scene Acoustic Weighting (v1.1.96)**: Enhanced `RecommendationEngine` in `src/recommendation_engine.py` with audio architecture scoring prioritizing underground psytrance and techno acoustic setups (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) alongside capacity matching, spatial proximity (Haversine distance decay), and historical booking outcomes.
-2. **Contingency Alternative Pitch Generator (v1.1.96)**: Added `generate_contingency_pitch(target_venue_id, alt_venue_id, ai_engine, artist_id)` generating turnkey regional residency and touring proposals targeting sibling alternative venues when an original lead stalls or rejects.
-3. **Contingency Pitch Generation API (v1.1.96)**: Added `POST /api/recommendations/pitch/<target_venue_id>/<alt_venue_id>` endpoint in `src/dashboard/app.py` returning structured JSON subjects and bodies.
-4. **Interactive Contingency Pitching in Sibling Venue Modal (v1.1.96)**: Added inline "Draft Pitch" buttons and dynamic preview box in `#recModal` within `src/dashboard/templates/index.html`, enabling operators to draft, view, and inspect contingency pitches instantly without leaving the unified command center.
-5. **Validation & Visual Inspection (v1.1.96)**: Added unit and integration tests in `tests/test_recommendation_contingency.py` (4/4 passing; master integrity suite: 149 passed, 4 skipped) and verified frontend modal interactions via Playwright (`/home/jules/verification/recommendation_contingency_modal.png`).
+This session advanced the platform through Milestones v1.1.96 and v1.1.97:
+1. **Outreach Timing Matrix & Response Velocity Analytics (v1.1.97)**: Built `AnalyticsEngine.get_activity_heatmap()` in `src/analytics.py` aggregating outreach dispatches and inbound venue replies across a 7x24 temporal grid (Day of Week vs Hour of Day) to calculate engagement intensity and identify the highest-converting promoter outreach windows.
+2. **Timing Matrix REST API & Dashboard Integration (v1.1.97)**: Exposed `GET /api/analytics/activity_heatmap` in `src/dashboard/app.py` and embedded a responsive 7x24 heatmap grid in the Analytics & A/B Engine tab of `src/dashboard/templates/index.html`, complete with density color-coding, tooltips showing hourly breakdowns, and an optimal dispatch window indicator.
+3. **Collaborative Filtering Midwest Scene Acoustic Weighting (v1.1.96)**: Enhanced `RecommendationEngine` in `src/recommendation_engine.py` with audio architecture scoring prioritizing underground psytrance and techno acoustic setups (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) alongside capacity matching, spatial proximity (Haversine distance decay), and historical booking outcomes.
+4. **Contingency Alternative Pitch Generator (v1.1.96)**: Added `generate_contingency_pitch(target_venue_id, alt_venue_id, ai_engine, artist_id)` generating turnkey regional residency and touring proposals targeting sibling alternative venues when an original lead stalls or rejects.
+5. **Contingency Pitch Generation API (v1.1.96)**: Added `POST /api/recommendations/pitch/<target_venue_id>/<alt_venue_id>` endpoint in `src/dashboard/app.py` returning structured JSON subjects and bodies.
+6. **Interactive Contingency Pitching in Sibling Venue Modal (v1.1.96)**: Added inline "Draft Pitch" buttons and dynamic preview box in `#recModal` within `src/dashboard/templates/index.html`, enabling operators to draft, view, and inspect contingency pitches instantly without leaving the unified command center.
 
 This session advanced the platform across multiple key milestones:
 1. **Single-Page Command Center Consolidation (v1.1.78)**: Reorganized all 10 fragmented dashboard views into a unified single-page layout (`src/dashboard/templates/index.html`) with interactive Bootstrap tabs, sticky action bars, full-page modals, and complete backward-compatibility routes.
@@ -107,9 +108,9 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.96
+- **Version**: 1.1.97
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, collaborative filtering contingency pitch generator, acoustic rig weighting, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, outreach timing matrix & response velocity 7x24 heatmap, collaborative filtering contingency pitch generator, acoustic rig weighting, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper
 

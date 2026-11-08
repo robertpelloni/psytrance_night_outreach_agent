@@ -352,3 +352,11 @@ Quickly pivot when a target venue is booked, unresponsive, or declines:
 - **Acoustic Profiling**: The collaborative filtering recommendation engine actively scores venues based on underground audio architecture (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) to ensure comparable sound reproduction quality.
 - **Instant Contingency Pitches**: Within the "Alternate Venues" recommendation modal, click **"Draft Pitch"** next to any suggested sibling venue. The system will automatically draft a tailored turnkey proposal referencing regional tour momentum and shared sound aesthetic.
 - **Inline Preview**: Inspect and review the generated subject line and pitch body directly in the modal before copying or dispatching.
+
+## Outreach Timing Matrix & Response Velocity Analytics
+
+Optimize outreach delivery according to when club promoters and talent buyers actually engage:
+- **7x24 Matrix**: The system maps every outreach dispatch and inbound response into an hourly grid across Sunday through Saturday.
+- **Optimal Window Detection**: Highlights the peak conversion window (e.g. `Tuesday at 2:00 PM`) based on empirical response density.
+- **Visual Heatmap Grid**: Accessible on the **Analytics & A/B Engine** tab with dynamic color coding, density legends, and hover tooltips showing hourly dispatch and response breakdowns.
+- **REST API**: Programmatically inspect timing data via `GET /api/analytics/activity_heatmap`.
