@@ -1040,13 +1040,35 @@ def submit_feedback():
         })
     return redirect(url_for('index', tab='system'))
 
+@app.route("/update_feedback_status/<int:feedback_id>", methods=["POST"])
+def update_feedback_status(feedback_id):
+    """
+    Updates the operational triage status of a submitted feedback entry.
+    """
+    status = request.form.get("status") or (request.get_json() or {}).get("status", "PENDING")
+    status = status.upper().strip()
+    if status not in ("PENDING", "IN_REVIEW", "RESOLVED"):
+        status = "PENDING"
+
+    success = db.update_operator_feedback_status(feedback_id, status)
+    if success:
+        db.log_system_event('FEEDBACK', 'STATUS_UPDATED', f"Feedback #{feedback_id} status changed to {status}")
+        if request.is_json:
+            return jsonify({"status": "success", "feedback_id": feedback_id, "new_status": status})
+        return redirect(url_for('index', tab='system'))
+    else:
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Feedback not found or update failed"}), 404
+        return redirect(url_for('index', tab='system'))
+
 @app.route("/api/feedback", methods=["GET"])
 def get_feedback_api():
     """
     Returns recorded operator feedback for programmatic inspection or integration.
     """
     limit = request.args.get("limit", default=25, type=int)
-    feedbacks = db.get_operator_feedback(limit=limit)
+    status = request.args.get("status")
+    feedbacks = db.get_operator_feedback(limit=limit, status=status)
     return jsonify({
         "status": "success",
         "count": len(feedbacks),

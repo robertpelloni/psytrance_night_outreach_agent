@@ -1073,15 +1073,26 @@
                                 <table class="table table-dark table-striped table-hover mb-0">
                                     <thead>
                                         <tr>
+                                            <th>Status</th>
                                             <th>Category</th>
                                             <th>Author</th>
                                             <th>Feedback Message</th>
                                             <th>Date</th>
+                                            <th class="text-end">Triage Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for fb in operator_feedback %}
-                                        <tr>
+                                        <tr id="feedback-row-{{ fb.id }}">
+                                            <td>
+                                                {% if fb.status == 'RESOLVED' %}
+                                                <span class="badge bg-success" data-bs-toggle="tooltip" title="Resolved and incorporated into engine pipeline"><i class="bi bi-check-circle"></i> Resolved</span>
+                                                {% elif fb.status == 'IN_REVIEW' %}
+                                                <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Under active consideration or investigation"><i class="bi bi-hourglass-split"></i> In Review</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Pending initial review by collective administrator"><i class="bi bi-inbox"></i> Pending</span>
+                                                {% endif %}
+                                            </td>
                                             <td>
                                                 <span class="badge {% if fb.category == 'Bug Report' %}bg-danger{% elif fb.category == 'Vibe Calibration' %}bg-warning text-dark{% elif fb.category == 'Circuit Routing' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
                                                     {{ fb.category }}
@@ -1090,6 +1101,24 @@
                                             <td><small class="text-white-50">{{ fb.author }}</small></td>
                                             <td><small class="text-white">{{ fb.message }}</small></td>
                                             <td><small class="text-white-50">{{ fb.created_at }}</small></td>
+                                            <td class="text-end">
+                                                <div class="btn-group btn-group-sm">
+                                                    {% if fb.status != 'IN_REVIEW' and fb.status != 'RESOLVED' %}
+                                                    <button class="btn btn-outline-warning btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'IN_REVIEW')" data-bs-toggle="tooltip" title="Mark this item as currently under review">
+                                                        Review
+                                                    </button>
+                                                    {% endif %}
+                                                    {% if fb.status != 'RESOLVED' %}
+                                                    <button class="btn btn-outline-success btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'RESOLVED')" data-bs-toggle="tooltip" title="Mark this suggestion or issue as resolved">
+                                                        Resolve
+                                                    </button>
+                                                    {% else %}
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'PENDING')" data-bs-toggle="tooltip" title="Re-open to pending status">
+                                                        Re-open
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -2037,6 +2066,26 @@
                 alertEl.innerText = 'Network error submitting feedback: ' + err.message;
                 btn.disabled = false;
                 btn.innerText = 'Submit Feedback';
+            }
+        }
+
+        // Feedback Triage Status Update
+        async function updateFeedbackStatus(feedbackId, newStatus) {
+            try {
+                const res = await fetch(`/update_feedback_status/${feedbackId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Reload page or refresh system tab
+                    window.location.href = '/?tab=system';
+                } else {
+                    alert('Failed to update feedback status: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error updating feedback status: ' + err.message);
             }
         }
 

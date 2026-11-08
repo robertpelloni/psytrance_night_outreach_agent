@@ -141,6 +141,26 @@ class DatabaseManager:
             )
         """)
 
+        # Phase 61 & 63: Operator Feedback status column migration
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS operator_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category TEXT NOT NULL,
+                message TEXT NOT NULL,
+                author TEXT DEFAULT 'Operator',
+                status TEXT DEFAULT 'PENDING',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor = conn.execute("PRAGMA table_info(operator_feedback)")
+        existing_fb_cols = [row[1] for row in cursor.fetchall()]
+        if "status" not in existing_fb_cols:
+            try:
+                conn.execute("ALTER TABLE operator_feedback ADD COLUMN status TEXT DEFAULT 'PENDING'")
+                print("Migration: Added column 'status' to 'operator_feedback' table.")
+            except sqlite3.OperationalError as e:
+                print(f"Migration error on 'operator_feedback.status': {e}")
+
     def add_venue_note(self, venue_id, note, author="Curator"):
         """Adds a private curator note/annotation for a venue."""
         query = "INSERT INTO venue_notes (venue_id, author, note) VALUES (?, ?, ?)"
@@ -462,23 +482,40 @@ class DatabaseManager:
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
 
-    def record_operator_feedback(self, category, message, author=None):
+    def record_operator_feedback(self, category, message, author=None, status='PENDING'):
         """Records operator or collective feedback regarding dashboard and workflow."""
         query = """
-        INSERT INTO operator_feedback (category, message, author)
-        VALUES (?, ?, ?)
+        INSERT INTO operator_feedback (category, message, author, status)
+        VALUES (?, ?, ?, ?)
         """
         with self._get_connection() as conn:
-            cursor = conn.execute(query, (category, message, author or 'Operator'))
+            cursor = conn.execute(query, (category, message, author or 'Operator', status))
             return cursor.lastrowid
 
-    def get_operator_feedback(self, limit=25):
-        """Retrieves recent operator feedback entries."""
-        query = "SELECT * FROM operator_feedback ORDER BY created_at DESC LIMIT ?"
+    def update_operator_feedback_status(self, feedback_id, status):
+        """Updates the operational triage status of a feedback item (e.g., PENDING, IN_REVIEW, RESOLVED)."""
+        valid_statuses = ('PENDING', 'IN_REVIEW', 'RESOLVED')
+        status_clean = status.upper().strip() if status else 'PENDING'
+        if status_clean not in valid_statuses:
+            status_clean = 'PENDING'
+        query = "UPDATE operator_feedback SET status = ? WHERE id = ?"
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (status_clean, feedback_id))
+            return cursor.rowcount > 0
+
+    def get_operator_feedback(self, limit=25, status=None):
+        """Retrieves recent operator feedback entries, optionally filtered by status."""
+        query = "SELECT * FROM operator_feedback"
+        params = []
+        if status:
+            query += " WHERE status = ?"
+            params.append(status.upper().strip())
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
         try:
             with self._get_connection() as conn:
                 conn.row_factory = sqlite3.Row
-                cursor = conn.execute(query, (limit,))
+                cursor = conn.execute(query, tuple(params))
                 return [dict(row) for row in cursor.fetchall()]
         except sqlite3.OperationalError:
             return []

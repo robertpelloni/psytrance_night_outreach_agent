@@ -337,6 +337,18 @@ Multimodal aesthetic qualification utilizing GPT-4o-vision to evaluate raw wareh
 - [x] Integrate Visual Vibe badge (1-10 aesthetic alignment) and aesthetic breakdown card in venue dossier UI (`venue_detail.html`)
 - [x] Add automated unit and integration test suite (`tests/test_visual_vibe_qualification.py`)
 
+---
+
+### Phase 63: Operator Feedback Triage & Resolution Workflow (v1.1.93)
+
+Comprehensive triage lifecycle management for collective curator suggestions and bug reports.
+
+- [x] Extend `operator_feedback` table with `status TEXT DEFAULT 'PENDING'` (`PENDING`, `IN_REVIEW`, `RESOLVED`) and automatic migrations
+- [x] Implement status update and status filtering methods in `DatabaseManager` (`update_operator_feedback_status`, `get_operator_feedback`)
+- [x] Expose `POST /update_feedback_status/<feedback_id>` in `src/dashboard/app.py`
+- [x] Integrate inline triage action buttons (`Review`, `Resolve`, `Re-open`) and status badges in Unified Command Center (`index.html`)
+- [x] Add automated unit and integration test suite (`tests/test_feedback_and_onboarding.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

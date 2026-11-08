@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.93] - 2026-11-08
+
+### Added
+- **Operator Feedback Triage & Resolution Workflow (`database/schema.sql`, `src/db_manager.py`)**: Added `status` column to `operator_feedback` table (`PENDING`, `IN_REVIEW`, `RESOLVED`) and automatic schema migrations in `DatabaseManager`.
+- **Feedback Triage API (`src/dashboard/app.py`)**: Added `POST /update_feedback_status/<feedback_id>` allowing operators to triage suggestions and bugs, and updated `GET /api/feedback` to support filtering by status.
+- **Feedback Triage Actions in Unified Dashboard (`src/dashboard/templates/index.html`)**: Added status indicator badges (`Resolved`, `In Review`, `Pending`) and inline triage buttons (`Review`, `Resolve`, `Re-open`) directly on the Operator Feedback table under the System Health tab.
+- **Feedback Triage Test Suite (`tests/test_feedback_and_onboarding.py`)**: Expanded automated tests verifying status migrations, status updates, filtered queries, and endpoint status changes.
+
 ## [1.1.92] - 2026-11-05
 
 ### Added

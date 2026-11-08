@@ -337,7 +337,7 @@ Ensure accurate geographic circuit routing and venue cluster mapping:
 Ensure rapid onboarding for community curators and seamless feedback collection:
 - **Interactive Onboarding Tour**: Click **"🚀 Tour"** in the top navbar to launch a guided, multi-step walkthrough explaining the Outreach Queues, Geographic Map & Circuit Routing, Artist Profiles, Scraper Sources, and System Operations.
 - **In-App Feedback Modal**: Click **"💬 Feedback"** in the top navbar to submit bugs, feature ideas, music/vibe adjustments, or general operational notes. Submissions are saved to the persistent SQLite database.
-- **Feedback Audit Table**: Curators and system administrators can review feedback entries, sender names, categories, and timestamps under the **System Health & Sync Protocol** tab.
+- **Feedback Audit Table & Triage Workflow**: Curators and system administrators can review feedback entries, sender names, categories, and timestamps under the **System Health & Sync Protocol** tab. Items can be actively triaged through `Pending`, `In Review`, and `Resolved` states using inline action buttons.
 
 ## Visual Aesthetic Vibe Scoring & Vision Qualification
 

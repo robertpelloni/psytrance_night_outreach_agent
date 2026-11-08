@@ -148,6 +148,9 @@
 - [x] Visual aesthetic vibe scoring & GPT-4o-vision pipeline integration (v1.1.92)
 - [x] On-demand visual re-analysis API endpoint and venue dossier aesthetic badge (v1.1.92)
 - [x] Automated Integration Test Suite for Visual Vibe Qualification (v1.1.92)
+- [x] Operator feedback triage & resolution lifecycle workflow (v1.1.93)
+- [x] Inline feedback triage actions and status badges on System Health tab (v1.1.93)
+- [x] Automated Integration Test Suite for Feedback Triage (v1.1.93)
 
 ---
 

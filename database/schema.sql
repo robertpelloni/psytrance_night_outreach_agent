@@ -150,5 +150,6 @@ CREATE TABLE IF NOT EXISTS operator_feedback (
     category TEXT NOT NULL, -- e.g. 'General', 'Vibe Calibration', 'Circuit Routing', 'Scrapers', 'Bug Report'
     message TEXT NOT NULL,
     author TEXT DEFAULT 'Operator',
+    status TEXT DEFAULT 'PENDING', -- 'PENDING', 'IN_REVIEW', 'RESOLVED'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
