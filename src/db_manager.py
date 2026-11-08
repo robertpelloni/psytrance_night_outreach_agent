@@ -215,6 +215,33 @@ class DatabaseManager:
         with self._get_connection() as conn:
             conn.execute(query, (lat, lon, venue_id))
 
+    def update_venue_address_details(self, venue_id, lat=None, lon=None, address=None, neighborhood=None):
+        """
+        Atomically updates a venue's spatial and parsed address attributes.
+        """
+        updates = []
+        params = []
+        if lat is not None:
+            updates.append("latitude = ?")
+            params.append(lat)
+        if lon is not None:
+            updates.append("longitude = ?")
+            params.append(lon)
+        if address is not None:
+            updates.append("address = ?")
+            params.append(address)
+        if neighborhood is not None:
+            updates.append("neighborhood = ?")
+            params.append(neighborhood)
+
+        if not updates:
+            return
+
+        params.append(venue_id)
+        query = f"UPDATE venues SET {', '.join(updates)} WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, tuple(params))
+
     def update_venue_visuals(self, venue_id, image_url, visual_description):
         query = "UPDATE venues SET image_url = ?, visual_description = ? WHERE id = ?"
         with self._get_connection() as conn:

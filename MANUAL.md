@@ -316,3 +316,11 @@ Track outreach engagement empirically to assess venue interest:
 - **Link Click Redirection**: Replaces promotional links (Soundcloud mixes, EPK documents) with tracked redirects (`/track/click/<lead_id>?url=...`) recording `CLICK` events and destination URLs.
 - **KPI Monitoring**: Real-time open rate (%) and click-through rate (%) aggregated globally under the **Analytics & A/B Testing** tab.
 - **Lead Dossier Timeline**: Each venue's detail page maintains an audit history of email opens, link clicks, timestamps, and client user-agents.
+
+## High-Precision Address Geocoding & Reverse Parsing
+
+Ensure accurate geographic circuit routing and venue cluster mapping:
+- **Progressive Fallback**: Multi-stage geocoding evaluates specific queries (`Venue + Street Address + City` -> `Street Address + City` -> `Venue + City`) before falling back to AI coordinate approximation.
+- **Reverse Address Details**: Automatically extracts street addresses, postal codes, and urban neighborhood/suburb classifications directly from raw Nominatim payloads.
+- **Geocode Missing Action**: Click **"📍 Geocode Missing"** on the Geographic Map tab to batch-resolve coordinates for unlocated venues asynchronously in the background.
+- **Precision Indicators**: Displays GPS Located vs. Unlocated status badges on venue dossiers with an on-demand "Geocode" trigger.

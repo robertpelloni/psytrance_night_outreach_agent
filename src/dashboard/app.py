@@ -7,6 +7,7 @@ import os
 import subprocess
 import json
 import signal
+import threading
 
 # Add the parent directory to sys.path to allow absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -929,6 +930,80 @@ def pending_follow_ups():
 def approve_follow_up(lead_id):
     db.update_lead_status(lead_id, 'FOLLOW_UP_APPROVED')
     return redirect(url_for('pending_follow_ups'))
+
+@app.route("/geocode_venue/<venue_id>", methods=["POST"])
+def geocode_venue_endpoint(venue_id):
+    """
+    Re-geocodes and enriches an existing venue with high-precision coordinates and address parsing.
+    """
+    venue = db.get_venue(venue_id)
+    if not venue:
+        return jsonify({"status": "error", "message": "Venue not found"}), 404
+
+    from src.geocoding import GeocodingUtility
+    geocoder = GeocodingUtility()
+    enrichment = geocoder.parse_and_enrich_venue_address(
+        venue.get("name"),
+        venue.get("city"),
+        address=venue.get("address")
+    )
+
+    if enrichment.get("latitude") and enrichment.get("longitude"):
+        db.update_venue_address_details(
+            venue_id,
+            lat=enrichment.get("latitude"),
+            lon=enrichment.get("longitude"),
+            address=enrichment.get("normalized_address"),
+            neighborhood=enrichment.get("neighborhood")
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"Venue {venue['name']} geocoded successfully",
+            "enrichment": enrichment
+        })
+    else:
+        return jsonify({
+            "status": "warning",
+            "message": f"Could not determine high-precision coordinates for {venue['name']}",
+            "enrichment": enrichment
+        }), 200
+
+@app.route("/geocode_all_unlocated", methods=["POST"])
+def geocode_all_unlocated():
+    """
+    Scans database for venues lacking coordinates and resolves them asynchronously.
+    """
+    from src.geocoding import GeocodingUtility
+
+    with db._get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, city, address FROM venues WHERE latitude IS NULL OR longitude IS NULL")
+        rows = [dict(r) for r in cursor.fetchall()]
+
+    def batch_worker(venues_to_geocode):
+        geocoder = GeocodingUtility()
+        for v in venues_to_geocode:
+            try:
+                res = geocoder.parse_and_enrich_venue_address(v["name"], v["city"], address=v.get("address"))
+                if res.get("latitude") and res.get("longitude"):
+                    db.update_venue_address_details(
+                        v["id"],
+                        lat=res.get("latitude"),
+                        lon=res.get("longitude"),
+                        address=res.get("normalized_address"),
+                        neighborhood=res.get("neighborhood")
+                    )
+            except Exception as ex:
+                print(f"Batch geocoding error for {v['id']}: {ex}")
+
+    t = threading.Thread(target=batch_worker, args=(rows,))
+    t.start()
+
+    return jsonify({
+        "status": "success",
+        "message": f"Initiated geocoding for {len(rows)} unlocated venues in background",
+        "count": len(rows)
+    })
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown_server():

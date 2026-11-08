@@ -185,6 +185,6 @@
 ## 🔵 Low Priority
 
 - [ ] Add video analysis in venue qualification
-- [ ] Expand geocoding to support full address parsing
+- [x] Expand geocoding to support full address parsing (v1.1.89)
 - [x] Add email open/click tracking (v1.1.88)
 - [ ] Add shared dashboard login for collective members

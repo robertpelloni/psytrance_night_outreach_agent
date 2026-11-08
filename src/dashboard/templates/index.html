@@ -505,6 +505,9 @@
                             <button onclick="planCircuit()" id="circuit-btn" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Calculate optimal multi-city Midwest routing circuit">
                                 🚗 Plan Midwest Circuit
                             </button>
+                            <button onclick="geocodeUnlocatedVenues()" id="geocode-btn" class="btn btn-sm btn-outline-light" data-bs-toggle="tooltip" title="Geocode and parse addresses for any venues lacking GPS coordinates">
+                                📍 Geocode Missing
+                            </button>
                         </div>
                     </div>
                     <div id="map"></div>
@@ -1694,6 +1697,30 @@
                     btn.disabled = false;
                     btn.innerText = '🚗 Plan Midwest Circuit';
                 });
+        }
+
+        function geocodeUnlocatedVenues() {
+            const btn = document.getElementById('geocode-btn');
+            btn.disabled = true;
+            btn.innerText = '⏳ Geocoding...';
+
+            fetch('/geocode_all_unlocated', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message || 'Geocoding initiated in background');
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = '📍 Geocode Missing';
+                }, 2000);
+            })
+            .catch(err => {
+                alert('Error geocoding venues: ' + err);
+                btn.disabled = false;
+                btn.innerText = '📍 Geocode Missing';
+            });
         }
 
         // Charts & Analytics

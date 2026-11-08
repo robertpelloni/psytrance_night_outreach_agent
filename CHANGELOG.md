@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [1.1.89] - 2026-11-05
+
+### Added
+- **Progressive Full Address Geocoding & Parsing (`src/geocoding.py`)**: Enhanced `GeocodingUtility.geocode_venue` with multi-tier query fallback (`Venue + Address + City` -> `Address + City` -> `Venue + City` -> GPT-4o).
+- **Reverse Address & Neighborhood Extraction (`src/geocoding.py`)**: Added `parse_and_enrich_venue_address()` extracting high-precision GPS coordinates, normalized street addresses, postal codes, and neighborhood/suburb classifications directly from raw Nominatim payloads.
+- **Atomic Venue Spatial Updates (`src/db_manager.py`)**: Added `update_venue_address_details` method to atomically update coordinates, normalized addresses, and neighborhoods in a single transaction.
+- **Geocoding Dashboard Endpoints (`src/dashboard/app.py`)**: Added `POST /geocode_venue/<venue_id>` and background batch geocoder `POST /geocode_all_unlocated`.
+- **Geocoding Map & Detail UI (`src/dashboard/templates/index.html`, `venue_detail.html`)**: Added "Geocode Missing" trigger button on Geographic Map tab, GPS Located status badges, and inline geocode trigger on venue dossiers.
+- **Enhanced Geocoding Test Suite (`tests/test_geocoding_enhanced.py`)**: Added unit and integration tests covering address query escalation, Nominatim address enrichment, database updates, and dashboard endpoints.
+
 ## [1.1.88] - 2026-11-05
 
 ### Added

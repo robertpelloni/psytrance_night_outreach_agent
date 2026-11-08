@@ -289,6 +289,19 @@ Automated discovery of underground nightlife and electronic music spaces from Ev
 - [x] Add Email Engagement KPI strip to Analytics tab and lead engagement timeline to venue dossier pages
 - [x] Add automated test suite for tracking event recording and redirects (`tests/test_email_tracking.py`)
 
+---
+
+### Phase 59: High-Precision Address Geocoding & Reverse Parsing (v1.1.89)
+
+Progressive multi-tier address geocoding and reverse parsing for precise venue mapping and cluster transit computation.
+
+- [x] Enhance `GeocodingUtility.geocode_venue` and `parse_and_enrich_venue_address` with progressive query tiers (`Venue + Address + City`, `Address + City`, `Venue + City`, GPT-4o fallback)
+- [x] Extract normalized street address, postal code, and neighborhood from Nominatim address structures
+- [x] Add `update_venue_address_details` in `DatabaseManager` for atomic spatial and neighborhood updates
+- [x] Expose `POST /geocode_venue/<venue_id>` and `POST /geocode_all_unlocated` in `src/dashboard/app.py`
+- [x] Surface "Geocode Missing" trigger in Geographic Map view and GPS precision status in venue dossiers
+- [x] Add automated unit and integration tests (`tests/test_geocoding_enhanced.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

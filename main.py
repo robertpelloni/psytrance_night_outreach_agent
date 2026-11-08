@@ -182,10 +182,17 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
     traits = ai.extract_venue_traits(enriched_text)
     db.update_venue_traits(v_id, traits)
 
-    # Geocode
-    lat, lon = geocoder.geocode_venue(v_data["name"], v_data["city"])
-    if lat and lon:
-        db.update_venue_location(v_id, lat, lon)
+    # Geocode & Address Parsing
+    address_input = v_data.get("address")
+    enrichment = geocoder.parse_and_enrich_venue_address(v_data["name"], v_data["city"], address=address_input)
+    if enrichment and (enrichment.get("latitude") or enrichment.get("normalized_address")):
+        db.update_venue_address_details(
+            v_id,
+            lat=enrichment.get("latitude"),
+            lon=enrichment.get("longitude"),
+            address=enrichment.get("normalized_address"),
+            neighborhood=enrichment.get("neighborhood")
+        )
 
     # Generate pitch if qualified
     pitch = ""

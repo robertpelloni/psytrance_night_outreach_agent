@@ -27,7 +27,14 @@
                     <p><strong>Neighborhood:</strong> {{ venue.neighborhood or 'N/A' }}</p>
                     <p><strong>Source:</strong> <small class="text-white-50">{{ venue.source or 'Manual' }}</small></p>
                     <p><strong>Rating:</strong> {{ venue.google_rating or 'N/A' }} ⭐</p>
-                    <p><strong>Location:</strong> {{ venue.latitude or '?' }}, {{ venue.longitude or '?' }}</p>
+                    <p><strong>Location:</strong>
+                        {% if venue.latitude and venue.longitude %}
+                            <span class="badge bg-success">GPS Located</span> <small class="text-white-50">({{ venue.latitude|round(4) }}, {{ venue.longitude|round(4) }})</small>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Unlocated</span>
+                            <button onclick="geocodeCurrentVenue('{{ venue.id }}')" id="detail-geocode-btn" class="btn btn-xs btn-outline-info ms-2 py-0 px-1" style="font-size: 0.75rem;">Geocode</button>
+                        {% endif %}
+                    </p>
                     <hr class="border-secondary">
                     <p><strong>Venue Warmth:</strong></p>
                     <div class="progress bg-dark" style="height: 25px;">
@@ -220,6 +227,33 @@
                 container.innerHTML = `<p class="text-danger small mb-0">Failed to load recommendations: ${err.message}</p>`;
             }
         }
+        async function geocodeCurrentVenue(venueId) {
+            const btn = document.getElementById('detail-geocode-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Locating...';
+            }
+            try {
+                const res = await fetch(`/geocode_venue/${venueId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Geocoding failed');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = 'Geocode';
+                    }
+                }
+            } catch (err) {
+                alert('Geocoding request failed: ' + err.message);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Geocode';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchVenueDetailRecommendations('{{ venue.id }}');
         });
