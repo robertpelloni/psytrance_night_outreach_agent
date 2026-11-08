@@ -302,6 +302,13 @@ When a venue rejects an outreach inquiry, is unavailable on a key tour date, or 
 - **Venue Dossier Integration**: The venue detail view automatically displays live sibling alternatives with one-click navigation to their respective dossiers.
 - **API Access**: Query programmatic recommendations directly via `GET /recommend_venues/<venue_id>?limit=5&min_score=0.2`.
 
+## Meetup Community & Event Scraper
+
+Discover underground electronic music gatherings and community-driven event spaces from Meetup:
+- **Dynamic Query Discovery**: Scrapes public Meetup event search queries for targeted cities and musical genres.
+- **Schema & Fallback Extraction**: Extracts venue names, physical addresses, and community event descriptions using schema.org `MusicEvent` JSON-LD structures and HTML card fallbacks.
+- **Status Monitoring**: Operational alongside other scrapers under the **Scraper Sources** tab in the Unified Command Center (`meetup.py`).
+
 ## Eventbrite Nightlife Discovery Scraper
 
 Scout electronic music and underground dance events from Eventbrite:

@@ -100,8 +100,8 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.89
+- **Version**: 1.1.90
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
-- **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth
+- **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper

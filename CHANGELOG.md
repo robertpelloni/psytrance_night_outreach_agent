@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.90] - 2026-11-05
+
+### Added
+- **Meetup Community & Event Scraper (`src/scrapers/meetup.py`)**: Implemented `MeetupWebScraper` for automated discovery of underground electronic gatherings, music communities, and non-commercial event venues.
+- **Structured Schema & Fallback Extraction**: Supports schema.org `MusicEvent` JSON-LD structures and HTML card fallbacks, extracting venue names, street addresses, and event descriptions.
+- **Dynamic Scraper Discovery**: Automatically loaded by `load_scrapers()` in `main.py` into `query_scrapers` and displayed as an operational module in the Scraper Sources tab of the Unified Command Center (`meetup.py`).
+- **Meetup Scraper Test Suite (`tests/test_meetup_scraper.py`)**: Added unit and integration tests verifying schema parsing, HTML card parsing, network mock handling, and dynamic loading.
+
 ## [1.1.89] - 2026-11-05
 
 ### Added

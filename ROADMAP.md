@@ -302,6 +302,17 @@ Progressive multi-tier address geocoding and reverse parsing for precise venue m
 - [x] Surface "Geocode Missing" trigger in Geographic Map view and GPS precision status in venue dossiers
 - [x] Add automated unit and integration tests (`tests/test_geocoding_enhanced.py`)
 
+---
+
+### Phase 60: Meetup Community & Event Scraper (v1.1.90)
+
+Automated discovery of underground electronic gatherings, music communities, and non-commercial event venues via Meetup.
+
+- [x] Implement `MeetupWebScraper` in `src/scrapers/meetup.py` with schema.org JSON-LD and HTML card parsing
+- [x] Integrate proxy and user-agent rotation with rate-limit backoff resilience
+- [x] Wire into dynamic scraper loader (`main.py`) and Scraper Sources tab in Unified Command Center
+- [x] Add unit and integration test suite (`tests/test_meetup_scraper.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
