@@ -349,6 +349,17 @@ Comprehensive triage lifecycle management for collective curator suggestions and
 - [x] Integrate inline triage action buttons (`Review`, `Resolve`, `Re-open`) and status badges in Unified Command Center (`index.html`)
 - [x] Add automated unit and integration test suite (`tests/test_feedback_and_onboarding.py`)
 
+---
+
+### Phase 64: Command Center Automated Test Suite & Map Visual Verification (v1.1.94)
+
+Comprehensive verification and automated testing of unified dashboard architecture, interactive modals, and mapping controls.
+
+- [x] Expand `tests/test_unified_dashboard.py` covering all core modals (`#onboardingTourModal`, `#feedbackModal`, `#compareModal`, `#digestModal`, `#recModal`, `#addVenueModal`)
+- [x] Verify feedback triage state indicators and triage action endpoints
+- [x] Verify geocoding missing venues endpoints and email engagement metrics strip
+- [x] Conduct Playwright visual layout inspection and screenshot verification of consolidated Map tab
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

@@ -151,6 +151,8 @@
 - [x] Operator feedback triage & resolution lifecycle workflow (v1.1.93)
 - [x] Inline feedback triage actions and status badges on System Health tab (v1.1.93)
 - [x] Automated Integration Test Suite for Feedback Triage (v1.1.93)
+- [x] Command Center automated test suite expansion across all modal controls (v1.1.94)
+- [x] Playwright visual layout inspection and screenshot verification of consolidated Map tab (v1.1.94)
 
 ---
 

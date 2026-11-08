@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [1.1.94] - 2026-11-08
+
+### Added
+- **Command Center Automated Test Suite Expansion (`tests/test_unified_dashboard.py`)**: Expanded the unified dashboard test suite with tests verifying all modal components (`#onboardingTourModal`, `#feedbackModal`, `#compareModal`, `#digestModal`, `#recModal`, `#addVenueModal`), feedback triage badge and button states, geocoding trigger calls, and email engagement metrics strip.
+- **Visual Stability & Map Tab Verification**: Verified Leaflet map container (`#map`), marker controls, filter controls, and single-page command center layout stability via Playwright visual verification (`scripts/verify_map_tab.py`).
+
 ## [1.1.93] - 2026-11-08
 
 ### Added
