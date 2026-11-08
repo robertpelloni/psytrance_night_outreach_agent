@@ -396,6 +396,18 @@ Temporal engagement profiling across days of the week and hours of the day to de
 - [x] Integrate interactive 7x24 heatmap table with density shading and tooltips in the Analytics tab
 - [x] Add unit and integration tests (`tests/test_analytics_heatmap.py`)
 
+---
+
+### Phase 68: Venue Touring Dossier JSON & Itinerary Export (v1.1.98)
+
+Standardized JSON and CSV export endpoints and interface controls for booking agency and tour management interoperability.
+
+- [x] Implement `AnalyticsEngine.export_leads_json()` and `AnalyticsEngine.export_circuit_itinerary_json()`
+- [x] Support individual venue objects in `TourPlanner.compute_circuit_logistics()`
+- [x] Expose `GET /export_leads_json` and `POST /export_circuit_itinerary` endpoints
+- [x] Integrate "Export JSON" action on the conversion funnel card and "Export Itinerary JSON" inside `#tourModal`
+- [x] Add unit and integration tests (`tests/test_itinerary_export.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

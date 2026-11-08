@@ -313,6 +313,95 @@ class AnalyticsEngine:
 
         return output.getvalue()
 
+    def export_leads_json(self):
+        """Generates a structured list of dictionaries for all leads with full venue and contact intelligence."""
+        import json
+        query = """
+        SELECT v.id as venue_id, v.name, v.city, v.address, v.phone, v.venue_type, v.capacity,
+               v.neighborhood, v.extracted_traits, v.latitude, v.longitude, v.visual_vibe_score,
+               l.pipeline_status, l.vibe_score, l.qualified_genre, l.pitch_variant,
+               c.email, c.instagram_handle, l.last_outreach_at, l.created_at
+        FROM outreach_leads l
+        JOIN venues v ON l.venue_id = v.id
+        LEFT JOIN venue_contacts c ON v.id = c.venue_id
+        ORDER BY l.created_at DESC
+        """
+        leads = []
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+            for row in rows:
+                traits = {}
+                if row['extracted_traits']:
+                    try:
+                        traits = json.loads(row['extracted_traits'])
+                    except Exception:
+                        traits = {"raw": row['extracted_traits']}
+                warmth = self.get_venue_warmth(row['venue_id'])
+                leads.append({
+                    "venue_id": row['venue_id'],
+                    "name": row['name'],
+                    "city": row['city'],
+                    "address": row['address'],
+                    "phone": row['phone'],
+                    "venue_type": row['venue_type'],
+                    "capacity": row['capacity'],
+                    "neighborhood": row['neighborhood'],
+                    "coordinates": {
+                        "latitude": row['latitude'],
+                        "longitude": row['longitude']
+                    },
+                    "extracted_traits": traits,
+                    "visual_vibe_score": row['visual_vibe_score'],
+                    "pipeline_status": row['pipeline_status'],
+                    "vibe_score": row['vibe_score'],
+                    "qualified_genre": row['qualified_genre'],
+                    "pitch_variant": row['pitch_variant'],
+                    "email": row['email'],
+                    "instagram_handle": row['instagram_handle'],
+                    "last_outreach_at": row['last_outreach_at'],
+                    "created_at": row['created_at'],
+                    "warmth_score": warmth
+                })
+        return leads
+
+    def export_circuit_itinerary_json(self, cluster_venues):
+        """
+        Formats a multi-city touring circuit itinerary into an exportable touring manifest
+        including waypoint sequences, driving logistics, audio specs, and contact details.
+        """
+        from src.tour_planner import TourPlanner
+        tp = TourPlanner(self.db_path)
+        logistics = tp.compute_circuit_logistics(cluster_venues)
+
+        itinerary = {
+            "circuit_summary": {
+                "venue_count": len(cluster_venues),
+                "total_transit_km": logistics.get("total_distance_km", 0.0),
+                "est_drive_hours": logistics.get("total_drive_hours", 0.0),
+                "recommended_rest_days": logistics.get("recommended_rest_days", 0),
+                "est_co2_footprint_kg": logistics.get("est_carbon_kg", 0.0),
+                "paired_media": logistics.get("paired_media", [])
+            },
+            "tour_stops": []
+        }
+
+        for idx, venue in enumerate(cluster_venues):
+            itinerary["tour_stops"].append({
+                "sequence_order": idx + 1,
+                "venue_id": venue.get("id"),
+                "name": venue.get("name"),
+                "city": venue.get("city"),
+                "coordinates": {
+                    "lat": venue.get("latitude"),
+                    "lon": venue.get("longitude")
+                },
+                "vibe_score": venue.get("vibe_score"),
+                "pipeline_status": venue.get("pipeline_status")
+            })
+
+        return itinerary
+
     def get_outreach_timeline(self):
         """Returns data for a timeline visualization of outreach activity."""
         query = """

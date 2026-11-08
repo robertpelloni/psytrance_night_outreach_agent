@@ -597,6 +597,9 @@
                                     <a href="/export_leads" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Export all outreach leads and contacts to CSV">
                                         📥 Export CSV
                                     </a>
+                                    <a href="/export_leads_json" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Export full venue intelligence, coordinates, traits, and contacts as JSON">
+                                        📋 Export JSON
+                                    </a>
                                 </div>
                             </div>
                             <div class="row text-center g-2">
@@ -1498,6 +1501,7 @@
                     <div id="dispatch-results" class="alert d-none"></div>
                 </div>
                 <div class="modal-footer border-info">
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="exportCircuitItinerary()" data-bs-toggle="tooltip" title="Download routing manifest, drive times, and venue coordinates as JSON">📥 Export Itinerary JSON</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                     <button type="button" id="dispatch-btn" class="btn btn-info btn-sm">Dispatch Tour Pitch to Route</button>
                 </div>
@@ -1938,6 +1942,7 @@
             fetch(`/plan_circuit?method=${encodeURIComponent(method)}&min_vibe=${encodeURIComponent(minVibe)}`)
                 .then(r => r.json())
                 .then(data => {
+                    window.currentTourCircuitData = data;
                     document.getElementById('tour-output').innerText = data.recommendation || 'No route generated.';
                     document.getElementById('cluster-pitch').value = "Circuit routing active. See optimal route itinerary above.";
 
@@ -1983,6 +1988,31 @@
                         btn.innerText = '🚗 Plan Midwest Circuit';
                     }
                 });
+        }
+
+        async function exportCircuitItinerary() {
+            const circuit = window.currentTourCircuitData;
+            const venues = (circuit && circuit.venues) ? circuit.venues : [];
+            try {
+                const res = await fetch('/export_circuit_itinerary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ venues: venues })
+                });
+                const payload = await res.json();
+                const jsonStr = JSON.stringify(payload.itinerary || payload, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'tour_circuit_itinerary.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Failed to export tour itinerary manifest: ' + err.message);
+            }
         }
 
         function geocodeUnlocatedVenues() {

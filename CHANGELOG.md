@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.98] - 2026-11-08
+
+### Added
+- **Structured Lead Dossier JSON Export (`src/analytics.py`)**: Added `AnalyticsEngine.export_leads_json()` outputting venue metadata, acoustic traits, geographic coordinates, visual vibe scores, contacts, and warmth scores.
+- **Circuit Itinerary Manifest Export (`src/analytics.py`, `src/tour_planner.py`)**: Implemented `AnalyticsEngine.export_circuit_itinerary_json()` generating sequential waypoint stops and route logistics (transit distance, drive time, rest days, CO2 footprint, paired media). Enhanced `compute_circuit_logistics()` to support both cluster and individual venue objects.
+- **Export REST Endpoints (`src/dashboard/app.py`)**: Added `GET /export_leads_json` and `POST /export_circuit_itinerary` endpoints.
+- **Unified Command Center Export Triggers (`src/dashboard/templates/index.html`)**: Added "Export JSON" button alongside "Export CSV" on the Conversion Funnel action bar, and "Export Itinerary JSON" client-side download action in `#tourModal`.
+- **Itinerary Export Test Suite (`tests/test_itinerary_export.py`)**: Added unit and integration tests verifying structured JSON output, itinerary stops, and endpoints.
+
 ## [1.1.97] - 2026-11-08
 
 ### Added

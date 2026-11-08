@@ -165,6 +165,10 @@
 - [x] Peak promoter dispatch window detection and REST API endpoint (v1.1.97)
 - [x] Interactive heatmap UI grid on Analytics tab (v1.1.97)
 - [x] Automated Integration Test Suite for Activity Heatmap (v1.1.97)
+- [x] Structured lead dossier JSON export with acoustics and contacts (v1.1.98)
+- [x] Tour circuit itinerary JSON manifest export with waypoints and logistics (v1.1.98)
+- [x] Export triggers in conversion funnel action bar and tour modal (v1.1.98)
+- [x] Automated Integration Test Suite for Itinerary & Lead Exports (v1.1.98)
 
 ---
 

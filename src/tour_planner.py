@@ -84,12 +84,19 @@ class TourPlanner:
         for i in range(len(route_clusters) - 1):
             c1 = route_clusters[i]
             c2 = route_clusters[i + 1]
-            dist = self._haversine(c1['center']['lat'], c1['center']['lon'], c2['center']['lat'], c2['center']['lon'])
+
+            # Support both cluster objects (with 'center' dict) and individual venue objects (with 'latitude'/'longitude')
+            c1_lat = c1['center']['lat'] if 'center' in c1 else (c1.get('latitude') or 0.0)
+            c1_lon = c1['center']['lon'] if 'center' in c1 else (c1.get('longitude') or 0.0)
+            c2_lat = c2['center']['lat'] if 'center' in c2 else (c2.get('latitude') or 0.0)
+            c2_lon = c2['center']['lon'] if 'center' in c2 else (c2.get('longitude') or 0.0)
+
+            dist = self._haversine(c1_lat, c1_lon, c2_lat, c2_lon)
             drive_hrs = round(dist / 85.0, 1)
             total_dist += dist
 
-            c1_cities = list({v.get('city') for v in c1.get('venues', []) if v.get('city')})
-            c2_cities = list({v.get('city') for v in c2.get('venues', []) if v.get('city')})
+            c1_cities = list({v.get('city') for v in c1.get('venues', []) if v.get('city')}) if 'venues' in c1 else [c1.get('city', f"Stop {i+1}")]
+            c2_cities = list({v.get('city') for v in c2.get('venues', []) if v.get('city')}) if 'venues' in c2 else [c2.get('city', f"Stop {i+2}")]
             origin_name = c1_cities[0] if c1_cities else f"Cluster {i+1}"
             dest_name = c2_cities[0] if c2_cities else f"Cluster {i+2}"
 

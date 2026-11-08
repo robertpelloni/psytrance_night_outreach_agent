@@ -319,6 +319,23 @@ def export_leads():
         headers={"Content-disposition": "attachment; filename=outreach_leads.csv"}
     )
 
+@app.route('/export_leads_json')
+def export_leads_json():
+    """Exports all leads and venue metadata as structured JSON."""
+    leads_data = analytics.export_leads_json()
+    return jsonify(leads_data)
+
+@app.route('/export_circuit_itinerary', methods=['POST'])
+def export_circuit_itinerary():
+    """Exports a multi-city touring circuit itinerary as a JSON manifest."""
+    try:
+        data = request.get_json() or {}
+        cluster_venues = data.get('venues', [])
+        itinerary = analytics.export_circuit_itinerary_json(cluster_venues)
+        return jsonify({"status": "success", "itinerary": itinerary})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/map')
 def show_map():
     ctx = get_full_dashboard_context(active_tab='map', view='pending')

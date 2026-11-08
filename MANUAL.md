@@ -360,3 +360,10 @@ Optimize outreach delivery according to when club promoters and talent buyers ac
 - **Optimal Window Detection**: Highlights the peak conversion window (e.g. `Tuesday at 2:00 PM`) based on empirical response density.
 - **Visual Heatmap Grid**: Accessible on the **Analytics & A/B Engine** tab with dynamic color coding, density legends, and hover tooltips showing hourly dispatch and response breakdowns.
 - **REST API**: Programmatically inspect timing data via `GET /api/analytics/activity_heatmap`.
+
+## Tour Circuit Itinerary Manifest & Lead JSON Exports
+
+Easily share booking pipelines and tour routings with artist agencies and tour managers:
+- **Lead Dossier JSON**: Click **"Export JSON"** next to "Export CSV" on the Outreach Conversion Funnel card to download complete venue dossiers including acoustic rig specifications, GPS coordinates, contact emails, social handles, and warmth scores.
+- **Tour Routing Manifest**: Inside the **Regional Tour Route & Transit Orchestrator** (`#tourModal`), click **"📥 Export Itinerary JSON"** to download sequential waypoint stops, transit distances, drive hours, rest days, carbon footprint estimates, and paired media assets formatted for tour management tools.
+- **API Endpoints**: Query `GET /export_leads_json` or post stops to `POST /export_circuit_itinerary`.
