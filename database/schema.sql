@@ -132,3 +132,14 @@ CREATE TABLE IF NOT EXISTS venue_notes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(venue_id) REFERENCES venues(id)
 );
+
+CREATE TABLE IF NOT EXISTS email_tracking_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL,
+    event_type TEXT NOT NULL, -- 'OPEN' or 'CLICK'
+    target_url TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
+);

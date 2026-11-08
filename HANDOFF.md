@@ -1,4 +1,4 @@
-# HANDOFF - v1.1.87
+# HANDOFF - v1.1.88
 
 ## Session Summary
 
@@ -12,6 +12,7 @@ This session advanced the platform across multiple key milestones:
 7. **DBSCAN Dynamic Density & Transit Clustering Metrics (v1.1.85)**: Added bounding-box cluster radius (`cluster_radius_km`) and estimated drive time (`est_intercity_drive_hrs`) calculation in `AnalyticsEngine.get_venue_clusters()`, with interactive corridor badges and filters on the Geographic Map tab.
 8. **Collaborative Filtering & Alternate Venue Recommendation Engine (v1.1.86)**: Implemented `RecommendationEngine` in `src/recommendation_engine.py`, exposed `/recommend_venues/<venue_id>` endpoint, and wired interactive sibling venue recommendation modals into lead queues and venue dossier views.
 9. **Eventbrite & Nightlife Aggregator Discovery (v1.1.87)**: Implemented `EventbriteWebScraper` in `src/scrapers/eventbrite.py` supporting schema.org JSON-LD and HTML card parsing, dynamically integrated into `main.py` query scrapers, and verified in the Unified Command Center Scraper Sources tab.
+10. **Email Engagement & Pixel Tracking Infrastructure (v1.1.88)**: Implemented 1x1 transparent tracking pixels (`/track/open/<lead_id>.gif`) and link tracking redirects (`/track/click/<lead_id>`), wired into `Mailer.send_email()`, logged into SQLite `email_tracking_events`, and surfaced via KPI cards on the Analytics tab and lead cards.
 
 ### STEP 1: Upstream Tracking
 

@@ -46,7 +46,7 @@ class OutreachEngine:
                     subject = "Proposal for Psytrance Night Residency"
                     body = lead['generated_pitch']
 
-                    if self.mailer.send_email(email, subject, body):
+                    if self.mailer.send_email(email, subject, body, lead_id=lead['id']):
                         self.db.update_lead_status(lead['id'], 'SENT')
                         print(f"Lead {lead['id']} marked as SENT.")
                         sent_today += 1

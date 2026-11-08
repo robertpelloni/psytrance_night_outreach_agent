@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.88] - 2026-11-05
+
+### Added
+- **Email Engagement & Pixel Tracking Infrastructure (`database/schema.sql`, `src/db_manager.py`)**: Added `email_tracking_events` table and data manager methods for recording and summarizing opens and link clicks with IP addresses and user agents.
+- **Multipart Tracked Email & Link Wrapping (`src/mailer.py`)**: Enhanced `Mailer.send_email()` to generate multipart HTML emails embedding 1x1 transparent GIFs (`/track/open/<lead_id>.gif`) and auto-wrapping audio/EPK hyperlinks (`/track/click/<lead_id>?url=...`).
+- **Tracking Endpoints (`src/dashboard/app.py`)**: Added `/track/open/<lead_id>.gif` (serving un-cached transparent GIF) and `/track/click/<lead_id>` (recording interaction and redirecting safely).
+- **Engagement Metrics UI (`src/dashboard/templates/index.html`, `venue_detail.html`)**: Surfaced open/click badges on queue cards, an Email Engagement KPI strip on the Analytics tab (Open Rate, CTR, gross opens, gross clicks), and an engagement activity timeline on venue dossier pages.
+- **Email Tracking Test Suite (`tests/test_email_tracking.py`)**: Added unit and integration tests covering database logging, HTML link wrapping, GIF endpoint serving, and click redirections.
+
 ## [1.1.87] - 2026-11-05
 
 ### Added

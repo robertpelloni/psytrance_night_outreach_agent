@@ -429,6 +429,69 @@ class DatabaseManager:
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
 
+    def record_tracking_event(self, lead_id, event_type, target_url=None, ip_address=None, user_agent=None):
+        """Records an email open or click engagement event."""
+        query = """
+            INSERT INTO email_tracking_events (lead_id, event_type, target_url, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?)
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (lead_id, event_type.upper(), target_url, ip_address, user_agent))
+            conn.commit()
+
+    def get_lead_tracking_events(self, lead_id):
+        """Retrieves all tracking events (opens and clicks) for a specific outreach lead."""
+        query = """
+            SELECT * FROM email_tracking_events
+            WHERE lead_id = ?
+            ORDER BY created_at DESC
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (lead_id,))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_lead_tracking_summary(self, lead_id):
+        """Returns open and click counts for a lead."""
+        query = """
+            SELECT
+                SUM(CASE WHEN event_type = 'OPEN' THEN 1 ELSE 0 END) as opens,
+                SUM(CASE WHEN event_type = 'CLICK' THEN 1 ELSE 0 END) as clicks,
+                MAX(created_at) as last_engagement
+            FROM email_tracking_events
+            WHERE lead_id = ?
+        """
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(query, (lead_id,)).fetchone()
+            return {
+                "opens": (row["opens"] or 0) if row else 0,
+                "clicks": (row["clicks"] or 0) if row else 0,
+                "last_engagement": row["last_engagement"] if row else None
+            }
+
+    def get_overall_engagement_stats(self):
+        """Calculates global open and click rates across all sent pitches."""
+        with self._get_connection() as conn:
+            total_sent = conn.execute("SELECT COUNT(*) FROM outreach_leads WHERE pipeline_status IN ('SENT', 'BOOKED', 'LOST')").fetchone()[0]
+            unique_opened = conn.execute("SELECT COUNT(DISTINCT lead_id) FROM email_tracking_events WHERE event_type = 'OPEN'").fetchone()[0]
+            total_opens = conn.execute("SELECT COUNT(*) FROM email_tracking_events WHERE event_type = 'OPEN'").fetchone()[0]
+            unique_clicked = conn.execute("SELECT COUNT(DISTINCT lead_id) FROM email_tracking_events WHERE event_type = 'CLICK'").fetchone()[0]
+            total_clicks = conn.execute("SELECT COUNT(*) FROM email_tracking_events WHERE event_type = 'CLICK'").fetchone()[0]
+
+            open_rate = round((unique_opened / total_sent * 100), 1) if total_sent > 0 else 0.0
+            ctr = round((unique_clicked / total_sent * 100), 1) if total_sent > 0 else 0.0
+
+            return {
+                "total_sent": total_sent,
+                "unique_opened": unique_opened,
+                "total_opens": total_opens,
+                "open_rate": open_rate,
+                "unique_clicked": unique_clicked,
+                "total_clicks": total_clicks,
+                "ctr": ctr
+            }
+
     def log_ai_usage(self, model, prompt_tokens, completion_tokens, total_tokens):
         query = "INSERT INTO ai_usage (model, prompt_tokens, completion_tokens, total_tokens) VALUES (?, ?, ?, ?)"
         with self._get_connection() as conn:

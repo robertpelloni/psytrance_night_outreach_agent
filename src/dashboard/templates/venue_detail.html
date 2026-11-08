@@ -141,6 +141,29 @@
                     <p><strong>Pitch Used:</strong></p>
                     <pre class="bg-dark text-white p-3 rounded small" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
 
+                    <!-- Email Engagement Timeline -->
+                    {% if lead.tracking_events %}
+                    <h6 class="mt-4">📡 Email Engagement Events ({{ lead.tracking_events|length }}):</h6>
+                    <div class="list-group list-group-flush border-secondary mb-3">
+                        {% for ev in lead.tracking_events %}
+                        <div class="list-group-item bg-dark text-white border-secondary px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if ev.event_type == 'OPEN' %}
+                                    <span class="badge bg-info text-dark">👁️ Email Opened</span>
+                                    {% else %}
+                                    <span class="badge bg-success">🔗 Link Clicked</span>
+                                    <span class="text-info small ms-2">{{ ev.target_url }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-secondary">{{ ev.created_at }}</small>
+                            </div>
+                            <div class="text-white-50 small mt-1">IP: {{ ev.ip_address or 'N/A' }} | Agent: {{ ev.user_agent or 'Unknown' }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     {% if lead.replies %}
                     <h6 class="mt-4">Replies:</h6>
                     {% for reply in lead.replies %}

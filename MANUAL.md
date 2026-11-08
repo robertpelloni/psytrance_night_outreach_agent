@@ -308,3 +308,11 @@ Scout electronic music and underground dance events from Eventbrite:
 - **Dynamic Query Scraping**: Integrated into the automated scouting loop alongside Google Maps and Resident Advisor.
 - **Structured Schema & Fallback**: Extracts venue names, physical addresses, and event contexts via schema.org JSON-LD scripts and HTML event card components.
 - **Status Monitoring**: Monitored in real-time under the **Scraper Sources** tab in the Unified Command Center (`eventbrite.py`).
+
+## Email Engagement & Open/Click Tracking
+
+Track outreach engagement empirically to assess venue interest:
+- **1x1 Pixel Open Tracking**: Injects an invisible GIF (`/track/open/<lead_id>.gif`) into multipart HTML emails that registers an `OPEN` event upon preview.
+- **Link Click Redirection**: Replaces promotional links (Soundcloud mixes, EPK documents) with tracked redirects (`/track/click/<lead_id>?url=...`) recording `CLICK` events and destination URLs.
+- **KPI Monitoring**: Real-time open rate (%) and click-through rate (%) aggregated globally under the **Analytics & A/B Testing** tab.
+- **Lead Dossier Timeline**: Each venue's detail page maintains an audit history of email opens, link clicks, timestamps, and client user-agents.

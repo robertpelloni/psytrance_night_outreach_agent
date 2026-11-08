@@ -186,5 +186,5 @@
 
 - [ ] Add video analysis in venue qualification
 - [ ] Expand geocoding to support full address parsing
-- [ ] Add email open/click tracking
+- [x] Add email open/click tracking (v1.1.88)
 - [ ] Add shared dashboard login for collective members

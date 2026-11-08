@@ -298,6 +298,16 @@
                                         Var: {{ lead.pitch_variant }}
                                     </span>
                                     {% endif %}
+                                    {% if lead.engagement and lead.engagement.opens > 0 %}
+                                    <span class="badge bg-info text-dark" data-bs-toggle="tooltip" title="Email opened {{ lead.engagement.opens }} time(s)">
+                                        👁️ {{ lead.engagement.opens }} Open{{ 's' if lead.engagement.opens > 1 else '' }}
+                                    </span>
+                                    {% endif %}
+                                    {% if lead.engagement and lead.engagement.clicks > 0 %}
+                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="Audio/EPK link clicked {{ lead.engagement.clicks }} time(s)">
+                                        🔗 {{ lead.engagement.clicks }} Click{{ 's' if lead.engagement.clicks > 1 else '' }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="card-body">
@@ -609,6 +619,43 @@
                                     <div class="p-3 bg-success rounded">
                                         <h4 class="mb-0 text-white">{{ funnel.booked }}</h4>
                                         <small class="text-uppercase fw-bold">Booked</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Engagement KPI Strip (Open & Click Tracking) -->
+                    <div class="col-md-12">
+                        <div class="card card-custom p-3">
+                            <h5 class="mb-3 text-white">📡 Email Engagement & Interaction Metrics</h5>
+                            <div class="row g-3 text-center">
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-info">{{ engagement_stats.open_rate }}%</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Email Open Rate</small>
+                                        <div class="text-white-50 small mt-1">{{ engagement_stats.unique_opened }} of {{ engagement_stats.total_sent }} leads opened</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-success">{{ engagement_stats.ctr }}%</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Click-Through Rate</small>
+                                        <div class="text-white-50 small mt-1">{{ engagement_stats.unique_clicked }} of {{ engagement_stats.total_sent }} clicked EPK/Mix</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-warning">{{ engagement_stats.total_opens }}</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Total Email Opens</small>
+                                        <div class="text-white-50 small mt-1">Gross pixel triggers recorded</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-white">{{ engagement_stats.total_clicks }}</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Total Link Clicks</small>
+                                        <div class="text-white-50 small mt-1">Audio assets & EPK visits</div>
                                     </div>
                                 </div>
                             </div>

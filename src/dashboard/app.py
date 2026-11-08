@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+import urllib.parse
+import base64
 import sqlite3
 import sys
 import os
@@ -121,6 +123,8 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
                 lead['traits_dict'] = json.loads(lead['extracted_traits'])
             except:
                 lead['traits_dict'] = {}
+        # Fetch email tracking engagement summary
+        lead['engagement'] = db.get_lead_tracking_summary(lead['id'])
 
     unmatched = db.get_unmatched_replies() if view == 'history' or active_tab in ['pipeline', 'analytics'] else []
     artists = db.list_artists()
@@ -131,6 +135,7 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
 
     # 3. Analytics & A/B Testing
     stats = analytics.get_summary_stats()
+    engagement_stats = db.get_overall_engagement_stats()
     approval_rate = analytics.get_approval_rate()
     variant_stats = analytics.get_variant_stats()
     funnel = analytics.get_conversion_funnel()
@@ -178,6 +183,7 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
         'venues': venues,
         'clusters': clusters,
         'stats': stats,
+        'engagement_stats': engagement_stats,
         'approval_rate': approval_rate,
         'variant_stats': variant_stats,
         'funnel': funnel,
@@ -215,6 +221,8 @@ def venue_detail(venue_id):
 
     for lead in leads:
         lead['replies'] = db.get_lead_replies(lead['id'])
+        lead['tracking_events'] = db.get_lead_tracking_events(lead['id'])
+        lead['engagement'] = db.get_lead_tracking_summary(lead['id'])
 
     query = "SELECT * FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
@@ -550,7 +558,8 @@ def approve(lead_id):
     if contact and contact[0]:
         email = contact[0].split(',')[0].strip()
         subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
-        if mailer.send_email(email, subject, pitch):
+        base_url = request.host_url.rstrip('/')
+        if mailer.send_email(email, subject, pitch, lead_id=lead_id, base_url=base_url):
             db.update_lead_status(lead_id, 'SENT')
     return redirect(url_for('index'))
 
@@ -576,8 +585,9 @@ def bulk_action():
         return redirect(request.referrer or url_for('index'))
 
     lead_ids = [int(i) for i in lead_ids if str(i).isdigit()]
+    host_base_url = request.host_url.rstrip('/') if request else "http://127.0.0.1:5000"
 
-    def process_batch(ids, act):
+    def process_batch(ids, act, base_url=host_base_url):
         primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
         for lid in ids:
             try:
@@ -606,7 +616,7 @@ def bulk_action():
                     if contact and contact[0]:
                         email = contact[0].split(',')[0].strip()
                         subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
-                        if mailer.send_email(email, subject, pitch):
+                        if mailer.send_email(email, subject, pitch, lead_id=lid, base_url=base_url):
                             db.update_lead_status(lid, 'SENT')
                 elif act == 'reject':
                     db.update_lead_status(lid, 'REJECTED')
@@ -724,6 +734,43 @@ def send_digest():
     generator = DigestGenerator(db_path=db.db_path, mailer=mailer)
     result = generator.dispatch_digest(recipient_email=recipient, days=days)
     return jsonify(result)
+
+# 1x1 Transparent GIF binary for email open tracking
+TRANSPARENT_GIF_PIXEL = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+
+@app.route('/track/open/<int:lead_id>.gif')
+def track_email_open(lead_id):
+    """Logs email open tracking event and serves a non-cached 1x1 transparent GIF."""
+    ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.user_agent.string if request.user_agent else "Unknown"
+
+    try:
+        db.record_tracking_event(lead_id, 'OPEN', ip_address=ip_addr, user_agent=user_agent)
+    except Exception as e:
+        print(f"Error logging email open for lead {lead_id}: {e}")
+
+    resp = Response(TRANSPARENT_GIF_PIXEL, mimetype='image/gif')
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+@app.route('/track/click/<int:lead_id>')
+def track_email_click(lead_id):
+    """Logs email link click event and redirects to destination URL."""
+    target_url = request.args.get('url', '/')
+    ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.user_agent.string if request.user_agent else "Unknown"
+
+    try:
+        db.record_tracking_event(lead_id, 'CLICK', target_url=target_url, ip_address=ip_addr, user_agent=user_agent)
+    except Exception as e:
+        print(f"Error logging email click for lead {lead_id}: {e}")
+
+    # Prevent open redirect vulnerabilities: ensure valid scheme
+    if target_url.startswith('http://') or target_url.startswith('https://'):
+        return redirect(target_url, code=302)
+    return redirect(url_for('index'), code=302)
 
 @app.route('/recommend_venues/<venue_id>', methods=['GET'])
 def recommend_venues(venue_id):

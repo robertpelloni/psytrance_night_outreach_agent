@@ -277,6 +277,18 @@ Automated discovery of underground nightlife and electronic music spaces from Ev
 - [x] Dynamically load Eventbrite scraper in `main.py` and register it in dashboard Scraper Sources tab
 - [x] Add unit and integration tests verifying Eventbrite parsing and rate-limit backoff (`tests/test_eventbrite_scraper.py`)
 
+---
+
+### Phase 58: Email Engagement & Interaction Tracking (v1.1.88)
+
+1x1 pixel open tracking and hyperlink redirection for empirical interest analysis.
+
+- [x] Implement `email_tracking_events` database schema and data manager methods in `src/db_manager.py`
+- [x] Enhance `Mailer` to inject 1x1 transparent tracking pixels and wrap EPK/audio links
+- [x] Expose `/track/open/<lead_id>.gif` and `/track/click/<lead_id>` in `src/dashboard/app.py`
+- [x] Add Email Engagement KPI strip to Analytics tab and lead engagement timeline to venue dossier pages
+- [x] Add automated test suite for tracking event recording and redirects (`tests/test_email_tracking.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
