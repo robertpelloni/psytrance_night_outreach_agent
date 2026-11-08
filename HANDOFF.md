@@ -100,11 +100,19 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.91
+- **Version**: 1.1.92
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), operator feedback review table, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, visual aesthetic vibe scoring & on-demand vision re-analysis, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), operator feedback review table, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper
+
+### Session v1.1.92 — Visual Aesthetic Vibe Scoring & GPT-4o-Vision Integration
+
+- **Visual Vibe Score Persistence**: Extended SQLite `venues` table with `visual_vibe_score INTEGER` and added dynamic column migrations in `src/db_manager.py`.
+- **Pipeline Vision Propagation**: Updated `qualify_and_pitch()` in `main.py` and `DatabaseManager.update_venue_visuals()` to extract aesthetic score from `AIEngine.analyze_visual_vibe()` and persist to the database.
+- **On-Demand Visual Re-Analysis API**: Added `POST /analyze_venue_visuals/<venue_id>` endpoint in `src/dashboard/app.py` enabling curators to trigger GPT-4o-vision aesthetic re-evaluations on demand for existing venues with imagery.
+- **Venue Dossier Aesthetic UI**: Added "Visual Vibe" badge (1-10 aesthetic alignment), expandable visual aesthetic breakdown section, and interactive "🎨 Analyze Imagery" button with tooltip guidance in `src/dashboard/templates/venue_detail.html`.
+- **Validation**: Added unit and integration tests in `tests/test_visual_vibe_qualification.py` (4/4 passing) and verified visual rendering via Playwright (`venue_visual_vibe_ui.png`, `venue_visual_vibe_full.png`).
 
 ### Session v1.1.91 — User Onboarding Tour & In-App Feedback Mechanism
 

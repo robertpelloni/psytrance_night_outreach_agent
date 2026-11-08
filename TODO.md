@@ -145,6 +145,9 @@
 - [x] Automated Integration Test Suite for Venue Notes (v1.1.83)
 - [x] Ingest curator annotations into AI pitch generation and vibe check prompts (v1.1.84)
 - [x] Automated Integration Test Suite for Notes Injection into Pitch Prompts (v1.1.84)
+- [x] Visual aesthetic vibe scoring & GPT-4o-vision pipeline integration (v1.1.92)
+- [x] On-demand visual re-analysis API endpoint and venue dossier aesthetic badge (v1.1.92)
+- [x] Automated Integration Test Suite for Visual Vibe Qualification (v1.1.92)
 
 ---
 

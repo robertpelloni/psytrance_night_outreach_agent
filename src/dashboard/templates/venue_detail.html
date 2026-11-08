@@ -36,6 +36,29 @@
                         {% endif %}
                     </p>
                     <hr class="border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>Visual Vibe:</strong>
+                        <button onclick="analyzeCurrentVenueVisuals('{{ venue.id }}')" id="detail-visual-btn" class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="Run GPT-4o-vision aesthetic analysis on venue imagery" data-bs-toggle="tooltip">
+                            🎨 Analyze Imagery
+                        </button>
+                    </div>
+                    <p class="mb-2">
+                        {% if venue.visual_vibe_score %}
+                            <span class="badge {% if venue.visual_vibe_score >= 7 %}bg-success{% elif venue.visual_vibe_score >= 5 %}bg-info text-dark{% else %}bg-secondary{% endif %} fs-6">
+                                {{ venue.visual_vibe_score }} / 10
+                            </span>
+                            <small class="text-white-50 ms-1">Aesthetic Alignment</small>
+                        {% else %}
+                            <span class="badge bg-secondary">Unvetted Imagery</span>
+                        {% endif %}
+                    </p>
+                    {% if venue.visual_description %}
+                    <div class="p-2 rounded bg-dark border border-secondary small text-white-50 mb-3">
+                        <strong class="text-info d-block mb-1">Aesthetic Breakdown:</strong>
+                        {{ venue.visual_description }}
+                    </div>
+                    {% endif %}
+                    <hr class="border-secondary">
                     <p><strong>Venue Warmth:</strong></p>
                     <div class="progress bg-dark" style="height: 25px;">
                         <div class="progress-bar {% if warmth > 70 %}bg-danger{% elif warmth > 40 %}bg-warning text-dark{% else %}bg-info{% endif %}"
@@ -227,6 +250,37 @@
                 container.innerHTML = `<p class="text-danger small mb-0">Failed to load recommendations: ${err.message}</p>`;
             }
         }
+        async function analyzeCurrentVenueVisuals(venueId) {
+            const btn = document.getElementById('detail-visual-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Analyzing...';
+            }
+            try {
+                const res = await fetch(`/analyze_venue_visuals/${venueId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Visual analysis failed');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🎨 Analyze Imagery';
+                    }
+                }
+            } catch (err) {
+                alert('Visual analysis request failed: ' + err.message);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🎨 Analyze Imagery';
+                }
+            }
+        }
+
         async function geocodeCurrentVenue(venueId) {
             const btn = document.getElementById('detail-geocode-btn');
             if (btn) {

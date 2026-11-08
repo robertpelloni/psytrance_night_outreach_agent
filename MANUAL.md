@@ -338,3 +338,10 @@ Ensure rapid onboarding for community curators and seamless feedback collection:
 - **Interactive Onboarding Tour**: Click **"🚀 Tour"** in the top navbar to launch a guided, multi-step walkthrough explaining the Outreach Queues, Geographic Map & Circuit Routing, Artist Profiles, Scraper Sources, and System Operations.
 - **In-App Feedback Modal**: Click **"💬 Feedback"** in the top navbar to submit bugs, feature ideas, music/vibe adjustments, or general operational notes. Submissions are saved to the persistent SQLite database.
 - **Feedback Audit Table**: Curators and system administrators can review feedback entries, sender names, categories, and timestamps under the **System Health & Sync Protocol** tab.
+
+## Visual Aesthetic Vibe Scoring & Vision Qualification
+
+Leverage multimodal GPT-4o-vision intelligence to evaluate physical venue spaces:
+- **Automated Pipeline Scoring**: During discovery, scrapers capture venue interior photography and stage setups. The AI engine evaluates lighting rigs, concrete textures, warehouse architecture, and dancefloor layout to assign a 1-10 visual vibe score.
+- **Visual Vibe Badge**: Venue dossiers prominently showcase the venue's visual aesthetic score (e.g., `9 / 10 Aesthetic Alignment`) with a descriptive breakdown of architectural signals.
+- **On-Demand Vision Analysis**: Click **"🎨 Analyze Imagery"** on any venue detail page to trigger immediate GPT-4o-vision re-analysis of the venue's current photography without having to reset discovery cycles.

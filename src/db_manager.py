@@ -56,7 +56,8 @@ class DatabaseManager:
             ("capacity", "INTEGER"),
             ("neighborhood", "TEXT"),
             ("source", "TEXT"),
-            ("discovered_at", "TIMESTAMP")
+            ("discovered_at", "TIMESTAMP"),
+            ("visual_vibe_score", "INTEGER")
         ]
 
         cursor = conn.execute("PRAGMA table_info(venues)")
@@ -242,10 +243,15 @@ class DatabaseManager:
         with self._get_connection() as conn:
             conn.execute(query, tuple(params))
 
-    def update_venue_visuals(self, venue_id, image_url, visual_description):
-        query = "UPDATE venues SET image_url = ?, visual_description = ? WHERE id = ?"
+    def update_venue_visuals(self, venue_id, image_url, visual_description, visual_vibe_score=None):
+        if visual_vibe_score is not None:
+            query = "UPDATE venues SET image_url = ?, visual_description = ?, visual_vibe_score = ? WHERE id = ?"
+            params = (image_url, visual_description, visual_vibe_score, venue_id)
+        else:
+            query = "UPDATE venues SET image_url = ?, visual_description = ? WHERE id = ?"
+            params = (image_url, visual_description, venue_id)
         with self._get_connection() as conn:
-            conn.execute(query, (image_url, visual_description, venue_id))
+            conn.execute(query, params)
 
     def get_venues_with_location(self):
         query = """

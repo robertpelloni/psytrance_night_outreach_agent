@@ -166,9 +166,10 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         print(f"  Performing visual analysis for {v_data['name']}...")
         visual_result = ai.analyze_visual_vibe(image_url, genre=qualify_genre)
         visual_desc = visual_result.get("visual_description", "")
-        db.update_venue_visuals(v_id, image_url, visual_desc)
+        visual_score = visual_result.get("visual_vibe_score")
+        db.update_venue_visuals(v_id, image_url, visual_desc, visual_score)
         if visual_desc:
-            enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc}"
+            enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc} (Visual Score: {visual_score}/10)"
 
     # AI Vibe Check
     vibe_result = ai.vibe_check(

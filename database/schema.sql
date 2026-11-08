@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS venues (
     longitude REAL,
     image_url TEXT,
     visual_description TEXT,
+    visual_vibe_score INTEGER,
     address TEXT,
     phone TEXT,
     venue_type TEXT,

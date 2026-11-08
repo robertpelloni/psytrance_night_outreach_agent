@@ -1053,6 +1053,47 @@ def get_feedback_api():
         "feedback": feedbacks
     })
 
+@app.route("/analyze_venue_visuals/<venue_id>", methods=["POST"])
+def analyze_venue_visuals(venue_id):
+    """
+    On-demand aesthetic vision analysis of venue imagery via GPT-4o-vision.
+    """
+    venue = db.get_venue(venue_id)
+    if not venue:
+        return jsonify({"status": "error", "message": "Venue not found"}), 404
+
+    # Allow custom image_url in POST body or fallback to stored image_url
+    data = request.get_json(silent=True) or {}
+    image_url = data.get("image_url") or venue.get("image_url")
+
+    if not image_url:
+        return jsonify({
+            "status": "error",
+            "message": "No image URL available for this venue. Provide an image URL to analyze."
+        }), 400
+
+    genre = data.get("genre") or "psytrance"
+    try:
+        visual_result = ai.analyze_visual_vibe(image_url, genre=genre)
+        score = visual_result.get("visual_vibe_score", 5)
+        description = visual_result.get("visual_description", "")
+
+        db.update_venue_visuals(
+            venue_id,
+            image_url=image_url,
+            visual_description=description,
+            visual_vibe_score=score
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"Visual aesthetic analysis completed for {venue['name']}",
+            "visual_vibe_score": score,
+            "visual_description": description,
+            "image_url": image_url
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/shutdown', methods=['POST'])
 def shutdown_server():
     """Graceful shutdown endpoint utilized by tray companion or operator."""

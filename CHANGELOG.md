@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.92] - 2026-11-05
+
+### Added
+- **Visual Aesthetic Vibe Scoring & GPT-4o-Vision Pipeline Integration (`src/ai_engine.py`, `src/db_manager.py`, `main.py`)**: Added `visual_vibe_score` column to `database/schema.sql` and dynamic schema migrations in `DatabaseManager`. Updated `qualify_and_pitch()` in `main.py` to persist `visual_vibe_score` alongside `visual_description`.
+- **On-Demand Visual Re-Analysis API (`src/dashboard/app.py`)**: Added `POST /analyze_venue_visuals/<venue_id>` endpoint enabling curators to trigger GPT-4o-vision aesthetic re-evaluations on demand for existing venues with imagery.
+- **Visual Vibe Score Badging & UI Dossier Breakdown (`src/dashboard/templates/venue_detail.html`)**: Added dedicated "Visual Vibe" badge (scaled 1-10 aesthetic alignment), expandable visual aesthetic breakdown section, and interactive "🎨 Analyze Imagery" button with tooltip guidance.
+- **Visual Vibe Qualification Test Suite (`tests/test_visual_vibe_qualification.py`)**: Added unit and integration tests covering database schema persistence, pipeline extraction, API endpoints, and venue detail visual rendering.
+
 ## [1.1.91] - 2026-11-05
 
 ### Added
