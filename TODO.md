@@ -177,7 +177,7 @@
 - [x] Implement DBSCAN dynamic density & transit clustering metrics (v1.1.85)
 - [ ] Add Facebook Events / Eventbrite / Meetup scrapers
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
-- [ ] Add collaborative filtering (if rejected at A, suggest B)
+- [x] Add collaborative filtering (if rejected at A, suggest B) (v1.1.86)
 
 ---
 

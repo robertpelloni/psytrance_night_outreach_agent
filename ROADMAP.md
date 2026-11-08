@@ -256,6 +256,17 @@ Algorithmic cluster geometry calculation and inter-city corridor transit estimat
 - [x] Display corridor density badges, transit drive times, and quick-filter buttons in Geographic Map & Circuit Optimizer dashboard tab
 - [x] Add automated test suite for dynamic clustering and perimeter transit metrics (`tests/test_advanced_clustering.py`)
 
+---
+
+### Phase 56: Collaborative Filtering & Alternate Venue Recommendation (v1.1.86)
+
+Algorithmic recommendation engine suggesting high-affinity sibling venues when a prospect is rejected or stalled.
+
+- [x] Implement `RecommendationEngine` in `src/recommendation_engine.py` using acoustic trait overlap, Haversine distance decay, capacity matching, and lead vibe scoring
+- [x] Expose `/recommend_venues/<venue_id>` endpoint with limit and minimum score filtering
+- [x] Integrate interactive "Alternate Venues" recommendation modal in dashboard queues and venue detail pages
+- [x] Add unit and integration tests verifying collaborative filtering logic (`tests/test_recommendation_engine.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

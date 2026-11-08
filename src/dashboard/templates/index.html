@@ -381,11 +381,16 @@
                                         </button>
                                     </div>
                                 </form>
-                                <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post" class="mt-2">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Dismiss lead from outreach queue">
-                                        Reject Lead
+                                <div class="d-flex gap-2 mt-2">
+                                    <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Dismiss lead from outreach queue">
+                                            Reject Lead
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="openRecommendationsModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Collaborative filtering: discover sibling venues matching acoustic and vibe traits">
+                                        🎯 Alternate Venues
                                     </button>
-                                </form>
+                                </div>
                                 {% elif view == 'pending_follow_ups' %}
                                 <div class="mb-3">
                                     <label class="form-label small text-secondary"><strong>Generated Pitch Context:</strong></label>
@@ -1146,6 +1151,32 @@
         </div>
     </div>
 
+    <!-- Collaborative Filtering: Alternate Venue Recommendations Modal -->
+    <div class="modal fade" id="recModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-info">
+                <div class="modal-header border-info">
+                    <h5 class="modal-title" id="rec-modal-title">🎯 Algorithmic Sibling Venue Recommendations</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">
+                        Collaborative filtering identifies alternative target venues sharing acoustic profiles (sound systems, underground traits), capacity, and geographical proximity to maximize circuit continuity if an outreach path is rejected or stalled.
+                    </p>
+                    <div id="rec-results-container">
+                        <div class="text-center py-4 text-secondary">
+                            <div class="spinner-border text-info" role="status"></div>
+                            <p class="mt-2 mb-0">Calculating composite affinity metrics...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-info">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tour Planning Modal -->
     <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -1706,6 +1737,72 @@
                 e.target.closest('.media-item').remove();
             }
         });
+
+        // Collaborative Filtering / Recommendations Modal Handler
+        async function openRecommendationsModal(venueId, venueName) {
+            const modalEl = document.getElementById('recModal');
+            const titleEl = document.getElementById('rec-modal-title');
+            const container = document.getElementById('rec-results-container');
+
+            titleEl.innerHTML = `🎯 Sibling Alternatives for <span class="text-info">${venueName || venueId}</span>`;
+            container.innerHTML = `
+                <div class="text-center py-4 text-secondary">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p class="mt-2 mb-0">Computing trait affinity, acoustic gear compatibility, and corridor proximity...</p>
+                </div>
+            `;
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            try {
+                const res = await fetch(`/recommend_venues/${venueId}?limit=6`);
+                const data = await res.json();
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    container.innerHTML = `
+                        <div class="alert alert-dark text-white border-secondary mb-0">
+                            <strong>No high-affinity alternative venues found.</strong><br>
+                            Ensure other venues are cataloged or adjust minimum match score thresholds.
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<div class="row g-3">';
+                data.recommendations.forEach(r => {
+                    const matchPercent = Math.round(r.match_score * 100);
+                    const scoreClass = matchPercent >= 70 ? 'bg-success' : (matchPercent >= 45 ? 'bg-info text-dark' : 'bg-secondary');
+                    const traits = (r.shared_traits || []).map(t => `<span class="badge border border-info text-info me-1">${t}</span>`).join('');
+                    html += `
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary h-100 p-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0 text-white fw-bold">${r.name}</h6>
+                                    <div>
+                                        <span class="badge ${scoreClass}">${matchPercent}% Match</span>
+                                        ${r.distance_km !== null ? `<span class="badge bg-dark border border-secondary text-secondary ms-1">${r.distance_km} km</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="small text-secondary mb-2">${r.reasoning}</div>
+                                ${traits ? `<div class="mb-3">${traits}</div>` : ''}
+                                <div class="mt-auto d-flex gap-2">
+                                    <a href="/venue/${r.venue_id}" target="_blank" class="btn btn-outline-info btn-sm flex-grow-1">
+                                        View Venue Dossier
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        Failed to calculate venue recommendations: ${err.message}
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
 </html>

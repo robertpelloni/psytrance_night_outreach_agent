@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.86] - 2026-11-05
+
+### Added
+- **Collaborative Filtering & Alternate Venue Recommendation Engine (`src/recommendation_engine.py`)**: Implemented `RecommendationEngine` to compute multi-factor affinity scoring across acoustic profiles (Funktion-One, Void, Danley), venue capacities, spatial proximity via Haversine distance decay, and historical booking outcomes.
+- **Recommendations API (`src/dashboard/app.py`)**: Added `/recommend_venues/<venue_id>` endpoint supporting customizable result limits, minimum similarity score filters, and automatic exclusion of previously rejected venues.
+- **Interactive Sibling Recommendations UI (`src/dashboard/templates/index.html` & `venue_detail.html`)**: Added "Alternate Venues" quick-action buttons on lead cards and venue dossier pages, launching an interactive recommendations modal with composite affinity badges, shared trait tags, transit distance badges, and direct links to venue dossiers.
+- **Collaborative Filtering Test Suite (`tests/test_recommendation_engine.py`)**: Added unit and integration tests covering trait set extraction, distance decay weighting, exclusion of rejected targets, and REST API responses.
+
 ## [1.1.85] - 2026-11-05
 
 ### Added

@@ -293,3 +293,11 @@ Analyze touring density and transit times in the **Geographic Map & Circuit Opti
 - **DBSCAN Clustering**: Identifies regional venue density groups within configurable distance thresholds (`eps` in kilometers) and minimum venue counts.
 - **Dynamic Cluster Span**: Calculates exact bounding-box radial spans (`cluster_radius_km`) and estimated highway transit drive times (`est_intercity_drive_hrs` at 80 km/h) for routing logistics.
 - **Corridor Filter Badges**: Click any cluster corridor card to instantly filter the venues table and map view to that regional touring market.
+
+## Collaborative Filtering & Sibling Venue Recommendations
+
+When a venue rejects an outreach inquiry, is unavailable on a key tour date, or you want to expand circuit coverage:
+- **Lead Queue Action**: Click **"Alternate Venues"** on any pipeline card to launch the algorithmic recommendation modal.
+- **Affinity Scoring**: Calculates composite compatibility based on shared acoustic equipment (Funktion-One, Void, Danley), subgenre tags, capacity, and geographical proximity (with Haversine distance decay).
+- **Venue Dossier Integration**: The venue detail view automatically displays live sibling alternatives with one-click navigation to their respective dossiers.
+- **API Access**: Query programmatic recommendations directly via `GET /recommend_venues/<venue_id>?limit=5&min_score=0.2`.

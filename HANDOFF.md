@@ -1,4 +1,4 @@
-# HANDOFF - v1.1.85
+# HANDOFF - v1.1.86
 
 ## Session Summary
 
@@ -10,6 +10,7 @@ This session advanced the platform across multiple key milestones:
 5. **Detroit Underground Vibe Calibration & Midwest-Toronto Circuit Optimization (v1.1.82)**: Calibrated AI vibe scoring prompts with strict 6.5 threshold and acoustic sound system evaluation; anchored tour routing to Detroit with Midwest regional stops and cross-border Toronto routing logistics.
 6. **Venue Curator Intelligence & Field Notes (v1.1.83 - v1.1.84)**: Added `venue_notes` SQLite table, interactive curator notes UI, REST endpoints, and dynamic injection into AI pitch and vibe re-evaluation.
 7. **DBSCAN Dynamic Density & Transit Clustering Metrics (v1.1.85)**: Added bounding-box cluster radius (`cluster_radius_km`) and estimated drive time (`est_intercity_drive_hrs`) calculation in `AnalyticsEngine.get_venue_clusters()`, with interactive corridor badges and filters on the Geographic Map tab.
+8. **Collaborative Filtering & Alternate Venue Recommendation Engine (v1.1.86)**: Implemented `RecommendationEngine` in `src/recommendation_engine.py`, exposed `/recommend_venues/<venue_id>` endpoint, and wired interactive sibling venue recommendation modals into lead queues and venue dossier views.
 
 ### STEP 1: Upstream Tracking
 

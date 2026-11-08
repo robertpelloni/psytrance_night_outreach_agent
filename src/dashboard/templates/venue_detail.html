@@ -68,6 +68,27 @@
                 </div>
             </div>
 
+            <!-- Collaborative Filtering: Recommended Alternatives -->
+            <div class="card text-bg-dark border-info shadow mb-4">
+                <div class="card-header bg-dark border-info d-flex justify-content-between align-items-center">
+                    <span class="text-info fw-bold">🎯 Collaborative Filtering: Sibling Venue Recommendations</span>
+                    <button class="btn btn-outline-info btn-sm" onclick="fetchVenueDetailRecommendations('{{ venue.id }}')">
+                        Refresh Recommendations
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary small mb-3">
+                        Algorithmic alternatives matching acoustic specs (Funktion-One, Void), capacity, and regional proximity.
+                    </p>
+                    <div id="detail-rec-container">
+                        <div class="text-center py-3 text-secondary">
+                            <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                            <span class="ms-2">Loading algorithmic alternatives...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Curator Notes & Private Annotations -->
             <div class="card text-bg-dark border-secondary shadow mb-4">
                 <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center">
@@ -137,5 +158,48 @@
             {% endfor %}
         </div>
     </div>
+    <script>
+        async function fetchVenueDetailRecommendations(venueId) {
+            const container = document.getElementById('detail-rec-container');
+            container.innerHTML = '<div class="text-center py-3 text-secondary"><div class="spinner-border spinner-border-sm text-info"></div><span class="ms-2">Analyzing acoustic & proximity affinity...</span></div>';
+            try {
+                const res = await fetch(`/recommend_venues/${venueId}?limit=4`);
+                const data = await res.json();
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    container.innerHTML = '<p class="text-secondary small mb-0">No matching sibling venues found meeting threshold.</p>';
+                    return;
+                }
+                let html = '<div class="list-group list-group-flush border-secondary">';
+                data.recommendations.forEach(r => {
+                    const matchPercent = Math.round(r.match_score * 100);
+                    const scoreBadge = matchPercent >= 70 ? 'bg-success' : (matchPercent >= 45 ? 'bg-info text-dark' : 'bg-secondary');
+                    const traits = (r.shared_traits || []).map(t => `<span class="badge border border-info text-info me-1">${t}</span>`).join('');
+                    html += `
+                        <div class="list-group-item bg-dark text-white border-secondary px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="/venue/${r.venue_id}" class="text-info fw-bold text-decoration-none">${r.name}</a>
+                                    <span class="text-secondary small ms-1">(${r.city || 'Midwest'})</span>
+                                </div>
+                                <div>
+                                    <span class="badge ${scoreBadge}">${matchPercent}% Match</span>
+                                    ${r.distance_km !== null ? `<span class="badge bg-dark border border-secondary text-secondary ms-1">${r.distance_km} km</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="small text-secondary mt-1">${r.reasoning}</div>
+                            ${traits ? `<div class="mt-1">${traits}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `<p class="text-danger small mb-0">Failed to load recommendations: ${err.message}</p>`;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchVenueDetailRecommendations('{{ venue.id }}');
+        });
+    </script>
 </body>
 </html>

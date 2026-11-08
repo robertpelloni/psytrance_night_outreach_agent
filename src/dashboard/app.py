@@ -19,6 +19,7 @@ from src.config_manager import ConfigManager
 from src.reliability_monitor import ReliabilityMonitor
 from src.tour_planner import TourPlanner
 from src.outreach_predictor import OutreachPredictor
+from src.recommendation_engine import RecommendationEngine
 from src.outreach_engine import OutreachEngine
 from src.inbox_monitor import InboxMonitor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -33,6 +34,7 @@ mailer = Mailer()
 generator = ScraperGenerator()
 analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
+recommendation_engine = RecommendationEngine(db_manager=db)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
 planner = TourPlanner(db_path=db_path)
@@ -722,6 +724,36 @@ def send_digest():
     generator = DigestGenerator(db_path=db.db_path, mailer=mailer)
     result = generator.dispatch_digest(recipient_email=recipient, days=days)
     return jsonify(result)
+
+@app.route('/recommend_venues/<venue_id>', methods=['GET'])
+def recommend_venues(venue_id):
+    """
+    Returns collaborative filtering recommendations for alternative venues
+    sharing traits, acoustic capabilities, or geographical proximity.
+    """
+    limit = request.args.get('limit', default=5, type=int)
+    min_score = request.args.get('min_score', default=0.15, type=float)
+    exclude_rejected = request.args.get('exclude_rejected', default='true').lower() == 'true'
+
+    try:
+        rec_engine = RecommendationEngine(db_manager=db)
+        recommendations = rec_engine.get_recommendations(
+            target_venue_id=str(venue_id),
+            limit=limit,
+            min_score=min_score,
+            exclude_rejected=exclude_rejected
+        )
+        return jsonify({
+            "status": "success",
+            "target_venue_id": venue_id,
+            "count": len(recommendations),
+            "recommendations": recommendations
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route('/requalify/<int:lead_id>', methods=['POST'])
 def requalify(lead_id):
