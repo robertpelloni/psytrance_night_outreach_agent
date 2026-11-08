@@ -175,7 +175,8 @@
 - [x] Add venue curator notes & field intelligence table/UI (v1.1.83)
 - [x] Inject curator notes into AI pitch & vibe re-evaluation engine (v1.1.84)
 - [x] Implement DBSCAN dynamic density & transit clustering metrics (v1.1.85)
-- [ ] Add Facebook Events / Eventbrite / Meetup scrapers
+- [x] Add Eventbrite nightlife discovery scraper (v1.1.87)
+- [ ] Add Facebook Events / Meetup scrapers
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [x] Add collaborative filtering (if rejected at A, suggest B) (v1.1.86)
 

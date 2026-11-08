@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.1.87] - 2026-11-05
+
+### Added
+- **Eventbrite Nightlife Discovery Scraper (`src/scrapers/eventbrite.py`)**: Implemented `EventbriteWebScraper` for automated discovery of nightlife, warehouse, and electronic music venues via Eventbrite event listings using schema.org JSON-LD and HTML card fallbacks.
+- **Dynamic Scraper Discovery Integration**: Automatically registered `EventbriteWebScraper` into `main.py` query scrapers and displayed `eventbrite.py` as an operational module in the Scraper Sources tab of the Unified Command Center.
+- **Eventbrite Scraper Test Suite (`tests/test_eventbrite_scraper.py`)**: Added unit and integration tests verifying JSON-LD parsing, card fallbacks, rate limit backoff resilience, and query execution.
+
 ## [1.1.86] - 2026-11-05
 
 ### Added

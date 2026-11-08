@@ -301,3 +301,10 @@ When a venue rejects an outreach inquiry, is unavailable on a key tour date, or 
 - **Affinity Scoring**: Calculates composite compatibility based on shared acoustic equipment (Funktion-One, Void, Danley), subgenre tags, capacity, and geographical proximity (with Haversine distance decay).
 - **Venue Dossier Integration**: The venue detail view automatically displays live sibling alternatives with one-click navigation to their respective dossiers.
 - **API Access**: Query programmatic recommendations directly via `GET /recommend_venues/<venue_id>?limit=5&min_score=0.2`.
+
+## Eventbrite Nightlife Discovery Scraper
+
+Scout electronic music and underground dance events from Eventbrite:
+- **Dynamic Query Scraping**: Integrated into the automated scouting loop alongside Google Maps and Resident Advisor.
+- **Structured Schema & Fallback**: Extracts venue names, physical addresses, and event contexts via schema.org JSON-LD scripts and HTML event card components.
+- **Status Monitoring**: Monitored in real-time under the **Scraper Sources** tab in the Unified Command Center (`eventbrite.py`).

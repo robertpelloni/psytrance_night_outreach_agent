@@ -267,6 +267,16 @@ Algorithmic recommendation engine suggesting high-affinity sibling venues when a
 - [x] Integrate interactive "Alternate Venues" recommendation modal in dashboard queues and venue detail pages
 - [x] Add unit and integration tests verifying collaborative filtering logic (`tests/test_recommendation_engine.py`)
 
+---
+
+### Phase 57: Eventbrite & Nightlife Aggregator Discovery (v1.1.87)
+
+Automated discovery of underground nightlife and electronic music spaces from Eventbrite listings.
+
+- [x] Implement `EventbriteWebScraper` in `src/scrapers/eventbrite.py` supporting schema.org JSON-LD and card fallbacks
+- [x] Dynamically load Eventbrite scraper in `main.py` and register it in dashboard Scraper Sources tab
+- [x] Add unit and integration tests verifying Eventbrite parsing and rate-limit backoff (`tests/test_eventbrite_scraper.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
