@@ -204,6 +204,10 @@
 - [ ] Add Facebook Events scraper
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [x] Add collaborative filtering (if rejected at A, suggest B) (v1.1.86)
+- [x] Add Midwest acoustic rig collaborative filtering & contingency pitching (v1.1.96)
+- [x] Implement 7x24 temporal outreach timing heatmap & dispatch velocity analytics (v1.1.97)
+- [x] Add venue dossier JSON export & multi-city circuit itinerary manifest (v1.1.98)
+- [x] Add unified venue notes modal & scene intelligence feed to pipeline queues (v1.1.99)
 
 ---
 

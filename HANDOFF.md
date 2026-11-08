@@ -128,6 +128,33 @@ This session advanced the platform across multiple key milestones:
 - **Visual Stability & Map Tab Verification**: Verified Leaflet map container (`#map`), marker controls, filter controls, and consolidated Command Center layout stability via Playwright visual verification (`scripts/verify_map_tab.py`), capturing visual screenshot at `/home/jules/verification/command_center_map_tab.png`.
 - **Master Test Suite Passing**: Verified 141 passed tests, 4 skipped across the entire test suite.
 
+### Session v1.1.99 — Unified Venue Notes & Curator Scene Intelligence Modal
+
+- **Unified Intelligence Modal**: Integrated `#venueNotesModal` directly in `src/dashboard/templates/index.html` allowing curators and tour operators to log sound rig details, curfew limitations, and promoter relationship notes without leaving pipeline queue views.
+- **Queue Action Trigger Buttons**: Added `📝 Notes` quick-action buttons across pending lead cards, approved queue, and historical views.
+- **Client-Side Note Management**: Implemented `openVenueNotesModal()`, `loadVenueNotes()`, and `submitModalVenueNote()` handling instantaneous AJAX note posting and feed updates.
+- **Endpoint Dual Support**: Confirmed `POST /venue/<venue_id>/notes` and `GET /venue/<venue_id>/notes` handle both JSON and standard form submissions cleanly.
+- **Testing & Visual Verification**: Created `tests/test_dashboard_venue_notes.py` (3/3 passing), verified master test suite (161 passing, 4 skipped), and captured Playwright screenshot at `/home/jules/verification/venue_notes_modal_ui.png`.
+
+### Session v1.1.98 — Venue Touring Dossier JSON & Itinerary Export
+
+- **Lead Dossier Export**: Added `AnalyticsEngine.export_leads_json()` outputting venue metadata, acoustic traits, coordinates, vibe scores, and contacts.
+- **Circuit Itinerary Export**: Added `AnalyticsEngine.export_circuit_itinerary_json()` generating sequential waypoint stops and route logistics. Enhanced `compute_circuit_logistics()` to support individual venue coordinates alongside cluster objects.
+- **Unified Action Triggers**: Added "Export JSON" button on the conversion funnel card and "Export Itinerary JSON" inside `#tourModal`.
+- **Testing & Verification**: Created `tests/test_itinerary_export.py` (4/4 passing) and verified with Playwright (`export_buttons_ui.png`).
+
+### Session v1.1.97 — Outreach Timing Matrix & Response Velocity Analytics
+
+- **Temporal Engagement Profiling**: Added `AnalyticsEngine.get_activity_heatmap()` computing a 7x24 matrix of dispatches and replies across Day-of-Week and Hour-of-Day.
+- **Heatmap REST API & Interactive UI**: Added `GET /api/analytics/activity_heatmap` and interactive 7x24 matrix table on the Analytics tab with density shading and tooltips.
+- **Testing & Verification**: Created `tests/test_analytics_heatmap.py` (4/4 passing) and verified with Playwright (`activity_heatmap_matrix.png`).
+
+### Session v1.1.96 — Collaborative Filtering Midwest Acoustic Weighting & Contingency Pitching
+
+- **Acoustic Rig Weighting**: Enhanced `RecommendationEngine` with audio rig scoring (Funktion-One, Void, Danley, d&b, PK Sound).
+- **Contingency Pitch Generation**: Implemented `generate_contingency_pitch()` and `POST /api/recommendations/pitch/<target>/<alt>` generating fallback regional proposals.
+- **Testing & Verification**: Created `tests/test_recommendation_contingency.py` (4/4 passing) and verified with Playwright.
+
 ### Session v1.1.93 — Operator Feedback Triage & Resolution Workflow
 
 - **Feedback Status Migration**: Added `status TEXT DEFAULT 'PENDING'` (`PENDING`, `IN_REVIEW`, `RESOLVED`) column to `operator_feedback` table with automatic SQLite migration in `DatabaseManager`.

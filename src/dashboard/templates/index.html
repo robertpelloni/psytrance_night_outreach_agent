@@ -406,6 +406,9 @@
                                     <button type="button" class="btn btn-outline-info btn-sm" onclick="openRecommendationsModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Collaborative filtering: discover sibling venues matching acoustic and vibe traits">
                                         🎯 Alternate Venues
                                     </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="openVenueNotesModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Curator annotations & confidential scene intelligence">
+                                        📝 Notes
+                                    </button>
                                 </div>
                                 {% elif view == 'pending_follow_ups' %}
                                 <div class="mb-3">
@@ -463,6 +466,11 @@
                                 {% endif %}
 
                                 <hr class="border-secondary">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="openVenueNotesModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Curator annotations & confidential scene intelligence">
+                                        📝 Curator Notes
+                                    </button>
+                                </div>
                                 <form action="/simulate_reply/{{ lead.id }}" method="post" class="mt-3">
                                     <label class="form-label text-secondary small">Simulate incoming venue email/DM response:</label>
                                     <div class="input-group input-group-sm">
@@ -1427,6 +1435,49 @@
         </div>
     </div>
 
+    <!-- Curator Annotations & Venue Scene Intelligence Modal -->
+    <div class="modal fade" id="venueNotesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title" id="venue-notes-modal-title">📝 Curator Scene Intelligence</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">
+                        Confidential field annotations and sound specifications are automatically injected into GPT-4o pitch generation and vibe qualification prompts to ensure hyper-personalized booking context.
+                    </p>
+
+                    <div class="card bg-black border-secondary p-3 mb-3">
+                        <h6 class="text-warning mb-2">Add New Note</h6>
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" id="modal-note-author" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Author" value="Curator">
+                            </div>
+                            <div class="col-md-7">
+                                <input type="text" id="modal-note-content" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Add confidential notes (e.g. sound specs, door split, engineer)...">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-warning btn-sm w-100" onclick="submitModalVenueNote()">Add Note</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-white mb-2">Chronological Intelligence Feed</h6>
+                    <div id="modal-notes-container" style="max-height: 280px; overflow-y: auto;">
+                        <div class="text-center py-3 text-secondary">
+                            <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                            <p class="mt-2 mb-0 small">Loading notes...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tour Planning Modal -->
     <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -2234,6 +2285,97 @@
             } catch (err) {
                 if (subjInput) subjInput.value = 'Network error';
                 if (bodyArea) bodyArea.value = err.message;
+            }
+        }
+
+        // Curator Scene Intelligence & Venue Notes Modal Handler
+        let currentModalVenueId = null;
+
+        async function openVenueNotesModal(venueId, venueName) {
+            currentModalVenueId = venueId;
+            const modalEl = document.getElementById('venueNotesModal');
+            const titleEl = document.getElementById('venue-notes-modal-title');
+            const container = document.getElementById('modal-notes-container');
+            const noteInput = document.getElementById('modal-note-content');
+
+            if (noteInput) noteInput.value = '';
+            titleEl.innerHTML = `📝 Scene Intelligence for <span class="text-warning">${venueName || venueId}</span>`;
+            container.innerHTML = `
+                <div class="text-center py-3 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                    <p class="mt-2 mb-0 small">Loading notes...</p>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            await loadVenueNotes(venueId);
+        }
+
+        async function loadVenueNotes(venueId) {
+            const container = document.getElementById('modal-notes-container');
+            try {
+                const res = await fetch(`/venue/${venueId}/notes`);
+                const data = await res.json();
+                const notes = data.notes || [];
+
+                if (notes.length === 0) {
+                    container.innerHTML = `
+                        <div class="alert alert-dark border-secondary text-secondary small text-center mb-0">
+                            No confidential curator notes recorded yet for this venue. Add one above!
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <ul class="list-group list-group-flush border-secondary">
+                        ${notes.map(n => `
+                            <li class="list-group-item bg-dark text-white border-secondary px-2 py-2 mb-1 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-warning small">${n.author || 'Curator'}</strong>
+                                    <small class="text-secondary" style="font-size: 0.7rem;">${n.created_at}</small>
+                                </div>
+                                <div class="small text-white-50">${n.note}</div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="alert alert-danger small mb-0">
+                        Failed to fetch notes: ${err.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function submitModalVenueNote() {
+            if (!currentModalVenueId) return;
+            const author = document.getElementById('modal-note-author').value || 'Curator';
+            const noteInput = document.getElementById('modal-note-content');
+            const note = noteInput ? noteInput.value.trim() : '';
+
+            if (!note) {
+                alert('Please enter note text.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/venue/${currentModalVenueId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ note, author })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    noteInput.value = '';
+                    await loadVenueNotes(currentModalVenueId);
+                } else {
+                    alert('Failed to save note: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error saving note: ' + err.message);
             }
         }
 

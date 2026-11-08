@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.99] - 2026-11-08
+
+### Added
+- **Unified Venue Notes & Scene Intelligence Modal (`src/dashboard/templates/index.html`)**: Added `#venueNotesModal` enabling curators and touring managers to review and log confidential acoustic notes, door policies, curfew limitations, and promoter relationships inline across queue cards.
+- **Queue Action Trigger Buttons (`src/dashboard/templates/index.html`)**: Integrated `📝 Notes` quick-action trigger buttons across pipeline cards, opening the interactive intelligence modal directly.
+- **Client-Side Note Management Handlers (`src/dashboard/templates/index.html`)**: Implemented `openVenueNotesModal()`, `loadVenueNotes()`, and `submitModalVenueNote()` managing dynamic note fetching and instant timeline updates without page reloads.
+- **REST & Form Venue Note Endpoint Alignment (`src/dashboard/app.py`)**: Verified `POST /venue/<venue_id>/notes` and `GET /venue/<venue_id>/notes` seamless dual-support for JSON AJAX payloads and standard form submissions.
+- **Venue Notes Dashboard Test Suite (`tests/test_dashboard_venue_notes.py`)**: Added end-to-end integration tests verifying note modal trigger rendering, note submission API handling, note retrieval, and timestamp formatting.
+
 ## [1.1.98] - 2026-11-08
 
 ### Added

@@ -367,3 +367,11 @@ Easily share booking pipelines and tour routings with artist agencies and tour m
 - **Lead Dossier JSON**: Click **"Export JSON"** next to "Export CSV" on the Outreach Conversion Funnel card to download complete venue dossiers including acoustic rig specifications, GPS coordinates, contact emails, social handles, and warmth scores.
 - **Tour Routing Manifest**: Inside the **Regional Tour Route & Transit Orchestrator** (`#tourModal`), click **"📥 Export Itinerary JSON"** to download sequential waypoint stops, transit distances, drive hours, rest days, carbon footprint estimates, and paired media assets formatted for tour management tools.
 - **API Endpoints**: Query `GET /export_leads_json` or post stops to `POST /export_circuit_itinerary`.
+
+## Unified Venue Notes & Curator Scene Intelligence
+
+Log and review field notes directly within pipeline workflows:
+- **In-Situ Access**: Click the **"📝 Notes"** button on any queue card across Pending Review, Inbox, or Booked views.
+- **Interactive Scene Intelligence Modal**: Enter confidential notes (sound rig updates, door policies, promoter relationship insights) with an author tag.
+- **Real-Time Chronological Feed**: Submissions immediately appear in the venue's live intelligence timeline without refreshing the page.
+- **AI Integration**: Logged notes are automatically synthesized by GPT-4o during pitch drafting and vibe re-evaluations to ensure pitches reflect insider scene awareness.

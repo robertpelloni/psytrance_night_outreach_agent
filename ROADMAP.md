@@ -408,6 +408,18 @@ Standardized JSON and CSV export endpoints and interface controls for booking ag
 - [x] Integrate "Export JSON" action on the conversion funnel card and "Export Itinerary JSON" inside `#tourModal`
 - [x] Add unit and integration tests (`tests/test_itinerary_export.py`)
 
+---
+
+### Phase 69: Unified Venue Notes & Curator Scene Intelligence (v1.1.99)
+
+In-situ venue scene intelligence, sound rig notes, and confidential promoter relationship logging directly within the unified dashboard queues.
+
+- [x] Implement interactive `#venueNotesModal` in `src/dashboard/templates/index.html` with real-time chronological intelligence feed
+- [x] Add quick-action `📝 Notes` buttons across pipeline cards to inspect and append confidential field notes
+- [x] Verify `POST /venue/<venue_id>/notes` and `GET /venue/<venue_id>/notes` dual-support for JSON AJAX payloads and standard form requests
+- [x] Validate frontend via Playwright script capturing interactive modal entry and timeline updates
+- [x] Add unit and integration test suite (`tests/test_dashboard_venue_notes.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.
