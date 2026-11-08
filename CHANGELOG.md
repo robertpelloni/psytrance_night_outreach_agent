@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [1.1.91] - 2026-11-05
+
+### Added
+- **Operator Feedback & Community Requests System (`database/schema.sql`, `src/db_manager.py`)**: Added `operator_feedback` table storing operator feedback, categories (Bug, Suggestion, Feature Request, Music/Vibe, Other), timestamps, and review status.
+- **In-App Feedback Modal & API Endpoints (`src/dashboard/app.py`, `src/dashboard/templates/index.html`)**: Added `POST /submit_feedback` endpoint and `GET /api/feedback` endpoint with a collective member submission modal in the unified navbar (`#feedbackModal`).
+- **Interactive Multi-Step Guided Onboarding Tour (`src/dashboard/templates/index.html`)**: Added a 5-step interactive onboarding tour (`#onboardingTourModal`) walking operators through pipeline queues, geographic routing, artist dossiers, scraper modules, and system health controls with dynamic progress tracking.
+- **Operator Feedback Dashboard UI (`src/dashboard/templates/index.html`)**: Added interactive table under System Health tab (`#tab-system`) displaying submitted feedback with category badges and timestamps.
+- **Feedback & Onboarding Test Suite (`tests/test_feedback_and_onboarding.py`)**: Unit and integration test suite verifying feedback database persistence, API responses, dashboard context injection, and validation constraints.
+
 ## [1.1.90] - 2026-11-05
 
 ### Added

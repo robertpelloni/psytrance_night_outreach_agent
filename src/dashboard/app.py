@@ -175,6 +175,9 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
     scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
     scraper_files = [f for f in os.listdir(scrapers_dir) if f.endswith('.py') and f not in ['__init__.py', 'base_scraper.py']]
 
+    # 7. Operator Feedback
+    operator_feedback = db.get_operator_feedback(limit=25)
+
     return {
         'active_tab': active_tab,
         'view': view,
@@ -200,7 +203,8 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
         'audit_trail': audit_trail,
         'ai_usage': ai_usage,
         'performance_report': performance_report,
-        'files': scraper_files
+        'files': scraper_files,
+        'operator_feedback': operator_feedback
     }
 
 @app.route('/')
@@ -1003,6 +1007,50 @@ def geocode_all_unlocated():
         "status": "success",
         "message": f"Initiated geocoding for {len(rows)} unlocated venues in background",
         "count": len(rows)
+    })
+
+@app.route("/submit_feedback", methods=["POST"])
+def submit_feedback():
+    """
+    Records in-app operator feedback, suggestions, or bug reports.
+    """
+    if request.is_json:
+        data = request.get_json() or {}
+        category = data.get("category", "General")
+        message = data.get("message", "").strip()
+        author = data.get("author", "Operator").strip()
+    else:
+        category = request.form.get("category", "General")
+        message = request.form.get("message", "").strip()
+        author = request.form.get("author", "Operator").strip()
+
+    if not message:
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Feedback message cannot be empty"}), 400
+        return redirect(url_for('index', tab='system'))
+
+    feedback_id = db.record_operator_feedback(category, message, author=author or 'Operator')
+    db.log_system_event('FEEDBACK', 'RECORDED', f"[{category}] from {author}: {message[:60]}")
+
+    if request.is_json:
+        return jsonify({
+            "status": "success",
+            "message": "Feedback submitted successfully. Thank you for tuning the collective engine!",
+            "feedback_id": feedback_id
+        })
+    return redirect(url_for('index', tab='system'))
+
+@app.route("/api/feedback", methods=["GET"])
+def get_feedback_api():
+    """
+    Returns recorded operator feedback for programmatic inspection or integration.
+    """
+    limit = request.args.get("limit", default=25, type=int)
+    feedbacks = db.get_operator_feedback(limit=limit)
+    return jsonify({
+        "status": "success",
+        "count": len(feedbacks),
+        "feedback": feedbacks
     })
 
 @app.route('/shutdown', methods=['POST'])

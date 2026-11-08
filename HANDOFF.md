@@ -100,8 +100,16 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.90
+- **Version**: 1.1.91
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), operator feedback review table, bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper
+
+### Session v1.1.91 — User Onboarding Tour & In-App Feedback Mechanism
+
+- **Operator Feedback Persistence**: Added `operator_feedback` table in SQLite schema (`database/schema.sql`) and `DatabaseManager` methods (`record_operator_feedback`, `get_operator_feedback`).
+- **In-App Feedback Modal & API**: Added `POST /submit_feedback` and `GET /api/feedback` endpoints in `src/dashboard/app.py` with an interactive collective member modal in `src/dashboard/templates/index.html`.
+- **Interactive Multi-Step Guided Tour**: Added 5-step onboarding walkthrough modal in `src/dashboard/templates/index.html` guiding new operators through pipeline queues, circuit routing, artist dossiers, scraper modules, and system controls with dynamic progress tracking.
+- **System Health Feedback History**: Embedded submitted operator suggestions and bugs into the System Health tab of the Unified Command Center.
+- **Validation**: Added unit and integration tests in `tests/test_feedback_and_onboarding.py` (4/4 passing) and visually verified UI via Playwright (`feedback_modal_ui.png`, `onboarding_tour_ui.png`).

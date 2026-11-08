@@ -143,3 +143,11 @@ CREATE TABLE IF NOT EXISTS email_tracking_events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
 );
+
+CREATE TABLE IF NOT EXISTS operator_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL, -- e.g. 'General', 'Vibe Calibration', 'Circuit Routing', 'Scrapers', 'Bug Report'
+    message TEXT NOT NULL,
+    author TEXT DEFAULT 'Operator',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

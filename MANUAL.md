@@ -331,3 +331,10 @@ Ensure accurate geographic circuit routing and venue cluster mapping:
 - **Reverse Address Details**: Automatically extracts street addresses, postal codes, and urban neighborhood/suburb classifications directly from raw Nominatim payloads.
 - **Geocode Missing Action**: Click **"📍 Geocode Missing"** on the Geographic Map tab to batch-resolve coordinates for unlocated venues asynchronously in the background.
 - **Precision Indicators**: Displays GPS Located vs. Unlocated status badges on venue dossiers with an on-demand "Geocode" trigger.
+
+## Operator Onboarding Walkthrough & Collective Feedback
+
+Ensure rapid onboarding for community curators and seamless feedback collection:
+- **Interactive Onboarding Tour**: Click **"🚀 Tour"** in the top navbar to launch a guided, multi-step walkthrough explaining the Outreach Queues, Geographic Map & Circuit Routing, Artist Profiles, Scraper Sources, and System Operations.
+- **In-App Feedback Modal**: Click **"💬 Feedback"** in the top navbar to submit bugs, feature ideas, music/vibe adjustments, or general operational notes. Submissions are saved to the persistent SQLite database.
+- **Feedback Audit Table**: Curators and system administrators can review feedback entries, sender names, categories, and timestamps under the **System Health & Sync Protocol** tab.

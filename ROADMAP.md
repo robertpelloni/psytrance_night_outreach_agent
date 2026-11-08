@@ -313,6 +313,18 @@ Automated discovery of underground electronic gatherings, music communities, and
 - [x] Wire into dynamic scraper loader (`main.py`) and Scraper Sources tab in Unified Command Center
 - [x] Add unit and integration test suite (`tests/test_meetup_scraper.py`)
 
+---
+
+### Phase 61: User Onboarding Tour & In-App Feedback Mechanism (v1.1.91)
+
+Interactive multi-step walkthrough tour for first-time operators and in-app feedback collection for community curators.
+
+- [x] Implement `operator_feedback` table and database persistence methods (`record_operator_feedback`, `get_operator_feedback`)
+- [x] Create in-app Feedback modal and submission endpoints (`POST /submit_feedback`, `GET /api/feedback`)
+- [x] Design interactive 5-step onboarding walkthrough (`#onboardingTourModal`) navigating through pipeline queues, circuit routing, artist dossiers, scraper sources, and system operations
+- [x] Embed operator feedback history table in the System Health tab of the Unified Command Center
+- [x] Add unit and integration test suite (`tests/test_feedback_and_onboarding.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

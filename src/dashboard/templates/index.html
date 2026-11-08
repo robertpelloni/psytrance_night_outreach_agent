@@ -84,6 +84,12 @@
                 <button id="nav-sync-btn" onclick="runSync()" class="btn btn-outline-secondary btn-sm" title="Trigger multi-branch intelligent git synchronization protocol">
                     🔄 Sync Repo
                 </button>
+                <button id="nav-tour-btn" onclick="startOnboardingTour()" class="btn btn-outline-warning btn-sm" data-bs-toggle="tooltip" title="Interactive guided walkthrough of the command center modules">
+                    🚀 Tour
+                </button>
+                <button id="nav-feedback-btn" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#feedbackModal" title="Share suggestions, report edge-cases, or request new scrapers">
+                    💬 Feedback
+                </button>
             </div>
         </div>
     </nav>
@@ -1053,6 +1059,46 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Operator Feedback & Community Requests -->
+                        <div class="card card-custom p-3 mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-white mb-0">💬 Operator Feedback & Community Requests</h5>
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                                    + Submit Feedback
+                                </button>
+                            </div>
+                            {% if operator_feedback %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Author</th>
+                                            <th>Feedback Message</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for fb in operator_feedback %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge {% if fb.category == 'Bug Report' %}bg-danger{% elif fb.category == 'Vibe Calibration' %}bg-warning text-dark{% elif fb.category == 'Circuit Routing' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                                    {{ fb.category }}
+                                                </span>
+                                            </td>
+                                            <td><small class="text-white-50">{{ fb.author }}</small></td>
+                                            <td><small class="text-white">{{ fb.message }}</small></td>
+                                            <td><small class="text-white-50">{{ fb.created_at }}</small></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-white-50 small mb-0">No operator feedback submitted yet. Use the Feedback button in the top navigation to submit notes!</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1128,6 +1174,77 @@
                         <button type="submit" class="btn btn-success btn-sm">Save & Run Qualification</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operator Feedback Modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-info">
+                <div class="modal-header border-info">
+                    <h5 class="modal-title">💬 Collective Engine Feedback & Requests</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="feedback-form" onsubmit="submitFeedbackForm(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Category*</label>
+                            <select id="fb-category" class="form-select bg-secondary text-white border-dark" required>
+                                <option value="General">General Suggestion</option>
+                                <option value="Vibe Calibration">Vibe Calibration / Culture Filter</option>
+                                <option value="Circuit Routing">Circuit Routing & Multi-City Tour</option>
+                                <option value="Scrapers">Scraper Source Request</option>
+                                <option value="UI / UX">UI / UX Improvement</option>
+                                <option value="Bug Report">Bug Report</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Operator / Collective Member Name</label>
+                            <input type="text" id="fb-author" class="form-control bg-secondary text-white border-dark" placeholder="e.g. Curator Alex, DJ PsyDetroit">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Feedback Message*</label>
+                            <textarea id="fb-message" class="form-control bg-secondary text-white border-dark" rows="4" required placeholder="Describe what can be tuned, enhanced, or added..."></textarea>
+                        </div>
+                        <div id="feedback-alert" class="alert d-none"></div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="fb-submit-btn" class="btn btn-info btn-sm">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Onboarding Guided Tour Modal -->
+    <div class="modal fade" id="onboardingTourModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title text-warning">🚀 Psytrance Night Outreach Agent — Interactive Walkthrough</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span id="tour-step-badge" class="badge bg-warning text-dark fs-6">Step 1 of 5</span>
+                        <div class="progress bg-secondary" style="width: 200px; height: 10px;">
+                            <div id="tour-progress" class="progress-bar bg-warning" style="width: 20%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="tour-content" class="p-3 bg-black rounded border border-secondary">
+                        <!-- Injected dynamically via script -->
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Exit Walkthrough</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="tour-prev-btn" onclick="prevTourStep()" class="btn btn-outline-info btn-sm" disabled>Previous</button>
+                        <button type="button" id="tour-next-btn" onclick="nextTourStep()" class="btn btn-warning btn-sm">Next Step</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1875,6 +1992,123 @@
                         Failed to calculate venue recommendations: ${err.message}
                     </div>
                 `;
+            }
+        }
+
+        // Feedback Submission
+        async function submitFeedbackForm(e) {
+            e.preventDefault();
+            const category = document.getElementById('fb-category').value;
+            const author = document.getElementById('fb-author').value;
+            const message = document.getElementById('fb-message').value;
+            const btn = document.getElementById('fb-submit-btn');
+            const alertEl = document.getElementById('feedback-alert');
+
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+            alertEl.className = 'alert d-none';
+
+            try {
+                const res = await fetch('/submit_feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, author, message })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alertEl.className = 'alert alert-success mt-3';
+                    alertEl.innerText = data.message;
+                    document.getElementById('fb-message').value = '';
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                        if (modal) modal.hide();
+                        alertEl.className = 'alert d-none';
+                        btn.disabled = false;
+                        btn.innerText = 'Submit Feedback';
+                    }, 1800);
+                } else {
+                    alertEl.className = 'alert alert-danger mt-3';
+                    alertEl.innerText = data.message || 'Submission failed';
+                    btn.disabled = false;
+                    btn.innerText = 'Submit Feedback';
+                }
+            } catch (err) {
+                alertEl.className = 'alert alert-danger mt-3';
+                alertEl.innerText = 'Network error submitting feedback: ' + err.message;
+                btn.disabled = false;
+                btn.innerText = 'Submit Feedback';
+            }
+        }
+
+        // Interactive Onboarding Tour
+        const tourSteps = [
+            {
+                title: "📋 Outreach Pipeline & Queues",
+                content: "Review AI-qualified venues and custom pitches generated under the 'Selector, Not Promoter' philosophy. Approve outreach for automated SMTP email or clipboard IG/FB DM dispatch."
+            },
+            {
+                title: "🗺️ Geographic Map & Tour Routing",
+                content: "Analyze venue clustering corridors across Detroit, Midwest hubs, and Toronto. Click 'Plan Midwest Circuit' to compute optimal driving circuits, cluster radii, and customs/ATA Carnet guidance."
+            },
+            {
+                title: "📊 Analytics & A/B Pitch Testing",
+                content: "Track conversion rates, email opens (via invisible 1x1 pixels), and link clicks in real-time. Evaluate statistical significance (chi-square) across dynamic pitch variants."
+            },
+            {
+                title: "⚙️ Collective Settings & Profiles",
+                content: "Configure target genres, acoustic sound system keywords (Funktion-One, Void, Danley), collective artist biographies, EPKs, and IMAP credentials."
+            },
+            {
+                title: "🖥️ System Health & Autonomous Scrapers",
+                content: "Monitor autonomous scraper modules (Google Maps, Resident Advisor, Eventbrite, Meetup), trigger dual-direction git syncs, and review community feedback."
+            }
+        ];
+
+        let currentTourStep = 0;
+
+        function startOnboardingTour() {
+            currentTourStep = 0;
+            renderTourStep();
+            const modal = new bootstrap.Modal(document.getElementById('onboardingTourModal'));
+            modal.show();
+        }
+
+        function renderTourStep() {
+            const step = tourSteps[currentTourStep];
+            document.getElementById('tour-step-badge').innerText = `Step ${currentTourStep + 1} of ${tourSteps.length}`;
+            const percent = ((currentTourStep + 1) / tourSteps.length) * 100;
+            document.getElementById('tour-progress').style.width = `${percent}%`;
+
+            document.getElementById('tour-content').innerHTML = `
+                <h5 class="text-warning mb-2">${step.title}</h5>
+                <p class="text-light mb-0 fs-6" style="line-height: 1.6;">${step.content}</p>
+            `;
+
+            document.getElementById('tour-prev-btn').disabled = (currentTourStep === 0);
+            const nextBtn = document.getElementById('tour-next-btn');
+            if (currentTourStep === tourSteps.length - 1) {
+                nextBtn.innerText = 'Finish Walkthrough 🎉';
+                nextBtn.className = 'btn btn-success btn-sm';
+            } else {
+                nextBtn.innerText = 'Next Step ➔';
+                nextBtn.className = 'btn btn-warning btn-sm';
+            }
+        }
+
+        function nextTourStep() {
+            if (currentTourStep < tourSteps.length - 1) {
+                currentTourStep++;
+                renderTourStep();
+            } else {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('onboardingTourModal'));
+                if (modal) modal.hide();
+            }
+        }
+
+        function prevTourStep() {
+            if (currentTourStep > 0) {
+                currentTourStep--;
+                renderTourStep();
             }
         }
     </script>

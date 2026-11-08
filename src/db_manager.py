@@ -456,6 +456,27 @@ class DatabaseManager:
             cursor = conn.execute(query, (limit,))
             return [dict(row) for row in cursor.fetchall()]
 
+    def record_operator_feedback(self, category, message, author=None):
+        """Records operator or collective feedback regarding dashboard and workflow."""
+        query = """
+        INSERT INTO operator_feedback (category, message, author)
+        VALUES (?, ?, ?)
+        """
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, (category, message, author or 'Operator'))
+            return cursor.lastrowid
+
+    def get_operator_feedback(self, limit=25):
+        """Retrieves recent operator feedback entries."""
+        query = "SELECT * FROM operator_feedback ORDER BY created_at DESC LIMIT ?"
+        try:
+            with self._get_connection() as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute(query, (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.OperationalError:
+            return []
+
     def record_tracking_event(self, lead_id, event_type, target_url=None, ip_address=None, user_agent=None):
         """Records an email open or click engagement event."""
         query = """

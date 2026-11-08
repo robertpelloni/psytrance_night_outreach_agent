@@ -189,3 +189,4 @@
 - [x] Expand geocoding to support full address parsing (v1.1.89)
 - [x] Add email open/click tracking (v1.1.88)
 - [ ] Add shared dashboard login for collective members
+- [x] Add user onboarding tour & in-app feedback mechanism (v1.1.91)
