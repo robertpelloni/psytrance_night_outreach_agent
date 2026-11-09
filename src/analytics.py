@@ -131,7 +131,45 @@ class AnalyticsEngine:
 
         raw_clusters = []
 
-        if str(method).lower() in ['hierarchical', 'agglomerative', 'hdbscan']:
+        if str(method).lower() in ['kmeans', 'k-means']:
+            if len(venues) < 2:
+                return []
+            # Spherical K-Means / Geographic Lloyd's Partitioning
+            # Determine K based on venue count and target cluster radius
+            k = max(2, min(len(venues), max(2, int(len(venues) / 3))))
+            # Seed centroids with diverse venues across the coordinate span
+            sorted_venues = sorted(venues, key=lambda v: (v['latitude'], v['longitude']))
+            step = max(1, len(sorted_venues) // k)
+            centroids = [{"lat": sorted_venues[i * step]['latitude'], "lon": sorted_venues[i * step]['longitude']} for i in range(k)]
+
+            # Run Lloyd's iterative assignment & update
+            for _ in range(20):
+                assignments = [[] for _ in range(k)]
+                for v in venues:
+                    # Assign to closest centroid by Haversine
+                    best_k = 0
+                    min_dist = float('inf')
+                    for c_idx, c in enumerate(centroids):
+                        d = haversine(v['latitude'], v['longitude'], c['lat'], c['lon'])
+                        if d < min_dist:
+                            min_dist = d
+                            best_k = c_idx
+                    assignments[best_k].append(v)
+
+                # Recompute centroids
+                changed = False
+                for c_idx in range(k):
+                    if assignments[c_idx]:
+                        new_lat = sum(v['latitude'] for v in assignments[c_idx]) / len(assignments[c_idx])
+                        new_lon = sum(v['longitude'] for v in assignments[c_idx]) / len(assignments[c_idx])
+                        if abs(new_lat - centroids[c_idx]['lat']) > 1e-4 or abs(new_lon - centroids[c_idx]['lon']) > 1e-4:
+                            centroids[c_idx] = {"lat": new_lat, "lon": new_lon}
+                            changed = True
+                if not changed:
+                    break
+
+            raw_clusters = [g for g in assignments if len(g) > 1]
+        elif str(method).lower() in ['hierarchical', 'agglomerative', 'hdbscan']:
             # Hierarchical Agglomerative Single-Linkage Clustering
             groups = [[v] for v in venues]
             while len(groups) > 1:

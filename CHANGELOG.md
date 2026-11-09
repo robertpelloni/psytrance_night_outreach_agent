@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.0] - 2026-11-08
+
+### Added
+- **Spherical K-Means Regional Tour Clustering (`src/analytics.py`)**: Added spherical K-Means / geographic Lloyd's partitioning (`AnalyticsEngine.get_venue_clusters(method='kmeans')`) clustering qualifying venues into dense regional touring hubs with iterative Haversine centroid updates and cluster boundary radius computations.
+- **Contextual Media Pack Routing & Category Badging (`src/tour_planner.py`)**: Enhanced `TourPlanner.compute_circuit_logistics()` to match media library assets from `config.json` against circuit routes, attributing explicit asset category badges (`Core Press`, `Live Audio`, `forest`, `ambient`, etc.).
+- **Regional Tour Route & Transit Orchestrator UI upgrades (`src/dashboard/templates/index.html`)**: Enhanced `#tourModal` with clustering strategy selection (`DBSCAN Proximity Clusters`, `Hierarchical Corridor Linkage`, `Spherical K-Means (Regional Tour Hubs)`) and media library pack links with category badges.
+- **K-Means Tour Clustering Automated Test Suite (`tests/test_kmeans_clustering.py`)**: Added tests verifying K-Means partitioning, empty database fallback, logistics calculation, media tag pairing, and `/plan_circuit` & `/api/tour/simulate_circuit` endpoints.
+
 ## [1.1.99] - 2026-11-08
 
 ### Added

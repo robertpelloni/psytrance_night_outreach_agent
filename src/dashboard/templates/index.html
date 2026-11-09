@@ -1495,6 +1495,7 @@
                                 <select id="tour-cluster-method" class="form-select form-select-sm bg-dark text-white border-secondary">
                                     <option value="dbscan" selected>DBSCAN / Radial Density (60 km)</option>
                                     <option value="hierarchical">Hierarchical Agglomerative (Transit Corridors)</option>
+                                    <option value="kmeans">Spherical K-Means (Regional Tour Hubs)</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -2009,8 +2010,8 @@
                         if (mediaCont && mediaLinks && data.logistics.paired_media && data.logistics.paired_media.length > 0) {
                             mediaCont.classList.remove('d-none');
                             mediaLinks.innerHTML = data.logistics.paired_media.map(m => `
-                                <a href="${m.url}" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none py-2 px-3">
-                                    🎵 ${m.title}
+                                <a href="${m.url}" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none py-2 px-3 d-inline-flex align-items-center gap-1">
+                                    🎵 ${m.title} ${m.tag ? `<span class="badge bg-info text-black ms-1" style="font-size:0.7rem;">${m.tag}</span>` : ''}
                                 </a>
                             `).join('');
                         }

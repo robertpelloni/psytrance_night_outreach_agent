@@ -114,13 +114,31 @@ class TourPlanner:
         rest_days = max(1, math.ceil(total_dist / 400.0)) if total_dist > 250 else 0
         carbon_kg = round(total_dist * 0.17, 1)
 
-        # Contextual media matching
+        # Contextual media matching & library alignment
         identity_info = self.ai._get_identity_context(artist_id=artist_id)
         paired_media = []
         if identity_info.get("epk_link"):
-            paired_media.append({"title": "Electronic Press Kit (EPK)", "url": identity_info["epk_link"]})
+            paired_media.append({"title": "Electronic Press Kit (EPK)", "url": identity_info["epk_link"], "tag": "Core Press"})
         if identity_info.get("mix_link"):
-            paired_media.append({"title": "Headline Live Mix", "url": identity_info["mix_link"]})
+            paired_media.append({"title": "Headline Live Mix", "url": identity_info["mix_link"], "tag": "Live Audio"})
+
+        # Match relevant media library items from configuration
+        try:
+            from src.config_manager import ConfigManager
+            cfg = ConfigManager()
+            media_lib = cfg.get("media_library") or []
+            for item in media_lib:
+                item_name = item.get("name")
+                item_url = item.get("url")
+                item_tags = item.get("tags", [])
+                if item_url and item_name and not any(m["url"] == item_url for m in paired_media):
+                    paired_media.append({
+                        "title": item_name,
+                        "url": item_url,
+                        "tag": item_tags[0] if item_tags else "Showcase Asset"
+                    })
+        except Exception:
+            pass
 
         return {
             "total_distance_km": round(total_dist, 1),

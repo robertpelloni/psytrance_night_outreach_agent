@@ -1,9 +1,13 @@
-# HANDOFF - v1.1.98
+# HANDOFF - v1.2.0
 
 ## Session Summary
 
-This session advanced the platform through Milestones v1.1.96, v1.1.97, and v1.1.98:
-1. **Venue Touring Dossier JSON & Itinerary Export (v1.1.98)**: Added `export_leads_json()` and `export_circuit_itinerary_json()` in `src/analytics.py`, and enriched `compute_circuit_logistics()` in `src/tour_planner.py` to calculate drive hours, rest days, carbon emissions, and paired media for tour stops.
+This session advanced the platform through Milestones v1.1.99 and v1.2.0:
+1. **Spherical K-Means Regional Tour Clustering (v1.2.0)**: Built `AnalyticsEngine.get_venue_clusters(method='kmeans')` with Haversine distance metric and iterative Lloyd's centroid updates, grouping qualifying circuit venues into balanced regional tour hubs with geographic centroids and boundary radii.
+2. **Contextual Media Matching & Category Badging (v1.2.0)**: Enhanced `TourPlanner.compute_circuit_logistics()` to dynamically pair media pack assets defined in `config.json` with tour circuits, assigning styled category tags (`Core Press`, `Live Audio`, `forest`, `ambient`, etc.).
+3. **Tour Orchestrator UI Enhancements (v1.2.0)**: Updated `#tourModal` in `src/dashboard/templates/index.html` with clustering algorithm selector (`DBSCAN Proximity Clusters`, `Hierarchical Corridor Linkage`, `Spherical K-Means (Regional Tour Hubs)`) and media library badges.
+4. **Unified Venue Notes & Curator Scene Intelligence Modal (v1.1.99)**: Integrated `#venueNotesModal` directly in `src/dashboard/templates/index.html` allowing curators and tour operators to log sound rig details, curfew limitations, and promoter relationship notes without leaving pipeline queue views.
+5. **Venue Touring Dossier JSON & Itinerary Export (v1.1.98)**: Added `export_leads_json()` and `export_circuit_itinerary_json()` in `src/analytics.py`, and enriched `compute_circuit_logistics()` in `src/tour_planner.py` to calculate drive hours, rest days, carbon emissions, and paired media for tour stops.
 2. **Tour Manifest REST Endpoints & UI Actions (v1.1.98)**: Added `GET /export_leads_json` and `POST /export_circuit_itinerary` endpoints in `src/dashboard/app.py`. Added "Export JSON" button on the Conversion Funnel card and "Export Itinerary JSON" client-side download in `#tourModal`.
 3. **Outreach Timing Matrix & Response Velocity Analytics (v1.1.97)**: Built `AnalyticsEngine.get_activity_heatmap()` in `src/analytics.py` aggregating outreach dispatches and inbound venue replies across a 7x24 temporal grid (Day of Week vs Hour of Day) to calculate engagement intensity and identify the highest-converting promoter outreach windows.
 4. **Timing Matrix REST API & Dashboard Integration (v1.1.97)**: Exposed `GET /api/analytics/activity_heatmap` in `src/dashboard/app.py` and embedded a responsive 7x24 heatmap grid in the Analytics & A/B Engine tab of `src/dashboard/templates/index.html`, complete with density color-coding, tooltips showing hourly breakdowns, and an optimal dispatch window indicator.
@@ -108,9 +112,9 @@ This session advanced the platform across multiple key milestones:
 
 ## Current State
 
-- **Version**: 1.1.98
+- **Version**: 1.2.0
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, venue touring dossier JSON & itinerary manifest export, outreach timing matrix & response velocity 7x24 heatmap, collaborative filtering contingency pitch generator, acoustic rig weighting, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, spherical K-Means regional tour clustering, media library pack links with category badges, unified venue notes & scene intelligence timeline modal (`#venueNotesModal`), venue touring dossier JSON & itinerary manifest export, outreach timing matrix & response velocity 7x24 heatmap, collaborative filtering contingency pitch generator, acoustic rig weighting, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
 - **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth, Facebook Events scraper
 

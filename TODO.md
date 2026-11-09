@@ -169,6 +169,11 @@
 - [x] Tour circuit itinerary JSON manifest export with waypoints and logistics (v1.1.98)
 - [x] Export triggers in conversion funnel action bar and tour modal (v1.1.98)
 - [x] Automated Integration Test Suite for Itinerary & Lead Exports (v1.1.98)
+- [x] Unified venue notes modal & scene intelligence feed across pipeline queues (v1.1.99)
+- [x] Automated Integration Test Suite for Dashboard Venue Notes Modal (v1.1.99)
+- [x] Spherical K-Means regional tour clustering algorithm & dynamic centroid updates (v1.2.0)
+- [x] Contextual media asset matching with styled category badges in tour logistics (v1.2.0)
+- [x] Automated Integration Test Suite for K-Means Tour Clustering (v1.2.0)
 
 ---
 

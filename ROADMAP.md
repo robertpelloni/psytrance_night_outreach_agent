@@ -420,6 +420,19 @@ In-situ venue scene intelligence, sound rig notes, and confidential promoter rel
 - [x] Validate frontend via Playwright script capturing interactive modal entry and timeline updates
 - [x] Add unit and integration test suite (`tests/test_dashboard_venue_notes.py`)
 
+---
+
+### Phase 70: Spherical K-Means Tour Clustering & Enhanced Media Matching (v1.2.0)
+
+Partition-based regional tour clustering using spherical geometry and contextual media pack pairing.
+
+- [x] Implement Spherical K-Means / geographic Lloyd's partitioning in `AnalyticsEngine.get_venue_clusters(method='kmeans')`
+- [x] Dynamic Haversine centroid updates and cluster radius computation for balanced regional hubs
+- [x] Enhance `TourPlanner.compute_circuit_logistics()` with media asset category classification (`Core Press`, `Live Audio`, `forest`, `ambient`)
+- [x] Wire K-Means clustering selector and styled media library badges into `#tourModal` in `src/dashboard/templates/index.html`
+- [x] Validate modal frontend changes and clustering recalculation via Playwright script
+- [x] Add comprehensive unit and integration test suite (`tests/test_kmeans_clustering.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

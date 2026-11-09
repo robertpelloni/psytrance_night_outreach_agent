@@ -375,3 +375,11 @@ Log and review field notes directly within pipeline workflows:
 - **Interactive Scene Intelligence Modal**: Enter confidential notes (sound rig updates, door policies, promoter relationship insights) with an author tag.
 - **Real-Time Chronological Feed**: Submissions immediately appear in the venue's live intelligence timeline without refreshing the page.
 - **AI Integration**: Logged notes are automatically synthesized by GPT-4o during pitch drafting and vibe re-evaluations to ensure pitches reflect insider scene awareness.
+
+## Spherical K-Means Regional Tour Clustering & Media Matching (v1.2.0)
+
+Partition regional touring markets into balanced, dense tour hubs with tailored media packs:
+- **Clustering Strategy Options**: Choose between `DBSCAN Proximity Clusters`, `Hierarchical Corridor Linkage`, and `Spherical K-Means (Regional Tour Hubs)` in the Tour Modal (`#tourModal`).
+- **Spherical Geometry & Centroids**: Utilizes spherical Haversine distances and Lloyd's iterative partitioning to locate balanced regional tour hubs with geographic centroids and boundary radii.
+- **Media Pack Category Badging**: Automatically pairs tour stops with media assets defined in `config.json` (EPKs, sound mixes, video clips) displaying category badges (`Core Press`, `Live Audio`, `forest`, `ambient`).
+- **Transit Logistics Calculation**: Recalculates total driving distance (km), travel hours (85 km/h), rest day requirements, and estimated vehicle carbon footprint (0.17 kg CO2/km) dynamically.
