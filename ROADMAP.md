@@ -433,6 +433,19 @@ Partition-based regional tour clustering using spherical geometry and contextual
 - [x] Validate modal frontend changes and clustering recalculation via Playwright script
 - [x] Add comprehensive unit and integration test suite (`tests/test_kmeans_clustering.py`)
 
+---
+
+### Phase 71: Facebook Events Discovery Scraper (v1.2.1)
+
+Public Facebook events scouting for underground gatherings and non-commercial music venues.
+
+- [x] Implement `FacebookEventsWebScraper` in `src/scrapers/facebook_events.py` inheriting from `BaseScraper`
+- [x] Schema.org JSON-LD event parsing and fallback HTML card extraction
+- [x] Proxy and User-Agent rotation with rate-limit retry resilience
+- [x] Dynamic loader integration into `main.py` query-based scrapers
+- [x] Real-time scraper status indicator in Scraper Sources dashboard tab
+- [x] Add comprehensive test suite (`tests/test_facebook_scraper.py`)
+
 ## Backlog / Future Ideas
 
 See [IDEAS.md](IDEAS.md) for unconstrained future feature ideas.

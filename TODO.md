@@ -174,6 +174,8 @@
 - [x] Spherical K-Means regional tour clustering algorithm & dynamic centroid updates (v1.2.0)
 - [x] Contextual media asset matching with styled category badges in tour logistics (v1.2.0)
 - [x] Automated Integration Test Suite for K-Means Tour Clustering (v1.2.0)
+- [x] Facebook Events nightlife & electronic music discovery scraper (v1.2.1)
+- [x] Automated Integration Test Suite for Facebook Events Scraper (v1.2.1)
 
 ---
 
@@ -206,7 +208,7 @@
 - [x] Implement DBSCAN dynamic density & transit clustering metrics (v1.1.85)
 - [x] Add Eventbrite nightlife discovery scraper (v1.1.87)
 - [x] Add Meetup scraper (v1.1.90)
-- [ ] Add Facebook Events scraper
+- [x] Add Facebook Events scraper (v1.2.1)
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
 - [x] Add collaborative filtering (if rejected at A, suggest B) (v1.1.86)
 - [x] Add Midwest acoustic rig collaborative filtering & contingency pitching (v1.1.96)

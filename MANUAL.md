@@ -383,3 +383,10 @@ Partition regional touring markets into balanced, dense tour hubs with tailored 
 - **Spherical Geometry & Centroids**: Utilizes spherical Haversine distances and Lloyd's iterative partitioning to locate balanced regional tour hubs with geographic centroids and boundary radii.
 - **Media Pack Category Badging**: Automatically pairs tour stops with media assets defined in `config.json` (EPKs, sound mixes, video clips) displaying category badges (`Core Press`, `Live Audio`, `forest`, `ambient`).
 - **Transit Logistics Calculation**: Recalculates total driving distance (km), travel hours (85 km/h), rest day requirements, and estimated vehicle carbon footprint (0.17 kg CO2/km) dynamically.
+
+## Facebook Events Discovery Scraper (v1.2.1)
+
+Discover underground electronic music gatherings and nightlife venues from public Facebook Events:
+- **Dynamic Query Discovery**: Scrapes public Facebook Event search listings for target cities and music subgenres (`psytrance`, `techno`, etc.).
+- **Structured Schema & Fallback**: Extracts venue names, physical addresses, and event descriptions from schema.org JSON-LD scripts and HTML card elements with proxy rotation.
+- **Status Monitoring**: Operational alongside other scrapers under the **Scraper Sources** tab in the Unified Command Center (`facebook_events.py`).

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.1] - 2026-11-08
+
+### Added
+- **Facebook Events Discovery Scraper (`src/scrapers/facebook_events.py`)**: Implemented `FacebookEventsWebScraper` inheriting from `BaseScraper` to scrape public electronic and psytrance music events from Facebook search listings.
+- **Structured Schema & Fallback Extraction**: Extracts venue names, street addresses, and event descriptions from schema.org `Event`/`MusicEvent` JSON-LD scripts and HTML event card components with `ProxyRotator` and `UserAgentRotator` protection.
+- **Dynamic Scraper Discovery**: Automatically loaded by `load_scrapers()` in `main.py` into query-based scrapers and displayed as an operational module in the Scraper Sources tab of the Unified Command Center (`facebook_events.py`).
+- **Facebook Events Scraper Test Suite (`tests/test_facebook_scraper.py`)**: Added unit and integration tests verifying schema JSON-LD parsing, HTML card parsing, rate-limit backoff resilience, and dynamic loading.
+
 ## [1.2.0] - 2026-11-08
 
 ### Added
