@@ -143,6 +143,39 @@
 - [x] Automated Integration Test Suite for Circuit Optimizer (v1.1.82)
 - [x] Venue notes & confidential curator annotations system (v1.1.83)
 - [x] Automated Integration Test Suite for Venue Notes (v1.1.83)
+- [x] Ingest curator annotations into AI pitch generation and vibe check prompts (v1.1.84)
+- [x] Automated Integration Test Suite for Notes Injection into Pitch Prompts (v1.1.84)
+- [x] Visual aesthetic vibe scoring & GPT-4o-vision pipeline integration (v1.1.92)
+- [x] On-demand visual re-analysis API endpoint and venue dossier aesthetic badge (v1.1.92)
+- [x] Automated Integration Test Suite for Visual Vibe Qualification (v1.1.92)
+- [x] Operator feedback triage & resolution lifecycle workflow (v1.1.93)
+- [x] Inline feedback triage actions and status badges on System Health tab (v1.1.93)
+- [x] Automated Integration Test Suite for Feedback Triage (v1.1.93)
+- [x] Command Center automated test suite expansion across all modal controls (v1.1.94)
+- [x] Playwright visual layout inspection and screenshot verification of consolidated Map tab (v1.1.94)
+- [x] Hierarchical agglomerative clustering & transit corridor analytics (v1.1.95)
+- [x] Circuit transit distance, drive hours, rest days, and CO2 calculation (v1.1.95)
+- [x] Tour modal logistics strip and simulation controls (v1.1.95)
+- [x] Automated Integration Test Suite for Enhanced Tour Routing (v1.1.95)
+- [x] Collaborative filtering Midwest scene acoustic weighting & sound system rigs (v1.1.96)
+- [x] Contingency pitch generation for sibling alternative venues (v1.1.96)
+- [x] Interactive contingency pitch preview and dispatch in recommendations modal (v1.1.96)
+- [x] Automated Integration Test Suite for Collaborative Filtering Contingency Pitching (v1.1.96)
+- [x] Outreach Timing Matrix & Response Velocity 7x24 heatmap analytics (v1.1.97)
+- [x] Peak promoter dispatch window detection and REST API endpoint (v1.1.97)
+- [x] Interactive heatmap UI grid on Analytics tab (v1.1.97)
+- [x] Automated Integration Test Suite for Activity Heatmap (v1.1.97)
+- [x] Structured lead dossier JSON export with acoustics and contacts (v1.1.98)
+- [x] Tour circuit itinerary JSON manifest export with waypoints and logistics (v1.1.98)
+- [x] Export triggers in conversion funnel action bar and tour modal (v1.1.98)
+- [x] Automated Integration Test Suite for Itinerary & Lead Exports (v1.1.98)
+- [x] Unified venue notes modal & scene intelligence feed across pipeline queues (v1.1.99)
+- [x] Automated Integration Test Suite for Dashboard Venue Notes Modal (v1.1.99)
+- [x] Spherical K-Means regional tour clustering algorithm & dynamic centroid updates (v1.2.0)
+- [x] Contextual media asset matching with styled category badges in tour logistics (v1.2.0)
+- [x] Automated Integration Test Suite for K-Means Tour Clustering (v1.2.0)
+- [x] Facebook Events nightlife & electronic music discovery scraper (v1.2.1)
+- [x] Automated Integration Test Suite for Facebook Events Scraper (v1.2.1)
 
 ---
 
@@ -169,15 +202,26 @@
 ## 🟢 Medium Priority
 
 - [x] Add monthly/weekly email digest of pipeline activity (v1.1.81)
-- [ ] Add Facebook Events / Eventbrite / Meetup scrapers
+- [x] Add Detroit underground vibe calibration & Midwest-Toronto circuit optimization (v1.1.82)
+- [x] Add venue curator notes & field intelligence table/UI (v1.1.83)
+- [x] Inject curator notes into AI pitch & vibe re-evaluation engine (v1.1.84)
+- [x] Implement DBSCAN dynamic density & transit clustering metrics (v1.1.85)
+- [x] Add Eventbrite nightlife discovery scraper (v1.1.87)
+- [x] Add Meetup scraper (v1.1.90)
+- [x] Add Facebook Events scraper (v1.2.1)
 - [x] Add venue comparison view (side-by-side) (v1.1.80)
-- [ ] Add collaborative filtering (if rejected at A, suggest B)
+- [x] Add collaborative filtering (if rejected at A, suggest B) (v1.1.86)
+- [x] Add Midwest acoustic rig collaborative filtering & contingency pitching (v1.1.96)
+- [x] Implement 7x24 temporal outreach timing heatmap & dispatch velocity analytics (v1.1.97)
+- [x] Add venue dossier JSON export & multi-city circuit itinerary manifest (v1.1.98)
+- [x] Add unified venue notes modal & scene intelligence feed to pipeline queues (v1.1.99)
 
 ---
 
 ## 🔵 Low Priority
 
 - [ ] Add video analysis in venue qualification
-- [ ] Expand geocoding to support full address parsing
-- [ ] Add email open/click tracking
+- [x] Expand geocoding to support full address parsing (v1.1.89)
+- [x] Add email open/click tracking (v1.1.88)
 - [ ] Add shared dashboard login for collective members
+- [x] Add user onboarding tour & in-app feedback mechanism (v1.1.91)

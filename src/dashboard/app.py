@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+import urllib.parse
+import base64
 import sqlite3
 import sys
 import os
 import subprocess
 import json
 import signal
+import threading
 
 # Add the parent directory to sys.path to allow absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -19,6 +22,7 @@ from src.config_manager import ConfigManager
 from src.reliability_monitor import ReliabilityMonitor
 from src.tour_planner import TourPlanner
 from src.outreach_predictor import OutreachPredictor
+from src.recommendation_engine import RecommendationEngine
 from src.outreach_engine import OutreachEngine
 from src.inbox_monitor import InboxMonitor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -33,6 +37,7 @@ mailer = Mailer()
 generator = ScraperGenerator()
 analytics = AnalyticsEngine(db_path=db_path)
 sentiment_analyzer = SentimentAnalyzer(db_path=db_path)
+recommendation_engine = RecommendationEngine(db_manager=db)
 config_mgr = ConfigManager()
 reliability = ReliabilityMonitor(db_path=db_path)
 planner = TourPlanner(db_path=db_path)
@@ -119,6 +124,8 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
                 lead['traits_dict'] = json.loads(lead['extracted_traits'])
             except:
                 lead['traits_dict'] = {}
+        # Fetch email tracking engagement summary
+        lead['engagement'] = db.get_lead_tracking_summary(lead['id'])
 
     unmatched = db.get_unmatched_replies() if view == 'history' or active_tab in ['pipeline', 'analytics'] else []
     artists = db.list_artists()
@@ -129,11 +136,20 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
 
     # 3. Analytics & A/B Testing
     stats = analytics.get_summary_stats()
+    engagement_stats = db.get_overall_engagement_stats()
     approval_rate = analytics.get_approval_rate()
     variant_stats = analytics.get_variant_stats()
     funnel = analytics.get_conversion_funnel()
     health = analytics.get_scene_health()
     timeline = analytics.get_outreach_timeline()
+    try:
+        activity_heatmap = analytics.get_activity_heatmap()
+    except Exception as e:
+        activity_heatmap = {
+            "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            "matrix": [[0]*24 for _ in range(7)],
+            "best_window": {"description": "Tuesday at 2:00 PM"}
+        }
 
     # 4. Settings & Media Library
     current_config = config_mgr.load_config()
@@ -167,6 +183,9 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
     scrapers_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src/scrapers'))
     scraper_files = [f for f in os.listdir(scrapers_dir) if f.endswith('.py') and f not in ['__init__.py', 'base_scraper.py']]
 
+    # 7. Operator Feedback
+    operator_feedback = db.get_operator_feedback(limit=25)
+
     return {
         'active_tab': active_tab,
         'view': view,
@@ -176,11 +195,13 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
         'venues': venues,
         'clusters': clusters,
         'stats': stats,
+        'engagement_stats': engagement_stats,
         'approval_rate': approval_rate,
         'variant_stats': variant_stats,
         'funnel': funnel,
         'health': health,
         'timeline': timeline,
+        'activity_heatmap': activity_heatmap,
         'config': current_config,
         'version': version,
         'git_info': git_info,
@@ -191,7 +212,8 @@ def get_full_dashboard_context(active_tab='pipeline', view='pending'):
         'audit_trail': audit_trail,
         'ai_usage': ai_usage,
         'performance_report': performance_report,
-        'files': scraper_files
+        'files': scraper_files,
+        'operator_feedback': operator_feedback
     }
 
 @app.route('/')
@@ -213,6 +235,8 @@ def venue_detail(venue_id):
 
     for lead in leads:
         lead['replies'] = db.get_lead_replies(lead['id'])
+        lead['tracking_events'] = db.get_lead_tracking_events(lead['id'])
+        lead['engagement'] = db.get_lead_tracking_summary(lead['id'])
 
     query = "SELECT * FROM venue_contacts WHERE venue_id = ?"
     with db._get_connection() as conn:
@@ -295,6 +319,23 @@ def export_leads():
         headers={"Content-disposition": "attachment; filename=outreach_leads.csv"}
     )
 
+@app.route('/export_leads_json')
+def export_leads_json():
+    """Exports all leads and venue metadata as structured JSON."""
+    leads_data = analytics.export_leads_json()
+    return jsonify(leads_data)
+
+@app.route('/export_circuit_itinerary', methods=['POST'])
+def export_circuit_itinerary():
+    """Exports a multi-city touring circuit itinerary as a JSON manifest."""
+    try:
+        data = request.get_json() or {}
+        cluster_venues = data.get('venues', [])
+        itinerary = analytics.export_circuit_itinerary_json(cluster_venues)
+        return jsonify({"status": "success", "itinerary": itinerary})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/map')
 def show_map():
     ctx = get_full_dashboard_context(active_tab='map', view='pending')
@@ -311,11 +352,34 @@ def plan_tour(cluster_index):
 
 @app.route('/plan_circuit')
 def plan_circuit():
-    recommendation = planner.plan_optimized_tour(cluster_index=None)
-    route = planner.get_circuit_route() if hasattr(planner, 'get_circuit_route') else []
+    method = request.args.get('method', 'dbscan')
+    min_vibe = float(request.args.get('min_vibe', 6.5))
+    artist_id = request.args.get('artist_id')
+    recommendation = planner.plan_optimized_tour(cluster_index=None, min_vibe=min_vibe, artist_id=artist_id)
+    route = planner.get_circuit_route(method=method, min_vibe=min_vibe) if hasattr(planner, 'get_circuit_route') else []
+    logistics = planner.compute_circuit_logistics(route_clusters=route, method=method, min_vibe=min_vibe, artist_id=artist_id) if hasattr(planner, 'compute_circuit_logistics') else {}
     return jsonify({
         "recommendation": recommendation,
-        "route": route
+        "route": route,
+        "logistics": logistics
+    })
+
+@app.route('/api/tour/simulate_circuit', methods=['POST'])
+def simulate_circuit():
+    """Simulates multi-segment tour logistics with customizable clustering strategy."""
+    data = request.get_json(silent=True) or {}
+    method = data.get('method', 'dbscan')
+    min_vibe = float(data.get('min_vibe', 6.5))
+    artist_id = data.get('artist_id')
+
+    route = planner.get_circuit_route(method=method, min_vibe=min_vibe)
+    logistics = planner.compute_circuit_logistics(route_clusters=route, method=method, min_vibe=min_vibe, artist_id=artist_id)
+    return jsonify({
+        "status": "success",
+        "method": method,
+        "min_vibe": min_vibe,
+        "route": route,
+        "logistics": logistics
     })
 
 @app.route('/dispatch_circuit', methods=['POST'])
@@ -403,6 +467,29 @@ def fetch_replies():
             "count": count,
             "message": f"Processed {count} new replies."
         })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+@app.route('/api/recommendations/pitch/<target_id>/<alt_id>', methods=['POST'])
+def generate_recommendation_contingency_pitch(target_id, alt_id):
+    """
+    Generates a tailored contingency pitch to an alternative venue when a lead is stalled or rejected.
+    """
+    data = request.get_json(silent=True) or {}
+    artist_id = data.get('artist_id')
+
+    try:
+        rec_engine = RecommendationEngine(db_manager=db)
+        result = rec_engine.generate_contingency_pitch(
+            target_venue_id=str(target_id),
+            alt_venue_id=str(alt_id),
+            ai_engine=ai,
+            artist_id=artist_id
+        )
+        return jsonify(result)
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -548,7 +635,8 @@ def approve(lead_id):
     if contact and contact[0]:
         email = contact[0].split(',')[0].strip()
         subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
-        if mailer.send_email(email, subject, pitch):
+        base_url = request.host_url.rstrip('/')
+        if mailer.send_email(email, subject, pitch, lead_id=lead_id, base_url=base_url):
             db.update_lead_status(lead_id, 'SENT')
     return redirect(url_for('index'))
 
@@ -574,8 +662,9 @@ def bulk_action():
         return redirect(request.referrer or url_for('index'))
 
     lead_ids = [int(i) for i in lead_ids if str(i).isdigit()]
+    host_base_url = request.host_url.rstrip('/') if request else "http://127.0.0.1:5000"
 
-    def process_batch(ids, act):
+    def process_batch(ids, act, base_url=host_base_url):
         primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
         for lid in ids:
             try:
@@ -585,6 +674,7 @@ def bulk_action():
                     pitch = lead.get('generated_pitch')
                     if not pitch:
                         venue = db.get_venue(lead['venue_id'])
+                        notes = db.get_venue_notes(lead['venue_id'])
                         pitch = ai.generate_pitch(
                             venue['name'],
                             lead['qualification_justification'],
@@ -592,7 +682,8 @@ def bulk_action():
                             mix_link=config_mgr.get("mix_link"),
                             traits=venue.get('extracted_traits'),
                             media_library=config_mgr.get("media_library"),
-                            genre=primary_genre
+                            genre=primary_genre,
+                            notes=notes
                         )
                     db.update_lead_status(lid, 'APPROVED', pitch=pitch)
                     query = "SELECT email FROM venue_contacts WHERE venue_id = ?"
@@ -602,7 +693,7 @@ def bulk_action():
                     if contact and contact[0]:
                         email = contact[0].split(',')[0].strip()
                         subject = f"Proposal for {primary_genre.capitalize()} Night Residency"
-                        if mailer.send_email(email, subject, pitch):
+                        if mailer.send_email(email, subject, pitch, lead_id=lid, base_url=base_url):
                             db.update_lead_status(lid, 'SENT')
                 elif act == 'reject':
                     db.update_lead_status(lid, 'REJECTED')
@@ -721,6 +812,73 @@ def send_digest():
     result = generator.dispatch_digest(recipient_email=recipient, days=days)
     return jsonify(result)
 
+# 1x1 Transparent GIF binary for email open tracking
+TRANSPARENT_GIF_PIXEL = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+
+@app.route('/track/open/<int:lead_id>.gif')
+def track_email_open(lead_id):
+    """Logs email open tracking event and serves a non-cached 1x1 transparent GIF."""
+    ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.user_agent.string if request.user_agent else "Unknown"
+
+    try:
+        db.record_tracking_event(lead_id, 'OPEN', ip_address=ip_addr, user_agent=user_agent)
+    except Exception as e:
+        print(f"Error logging email open for lead {lead_id}: {e}")
+
+    resp = Response(TRANSPARENT_GIF_PIXEL, mimetype='image/gif')
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+@app.route('/track/click/<int:lead_id>')
+def track_email_click(lead_id):
+    """Logs email link click event and redirects to destination URL."""
+    target_url = request.args.get('url', '/')
+    ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.user_agent.string if request.user_agent else "Unknown"
+
+    try:
+        db.record_tracking_event(lead_id, 'CLICK', target_url=target_url, ip_address=ip_addr, user_agent=user_agent)
+    except Exception as e:
+        print(f"Error logging email click for lead {lead_id}: {e}")
+
+    # Prevent open redirect vulnerabilities: ensure valid scheme
+    if target_url.startswith('http://') or target_url.startswith('https://'):
+        return redirect(target_url, code=302)
+    return redirect(url_for('index'), code=302)
+
+@app.route('/recommend_venues/<venue_id>', methods=['GET'])
+def recommend_venues(venue_id):
+    """
+    Returns collaborative filtering recommendations for alternative venues
+    sharing traits, acoustic capabilities, or geographical proximity.
+    """
+    limit = request.args.get('limit', default=5, type=int)
+    min_score = request.args.get('min_score', default=0.15, type=float)
+    exclude_rejected = request.args.get('exclude_rejected', default='true').lower() == 'true'
+
+    try:
+        rec_engine = RecommendationEngine(db_manager=db)
+        recommendations = rec_engine.get_recommendations(
+            target_venue_id=str(venue_id),
+            limit=limit,
+            min_score=min_score,
+            exclude_rejected=exclude_rejected
+        )
+        return jsonify({
+            "status": "success",
+            "target_venue_id": venue_id,
+            "count": len(recommendations),
+            "recommendations": recommendations
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @app.route('/requalify/<int:lead_id>', methods=['POST'])
 def requalify(lead_id):
     lead = db.get_lead(lead_id)
@@ -743,6 +901,7 @@ def requalify(lead_id):
     pitch = lead['generated_pitch']
     if new_status == 'PENDING_REVIEW' and not pitch:
         traits = venue.get('extracted_traits', '{}')
+        notes = db.get_venue_notes(venue['id'])
         pitch = ai.generate_pitch(
             venue['name'],
             vibe_result['justification'],
@@ -750,7 +909,8 @@ def requalify(lead_id):
             mix_link=config_mgr.get("mix_link"),
             traits=traits,
             media_library=config_mgr.get("media_library"),
-            genre=lead.get('qualified_genre', primary_genre)
+            genre=lead.get('qualified_genre', primary_genre),
+            notes=notes
         )
 
     query = "UPDATE outreach_leads SET vibe_score = ?, qualification_justification = ?, pipeline_status = ?, generated_pitch = ? WHERE id = ?"
@@ -769,6 +929,7 @@ def regenerate(lead_id):
     artist_id = request.json.get('artist_id') if request.is_json else request.form.get('artist_id')
 
     primary_genre = (config_mgr.get("target_genres") or ["psytrance"])[0]
+    notes = db.get_venue_notes(venue['id'])
     new_pitch = ai.generate_pitch(
         venue['name'],
         lead['qualification_justification'],
@@ -777,7 +938,8 @@ def regenerate(lead_id):
         traits=venue.get('extracted_traits'),
         media_library=config_mgr.get("media_library"),
         genre=primary_genre,
-        artist_id=artist_id
+        artist_id=artist_id,
+        notes=notes
     )
     return jsonify({"pitch": new_pitch})
 
@@ -844,6 +1006,196 @@ def pending_follow_ups():
 def approve_follow_up(lead_id):
     db.update_lead_status(lead_id, 'FOLLOW_UP_APPROVED')
     return redirect(url_for('pending_follow_ups'))
+
+@app.route("/geocode_venue/<venue_id>", methods=["POST"])
+def geocode_venue_endpoint(venue_id):
+    """
+    Re-geocodes and enriches an existing venue with high-precision coordinates and address parsing.
+    """
+    venue = db.get_venue(venue_id)
+    if not venue:
+        return jsonify({"status": "error", "message": "Venue not found"}), 404
+
+    from src.geocoding import GeocodingUtility
+    geocoder = GeocodingUtility()
+    enrichment = geocoder.parse_and_enrich_venue_address(
+        venue.get("name"),
+        venue.get("city"),
+        address=venue.get("address")
+    )
+
+    if enrichment.get("latitude") and enrichment.get("longitude"):
+        db.update_venue_address_details(
+            venue_id,
+            lat=enrichment.get("latitude"),
+            lon=enrichment.get("longitude"),
+            address=enrichment.get("normalized_address"),
+            neighborhood=enrichment.get("neighborhood")
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"Venue {venue['name']} geocoded successfully",
+            "enrichment": enrichment
+        })
+    else:
+        return jsonify({
+            "status": "warning",
+            "message": f"Could not determine high-precision coordinates for {venue['name']}",
+            "enrichment": enrichment
+        }), 200
+
+@app.route("/geocode_all_unlocated", methods=["POST"])
+def geocode_all_unlocated():
+    """
+    Scans database for venues lacking coordinates and resolves them asynchronously.
+    """
+    from src.geocoding import GeocodingUtility
+
+    with db._get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, city, address FROM venues WHERE latitude IS NULL OR longitude IS NULL")
+        rows = [dict(r) for r in cursor.fetchall()]
+
+    def batch_worker(venues_to_geocode):
+        geocoder = GeocodingUtility()
+        for v in venues_to_geocode:
+            try:
+                res = geocoder.parse_and_enrich_venue_address(v["name"], v["city"], address=v.get("address"))
+                if res.get("latitude") and res.get("longitude"):
+                    db.update_venue_address_details(
+                        v["id"],
+                        lat=res.get("latitude"),
+                        lon=res.get("longitude"),
+                        address=res.get("normalized_address"),
+                        neighborhood=res.get("neighborhood")
+                    )
+            except Exception as ex:
+                print(f"Batch geocoding error for {v['id']}: {ex}")
+
+    t = threading.Thread(target=batch_worker, args=(rows,))
+    t.start()
+
+    return jsonify({
+        "status": "success",
+        "message": f"Initiated geocoding for {len(rows)} unlocated venues in background",
+        "count": len(rows)
+    })
+
+@app.route("/submit_feedback", methods=["POST"])
+def submit_feedback():
+    """
+    Records in-app operator feedback, suggestions, or bug reports.
+    """
+    if request.is_json:
+        data = request.get_json() or {}
+        category = data.get("category", "General")
+        message = data.get("message", "").strip()
+        author = data.get("author", "Operator").strip()
+    else:
+        category = request.form.get("category", "General")
+        message = request.form.get("message", "").strip()
+        author = request.form.get("author", "Operator").strip()
+
+    if not message:
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Feedback message cannot be empty"}), 400
+        return redirect(url_for('index', tab='system'))
+
+    feedback_id = db.record_operator_feedback(category, message, author=author or 'Operator')
+    db.log_system_event('FEEDBACK', 'RECORDED', f"[{category}] from {author}: {message[:60]}")
+
+    if request.is_json:
+        return jsonify({
+            "status": "success",
+            "message": "Feedback submitted successfully. Thank you for tuning the collective engine!",
+            "feedback_id": feedback_id
+        })
+    return redirect(url_for('index', tab='system'))
+
+@app.route("/update_feedback_status/<int:feedback_id>", methods=["POST"])
+def update_feedback_status(feedback_id):
+    """
+    Updates the operational triage status of a submitted feedback entry.
+    """
+    status = request.form.get("status") or (request.get_json() or {}).get("status", "PENDING")
+    status = status.upper().strip()
+    if status not in ("PENDING", "IN_REVIEW", "RESOLVED"):
+        status = "PENDING"
+
+    success = db.update_operator_feedback_status(feedback_id, status)
+    if success:
+        db.log_system_event('FEEDBACK', 'STATUS_UPDATED', f"Feedback #{feedback_id} status changed to {status}")
+        if request.is_json:
+            return jsonify({"status": "success", "feedback_id": feedback_id, "new_status": status})
+        return redirect(url_for('index', tab='system'))
+    else:
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Feedback not found or update failed"}), 404
+        return redirect(url_for('index', tab='system'))
+
+@app.route("/api/feedback", methods=["GET"])
+def get_feedback_api():
+    """
+    Returns recorded operator feedback for programmatic inspection or integration.
+    """
+    limit = request.args.get("limit", default=25, type=int)
+    status = request.args.get("status")
+    feedbacks = db.get_operator_feedback(limit=limit, status=status)
+    return jsonify({
+        "status": "success",
+        "count": len(feedbacks),
+        "feedback": feedbacks
+    })
+
+@app.route("/analyze_venue_visuals/<venue_id>", methods=["POST"])
+def analyze_venue_visuals(venue_id):
+    """
+    On-demand aesthetic vision analysis of venue imagery via GPT-4o-vision.
+    """
+    venue = db.get_venue(venue_id)
+    if not venue:
+        return jsonify({"status": "error", "message": "Venue not found"}), 404
+
+    # Allow custom image_url in POST body or fallback to stored image_url
+    data = request.get_json(silent=True) or {}
+    image_url = data.get("image_url") or venue.get("image_url")
+
+    if not image_url:
+        return jsonify({
+            "status": "error",
+            "message": "No image URL available for this venue. Provide an image URL to analyze."
+        }), 400
+
+    genre = data.get("genre") or "psytrance"
+    try:
+        visual_result = ai.analyze_visual_vibe(image_url, genre=genre)
+        score = visual_result.get("visual_vibe_score", 5)
+        description = visual_result.get("visual_description", "")
+
+        db.update_venue_visuals(
+            venue_id,
+            image_url=image_url,
+            visual_description=description,
+            visual_vibe_score=score
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"Visual aesthetic analysis completed for {venue['name']}",
+            "visual_vibe_score": score,
+            "visual_description": description,
+            "image_url": image_url
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/analytics/activity_heatmap', methods=['GET'])
+def api_activity_heatmap():
+    """Returns the 7x24 activity heatmap and peak engagement windows."""
+    try:
+        data = analytics.get_activity_heatmap()
+        return jsonify({"status": "success", "heatmap": data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown_server():

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS venues (
     longitude REAL,
     image_url TEXT,
     visual_description TEXT,
+    visual_vibe_score INTEGER,
     address TEXT,
     phone TEXT,
     venue_type TEXT,
@@ -131,4 +132,24 @@ CREATE TABLE IF NOT EXISTS venue_notes (
     note TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(venue_id) REFERENCES venues(id)
+);
+
+CREATE TABLE IF NOT EXISTS email_tracking_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL,
+    event_type TEXT NOT NULL, -- 'OPEN' or 'CLICK'
+    target_url TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(lead_id) REFERENCES outreach_leads(id)
+);
+
+CREATE TABLE IF NOT EXISTS operator_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL, -- e.g. 'General', 'Vibe Calibration', 'Circuit Routing', 'Scrapers', 'Bug Report'
+    message TEXT NOT NULL,
+    author TEXT DEFAULT 'Operator',
+    status TEXT DEFAULT 'PENDING', -- 'PENDING', 'IN_REVIEW', 'RESOLVED'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

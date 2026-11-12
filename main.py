@@ -166,9 +166,10 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         print(f"  Performing visual analysis for {v_data['name']}...")
         visual_result = ai.analyze_visual_vibe(image_url, genre=qualify_genre)
         visual_desc = visual_result.get("visual_description", "")
-        db.update_venue_visuals(v_id, image_url, visual_desc)
+        visual_score = visual_result.get("visual_vibe_score")
+        db.update_venue_visuals(v_id, image_url, visual_desc, visual_score)
         if visual_desc:
-            enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc}"
+            enriched_text += f"\nVisual Aesthetic Analysis: {visual_desc} (Visual Score: {visual_score}/10)"
 
     # AI Vibe Check
     vibe_result = ai.vibe_check(
@@ -182,10 +183,17 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
     traits = ai.extract_venue_traits(enriched_text)
     db.update_venue_traits(v_id, traits)
 
-    # Geocode
-    lat, lon = geocoder.geocode_venue(v_data["name"], v_data["city"])
-    if lat and lon:
-        db.update_venue_location(v_id, lat, lon)
+    # Geocode & Address Parsing
+    address_input = v_data.get("address")
+    enrichment = geocoder.parse_and_enrich_venue_address(v_data["name"], v_data["city"], address=address_input)
+    if enrichment and (enrichment.get("latitude") or enrichment.get("normalized_address")):
+        db.update_venue_address_details(
+            v_id,
+            lat=enrichment.get("latitude"),
+            lon=enrichment.get("longitude"),
+            address=enrichment.get("normalized_address"),
+            neighborhood=enrichment.get("neighborhood")
+        )
 
     # Generate pitch if qualified
     pitch = ""
@@ -225,6 +233,7 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
         # Note: Do NOT explicitly close the connection here in the main loop if we are using the patched mock
         # which shares a single connection object across threads/tests. We let the db manager or pytest handle it.
 
+        venue_notes = db.get_venue_notes(v_id) if hasattr(db, 'get_venue_notes') else []
         pitch = ai.generate_pitch(
             v_data["name"],
             vibe_result["justification"],
@@ -234,7 +243,8 @@ def qualify_and_pitch(v_data, v_id, db, ai, geocoder, predictor, config, analyti
             media_library=config.get("media_library"),
             genre=qualify_genre,
             variant=variant,
-            is_dm=is_dm
+            is_dm=is_dm,
+            notes=venue_notes
         )
         status = "PENDING_REVIEW"
     else:

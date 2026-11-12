@@ -90,11 +90,19 @@ class AnalyticsEngine:
                 return round((res[0] / res[1]) * 100, 1)
             return 0
 
-    def get_venue_clusters(self, radius_km=60, min_vibe=None):
+    def get_venue_clusters(self, radius_km=60, min_vibe=None, method='dbscan'):
         """
-        Identifies clusters of venues within a specific radius.
+        Identifies clusters of venues within a specific radius or transit corridor.
         Supports filtering by minimum vibe threshold (e.g. 6.5) to assemble
         high-priority touring clusters across Midwest hubs and Toronto.
+
+        Args:
+            radius_km: Distance threshold in kilometers.
+            min_vibe: Minimum lead vibe score filter.
+            method: Clustering strategy:
+                - 'dbscan' / 'radial': Radial distance threshold grouping.
+                - 'hierarchical' / 'agglomerative': Hierarchical single-linkage agglomerative clustering
+                   merging closest venues into geographic corridors until the linkage distance exceeds radius_km.
         """
         query = """
         SELECT v.id, v.name, v.city, v.latitude, v.longitude, l.vibe_score, l.pipeline_status
@@ -111,9 +119,6 @@ class AnalyticsEngine:
         if not venues:
             return []
 
-        clusters = []
-        visited = set()
-
         import math
 
         def haversine(lat1, lon1, lat2, lon2):
@@ -124,32 +129,114 @@ class AnalyticsEngine:
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
             return R * c
 
-        for i, v1 in enumerate(venues):
-            if v1['id'] in visited:
-                continue
+        raw_clusters = []
 
-            current_cluster = [v1]
-            visited.add(v1['id'])
+        if str(method).lower() in ['kmeans', 'k-means']:
+            if len(venues) < 2:
+                return []
+            # Spherical K-Means / Geographic Lloyd's Partitioning
+            # Determine K based on venue count and target cluster radius
+            k = max(2, min(len(venues), max(2, int(len(venues) / 3))))
+            # Seed centroids with diverse venues across the coordinate span
+            sorted_venues = sorted(venues, key=lambda v: (v['latitude'], v['longitude']))
+            step = max(1, len(sorted_venues) // k)
+            centroids = [{"lat": sorted_venues[i * step]['latitude'], "lon": sorted_venues[i * step]['longitude']} for i in range(k)]
 
-            for j, v2 in enumerate(venues):
-                if v1['id'] == v2['id'] or v2['id'] in visited:
+            # Run Lloyd's iterative assignment & update
+            for _ in range(20):
+                assignments = [[] for _ in range(k)]
+                for v in venues:
+                    # Assign to closest centroid by Haversine
+                    best_k = 0
+                    min_dist = float('inf')
+                    for c_idx, c in enumerate(centroids):
+                        d = haversine(v['latitude'], v['longitude'], c['lat'], c['lon'])
+                        if d < min_dist:
+                            min_dist = d
+                            best_k = c_idx
+                    assignments[best_k].append(v)
+
+                # Recompute centroids
+                changed = False
+                for c_idx in range(k):
+                    if assignments[c_idx]:
+                        new_lat = sum(v['latitude'] for v in assignments[c_idx]) / len(assignments[c_idx])
+                        new_lon = sum(v['longitude'] for v in assignments[c_idx]) / len(assignments[c_idx])
+                        if abs(new_lat - centroids[c_idx]['lat']) > 1e-4 or abs(new_lon - centroids[c_idx]['lon']) > 1e-4:
+                            centroids[c_idx] = {"lat": new_lat, "lon": new_lon}
+                            changed = True
+                if not changed:
+                    break
+
+            raw_clusters = [g for g in assignments if len(g) > 1]
+        elif str(method).lower() in ['hierarchical', 'agglomerative', 'hdbscan']:
+            # Hierarchical Agglomerative Single-Linkage Clustering
+            groups = [[v] for v in venues]
+            while len(groups) > 1:
+                min_dist = float('inf')
+                best_pair = None
+                for i in range(len(groups)):
+                    for j in range(i + 1, len(groups)):
+                        # Single-linkage distance between two clusters
+                        for v1 in groups[i]:
+                            for v2 in groups[j]:
+                                d = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
+                                if d < min_dist:
+                                    min_dist = d
+                                    best_pair = (i, j)
+                if best_pair is not None and min_dist <= radius_km:
+                    i, j = best_pair
+                    merged = groups[i] + groups[j]
+                    groups.pop(j)
+                    groups[i] = merged
+                else:
+                    break
+            raw_clusters = [g for g in groups if len(g) > 1]
+        else:
+            # Default DBSCAN / Radial clustering
+            visited = set()
+            for i, v1 in enumerate(venues):
+                if v1['id'] in visited:
                     continue
 
-                dist = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
-                if dist <= radius_km:
-                    current_cluster.append(v2)
-                    visited.add(v2['id'])
+                current_cluster = [v1]
+                visited.add(v1['id'])
 
-            if len(current_cluster) > 1:
-                clusters.append({
-                    "center": {
-                        "lat": sum(v['latitude'] for v in current_cluster) / len(current_cluster),
-                        "lon": sum(v['longitude'] for v in current_cluster) / len(current_cluster)
-                    },
-                    "venue_count": len(current_cluster),
-                    "venues": current_cluster,
-                    "avg_vibe": sum(v['vibe_score'] for v in current_cluster) / len(current_cluster)
-                })
+                for j, v2 in enumerate(venues):
+                    if v1['id'] == v2['id'] or v2['id'] in visited:
+                        continue
+
+                    dist = haversine(v1['latitude'], v1['longitude'], v2['latitude'], v2['longitude'])
+                    if dist <= radius_km:
+                        current_cluster.append(v2)
+                        visited.add(v2['id'])
+
+                if len(current_cluster) > 1:
+                    raw_clusters.append(current_cluster)
+
+        clusters = []
+        for current_cluster in raw_clusters:
+            center_lat = sum(v['latitude'] for v in current_cluster) / len(current_cluster)
+            center_lon = sum(v['longitude'] for v in current_cluster) / len(current_cluster)
+            max_radius = max(
+                haversine(center_lat, center_lon, v['latitude'], v['longitude'])
+                for v in current_cluster
+            )
+            vibe_scores = [v['vibe_score'] for v in current_cluster if v.get('vibe_score') is not None]
+            avg_vibe = round(sum(vibe_scores) / len(vibe_scores), 1) if vibe_scores else 0.0
+
+            clusters.append({
+                "center": {
+                    "lat": round(center_lat, 4),
+                    "lon": round(center_lon, 4)
+                },
+                "venue_count": len(current_cluster),
+                "venues": current_cluster,
+                "avg_vibe": avg_vibe,
+                "cluster_radius_km": round(max_radius, 1),
+                "est_intercity_drive_hrs": round(max_radius / 80.0, 1),  # Est. @ 80 km/h avg speed
+                "clustering_method": method
+            })
 
         return sorted(clusters, key=lambda x: x['venue_count'], reverse=True)
 
@@ -264,6 +351,95 @@ class AnalyticsEngine:
 
         return output.getvalue()
 
+    def export_leads_json(self):
+        """Generates a structured list of dictionaries for all leads with full venue and contact intelligence."""
+        import json
+        query = """
+        SELECT v.id as venue_id, v.name, v.city, v.address, v.phone, v.venue_type, v.capacity,
+               v.neighborhood, v.extracted_traits, v.latitude, v.longitude, v.visual_vibe_score,
+               l.pipeline_status, l.vibe_score, l.qualified_genre, l.pitch_variant,
+               c.email, c.instagram_handle, l.last_outreach_at, l.created_at
+        FROM outreach_leads l
+        JOIN venues v ON l.venue_id = v.id
+        LEFT JOIN venue_contacts c ON v.id = c.venue_id
+        ORDER BY l.created_at DESC
+        """
+        leads = []
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+            for row in rows:
+                traits = {}
+                if row['extracted_traits']:
+                    try:
+                        traits = json.loads(row['extracted_traits'])
+                    except Exception:
+                        traits = {"raw": row['extracted_traits']}
+                warmth = self.get_venue_warmth(row['venue_id'])
+                leads.append({
+                    "venue_id": row['venue_id'],
+                    "name": row['name'],
+                    "city": row['city'],
+                    "address": row['address'],
+                    "phone": row['phone'],
+                    "venue_type": row['venue_type'],
+                    "capacity": row['capacity'],
+                    "neighborhood": row['neighborhood'],
+                    "coordinates": {
+                        "latitude": row['latitude'],
+                        "longitude": row['longitude']
+                    },
+                    "extracted_traits": traits,
+                    "visual_vibe_score": row['visual_vibe_score'],
+                    "pipeline_status": row['pipeline_status'],
+                    "vibe_score": row['vibe_score'],
+                    "qualified_genre": row['qualified_genre'],
+                    "pitch_variant": row['pitch_variant'],
+                    "email": row['email'],
+                    "instagram_handle": row['instagram_handle'],
+                    "last_outreach_at": row['last_outreach_at'],
+                    "created_at": row['created_at'],
+                    "warmth_score": warmth
+                })
+        return leads
+
+    def export_circuit_itinerary_json(self, cluster_venues):
+        """
+        Formats a multi-city touring circuit itinerary into an exportable touring manifest
+        including waypoint sequences, driving logistics, audio specs, and contact details.
+        """
+        from src.tour_planner import TourPlanner
+        tp = TourPlanner(self.db_path)
+        logistics = tp.compute_circuit_logistics(cluster_venues)
+
+        itinerary = {
+            "circuit_summary": {
+                "venue_count": len(cluster_venues),
+                "total_transit_km": logistics.get("total_distance_km", 0.0),
+                "est_drive_hours": logistics.get("total_drive_hours", 0.0),
+                "recommended_rest_days": logistics.get("recommended_rest_days", 0),
+                "est_co2_footprint_kg": logistics.get("est_carbon_kg", 0.0),
+                "paired_media": logistics.get("paired_media", [])
+            },
+            "tour_stops": []
+        }
+
+        for idx, venue in enumerate(cluster_venues):
+            itinerary["tour_stops"].append({
+                "sequence_order": idx + 1,
+                "venue_id": venue.get("id"),
+                "name": venue.get("name"),
+                "city": venue.get("city"),
+                "coordinates": {
+                    "lat": venue.get("latitude"),
+                    "lon": venue.get("longitude")
+                },
+                "vibe_score": venue.get("vibe_score"),
+                "pipeline_status": venue.get("pipeline_status")
+            })
+
+        return itinerary
+
     def get_outreach_timeline(self):
         """Returns data for a timeline visualization of outreach activity."""
         query = """
@@ -277,3 +453,78 @@ class AnalyticsEngine:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(query).fetchall()
             return [{"date": row['outreach_date'], "count": row['count']} for row in rows]
+
+    def get_activity_heatmap(self):
+        """
+        Aggregates outreach dispatches and venue responses into a 7x24 temporal heatmap
+        (day of week: 0=Sunday to 6=Saturday, hour: 0-23).
+        Computes the optimal booking agent dispatch windows for underground electronic music scenes.
+        """
+        day_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        matrix = [[0 for _ in range(24)] for _ in range(7)]
+        outreach_counts = [[0 for _ in range(24)] for _ in range(7)]
+        reply_counts = [[0 for _ in range(24)] for _ in range(7)]
+
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+
+            # Query outreach dispatches
+            outreach_query = """
+            SELECT
+                CAST(strftime('%w', last_outreach_at) AS INTEGER) as dow,
+                CAST(strftime('%H', last_outreach_at) AS INTEGER) as hour,
+                COUNT(*) as count
+            FROM outreach_leads
+            WHERE last_outreach_at IS NOT NULL
+            GROUP BY dow, hour
+            """
+            for row in conn.execute(outreach_query).fetchall():
+                dow = row['dow']
+                hour = row['hour']
+                if 0 <= dow < 7 and 0 <= hour < 24:
+                    outreach_counts[dow][hour] = row['count']
+                    matrix[dow][hour] += row['count']
+
+            # Query inbound replies
+            reply_query = """
+            SELECT
+                CAST(strftime('%w', received_at) AS INTEGER) as dow,
+                CAST(strftime('%H', received_at) AS INTEGER) as hour,
+                COUNT(*) as count
+            FROM lead_replies
+            WHERE received_at IS NOT NULL
+            GROUP BY dow, hour
+            """
+            for row in conn.execute(reply_query).fetchall():
+                dow = row['dow']
+                hour = row['hour']
+                if 0 <= dow < 7 and 0 <= hour < 24:
+                    reply_counts[dow][hour] = row['count']
+                    # Replies carry higher weight in calculating engagement density
+                    matrix[dow][hour] += (row['count'] * 2)
+
+        # Calculate peak engagement slot
+        max_val = 0
+        best_slot = {"day": "Tue", "hour": 14, "intensity": 0, "description": "Tuesday 2:00 PM (Default recommended window)"}
+        for d in range(7):
+            for h in range(24):
+                val = matrix[d][h]
+                if val > max_val:
+                    max_val = val
+                    hour_label = f"{h % 12 or 12}:00 {'AM' if h < 12 else 'PM'}"
+                    best_slot = {
+                        "day": day_names[d],
+                        "hour": h,
+                        "intensity": val,
+                        "description": f"{day_names[d]} at {hour_label}"
+                    }
+
+        return {
+            "days": day_names,
+            "matrix": matrix,
+            "outreach_counts": outreach_counts,
+            "reply_counts": reply_counts,
+            "best_window": best_slot,
+            "total_outreach_events": sum(sum(r) for r in outreach_counts),
+            "total_reply_events": sum(sum(r) for r in reply_counts)
+        }

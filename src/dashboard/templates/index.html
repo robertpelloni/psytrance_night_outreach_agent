@@ -84,6 +84,12 @@
                 <button id="nav-sync-btn" onclick="runSync()" class="btn btn-outline-secondary btn-sm" title="Trigger multi-branch intelligent git synchronization protocol">
                     🔄 Sync Repo
                 </button>
+                <button id="nav-tour-btn" onclick="startOnboardingTour()" class="btn btn-outline-warning btn-sm" data-bs-toggle="tooltip" title="Interactive guided walkthrough of the command center modules">
+                    🚀 Tour
+                </button>
+                <button id="nav-feedback-btn" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#feedbackModal" title="Share suggestions, report edge-cases, or request new scrapers">
+                    💬 Feedback
+                </button>
             </div>
         </div>
     </nav>
@@ -298,6 +304,16 @@
                                         Var: {{ lead.pitch_variant }}
                                     </span>
                                     {% endif %}
+                                    {% if lead.engagement and lead.engagement.opens > 0 %}
+                                    <span class="badge bg-info text-dark" data-bs-toggle="tooltip" title="Email opened {{ lead.engagement.opens }} time(s)">
+                                        👁️ {{ lead.engagement.opens }} Open{{ 's' if lead.engagement.opens > 1 else '' }}
+                                    </span>
+                                    {% endif %}
+                                    {% if lead.engagement and lead.engagement.clicks > 0 %}
+                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="Audio/EPK link clicked {{ lead.engagement.clicks }} time(s)">
+                                        🔗 {{ lead.engagement.clicks }} Click{{ 's' if lead.engagement.clicks > 1 else '' }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="card-body">
@@ -381,11 +397,19 @@
                                         </button>
                                     </div>
                                 </form>
-                                <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post" class="mt-2">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Dismiss lead from outreach queue">
-                                        Reject Lead
+                                <div class="d-flex gap-2 mt-2">
+                                    <form action="{{ url_for('reject', lead_id=lead.id) }}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Dismiss lead from outreach queue">
+                                            Reject Lead
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="openRecommendationsModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Collaborative filtering: discover sibling venues matching acoustic and vibe traits">
+                                        🎯 Alternate Venues
                                     </button>
-                                </form>
+                                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="openVenueNotesModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Curator annotations & confidential scene intelligence">
+                                        📝 Notes
+                                    </button>
+                                </div>
                                 {% elif view == 'pending_follow_ups' %}
                                 <div class="mb-3">
                                     <label class="form-label small text-secondary"><strong>Generated Pitch Context:</strong></label>
@@ -442,6 +466,11 @@
                                 {% endif %}
 
                                 <hr class="border-secondary">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="openVenueNotesModal('{{ lead.venue_id }}', '{{ lead.name }}')" data-bs-toggle="tooltip" title="Curator annotations & confidential scene intelligence">
+                                        📝 Curator Notes
+                                    </button>
+                                </div>
                                 <form action="/simulate_reply/{{ lead.id }}" method="post" class="mt-3">
                                     <label class="form-label text-secondary small">Simulate incoming venue email/DM response:</label>
                                     <div class="input-group input-group-sm">
@@ -490,9 +519,41 @@
                             <button onclick="planCircuit()" id="circuit-btn" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Calculate optimal multi-city Midwest routing circuit">
                                 🚗 Plan Midwest Circuit
                             </button>
+                            <button onclick="geocodeUnlocatedVenues()" id="geocode-btn" class="btn btn-sm btn-outline-light" data-bs-toggle="tooltip" title="Geocode and parse addresses for any venues lacking GPS coordinates">
+                                📍 Geocode Missing
+                            </button>
                         </div>
                     </div>
                     <div id="map"></div>
+
+                    <!-- Cluster Transit & Regional Density Corridor Breakdown -->
+                    {% if clusters %}
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-white mb-0"><i class="bi bi-geo-alt-fill text-warning me-2"></i>Active Touring Clusters & Transit Densities</h6>
+                            <span class="badge bg-secondary">{{ clusters|length }} Regional Corridors</span>
+                        </div>
+                        <div class="row g-2">
+                            {% for c in clusters %}
+                            <div class="col-md-4">
+                                <div class="p-2 bg-dark rounded border border-secondary small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-info">Cluster #{{ loop.index }} ({{ c.venue_count }} venues)</strong>
+                                        <span class="badge bg-purple">Avg Vibe: {{ c.avg_vibe }}</span>
+                                    </div>
+                                    <div class="text-secondary mt-1">
+                                        Radius: <span class="text-white">{{ c.cluster_radius_km }} km</span> |
+                                        Drive: <span class="text-white">~{{ c.est_intercity_drive_hrs }} hrs</span>
+                                    </div>
+                                    <div class="text-white-50 mt-1 text-truncate">
+                                        {% for v in c.venues %}{{ v.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -544,6 +605,9 @@
                                     <a href="/export_leads" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Export all outreach leads and contacts to CSV">
                                         📥 Export CSV
                                     </a>
+                                    <a href="/export_leads_json" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Export full venue intelligence, coordinates, traits, and contacts as JSON">
+                                        📋 Export JSON
+                                    </a>
                                 </div>
                             </div>
                             <div class="row text-center g-2">
@@ -581,10 +645,98 @@
                         </div>
                     </div>
 
+                    <!-- Email Engagement KPI Strip (Open & Click Tracking) -->
+                    <div class="col-md-12">
+                        <div class="card card-custom p-3">
+                            <h5 class="mb-3 text-white">📡 Email Engagement & Interaction Metrics</h5>
+                            <div class="row g-3 text-center">
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-info">{{ engagement_stats.open_rate }}%</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Email Open Rate</small>
+                                        <div class="text-white-50 small mt-1">{{ engagement_stats.unique_opened }} of {{ engagement_stats.total_sent }} leads opened</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-success">{{ engagement_stats.ctr }}%</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Click-Through Rate</small>
+                                        <div class="text-white-50 small mt-1">{{ engagement_stats.unique_clicked }} of {{ engagement_stats.total_sent }} clicked EPK/Mix</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-warning">{{ engagement_stats.total_opens }}</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Total Email Opens</small>
+                                        <div class="text-white-50 small mt-1">Gross pixel triggers recorded</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-dark border border-secondary rounded">
+                                        <h3 class="mb-0 text-white">{{ engagement_stats.total_clicks }}</h3>
+                                        <small class="text-secondary text-uppercase fw-bold">Total Link Clicks</small>
+                                        <div class="text-white-50 small mt-1">Audio assets & EPK visits</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-12">
                         <div class="card card-custom p-3">
                             <h5 class="mb-3 text-white">Outreach Activity Timeline (Dispatched Emails)</h5>
                             <canvas id="timelineChart" style="max-height: 220px;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Outreach Timing Matrix & Promoter Engagement Heatmap -->
+                    <div class="col-md-12">
+                        <div class="card card-custom p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="mb-0 text-white">🕒 Outreach Timing Matrix & Response Velocity</h5>
+                                    <small class="text-secondary">Temporal 7x24 analysis of pitch dispatches and inbound replies by day and hour</small>
+                                </div>
+                                <div class="badge bg-primary fs-6 p-2" title="Peak window based on cumulative historical promoter responses" data-bs-toggle="tooltip">
+                                    ⭐ Optimal Dispatch: <span class="text-warning">{{ activity_heatmap.best_window.description }}</span>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm text-center mb-0 align-middle" style="font-size: 0.75rem;">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="width: 50px;">Day</th>
+                                            {% for h in range(24) %}
+                                            <th style="min-width: 25px;" title="{{ h % 12 or 12 }}:00 {{ 'AM' if h < 12 else 'PM' }}">{{ h }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d_idx in range(7) %}
+                                        <tr>
+                                            <td class="fw-bold text-info bg-dark">{{ activity_heatmap.days[d_idx] }}</td>
+                                            {% for h_idx in range(24) %}
+                                                {% set score = activity_heatmap.matrix[d_idx][h_idx] %}
+                                                {% set out_cnt = activity_heatmap.outreach_counts[d_idx][h_idx] if activity_heatmap.outreach_counts else 0 %}
+                                                {% set rep_cnt = activity_heatmap.reply_counts[d_idx][h_idx] if activity_heatmap.reply_counts else 0 %}
+                                                <td class="p-1"
+                                                    style="background-color: {% if score == 0 %}rgba(30, 35, 45, 0.4){% elif score < 3 %}rgba(13, 110, 253, 0.3){% elif score < 6 %}rgba(13, 202, 240, 0.5){% elif score < 10 %}rgba(255, 193, 7, 0.65){% else %}rgba(220, 53, 69, 0.85){% endif %};"
+                                                    data-bs-toggle="tooltip"
+                                                    title="{{ activity_heatmap.days[d_idx] }} {{ h_idx % 12 or 12 }}:00 {{ 'AM' if h_idx < 12 else 'PM' }} | {{ out_cnt }} Dispatched, {{ rep_cnt }} Inbound Replies">
+                                                    <span class="{% if score > 0 %}text-white fw-bold{% else %}text-muted{% endif %}">
+                                                        {{ score if score > 0 else '·' }}
+                                                    </span>
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                                <small class="text-secondary">Density Legend: <span class="badge bg-secondary">· Zero</span> <span class="badge bg-primary">Low (1-2)</span> <span class="badge bg-info text-dark">Moderate (3-5)</span> <span class="badge bg-warning text-dark">High (6-9)</span> <span class="badge bg-danger">Peak (10+)</span></small>
+                                <small class="text-white-50">Total Logged Interactions: {{ activity_heatmap.total_outreach_events + activity_heatmap.total_reply_events if activity_heatmap.total_outreach_events is defined else 0 }}</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -969,6 +1121,75 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Operator Feedback & Community Requests -->
+                        <div class="card card-custom p-3 mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-white mb-0">💬 Operator Feedback & Community Requests</h5>
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                                    + Submit Feedback
+                                </button>
+                            </div>
+                            {% if operator_feedback %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Status</th>
+                                            <th>Category</th>
+                                            <th>Author</th>
+                                            <th>Feedback Message</th>
+                                            <th>Date</th>
+                                            <th class="text-end">Triage Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for fb in operator_feedback %}
+                                        <tr id="feedback-row-{{ fb.id }}">
+                                            <td>
+                                                {% if fb.status == 'RESOLVED' %}
+                                                <span class="badge bg-success" data-bs-toggle="tooltip" title="Resolved and incorporated into engine pipeline"><i class="bi bi-check-circle"></i> Resolved</span>
+                                                {% elif fb.status == 'IN_REVIEW' %}
+                                                <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Under active consideration or investigation"><i class="bi bi-hourglass-split"></i> In Review</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Pending initial review by collective administrator"><i class="bi bi-inbox"></i> Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if fb.category == 'Bug Report' %}bg-danger{% elif fb.category == 'Vibe Calibration' %}bg-warning text-dark{% elif fb.category == 'Circuit Routing' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                                    {{ fb.category }}
+                                                </span>
+                                            </td>
+                                            <td><small class="text-white-50">{{ fb.author }}</small></td>
+                                            <td><small class="text-white">{{ fb.message }}</small></td>
+                                            <td><small class="text-white-50">{{ fb.created_at }}</small></td>
+                                            <td class="text-end">
+                                                <div class="btn-group btn-group-sm">
+                                                    {% if fb.status != 'IN_REVIEW' and fb.status != 'RESOLVED' %}
+                                                    <button class="btn btn-outline-warning btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'IN_REVIEW')" data-bs-toggle="tooltip" title="Mark this item as currently under review">
+                                                        Review
+                                                    </button>
+                                                    {% endif %}
+                                                    {% if fb.status != 'RESOLVED' %}
+                                                    <button class="btn btn-outline-success btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'RESOLVED')" data-bs-toggle="tooltip" title="Mark this suggestion or issue as resolved">
+                                                        Resolve
+                                                    </button>
+                                                    {% else %}
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateFeedbackStatus({{ fb.id }}, 'PENDING')" data-bs-toggle="tooltip" title="Re-open to pending status">
+                                                        Re-open
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-white-50 small mb-0">No operator feedback submitted yet. Use the Feedback button in the top navigation to submit notes!</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1048,6 +1269,77 @@
         </div>
     </div>
 
+    <!-- Operator Feedback Modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-info">
+                <div class="modal-header border-info">
+                    <h5 class="modal-title">💬 Collective Engine Feedback & Requests</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="feedback-form" onsubmit="submitFeedbackForm(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Category*</label>
+                            <select id="fb-category" class="form-select bg-secondary text-white border-dark" required>
+                                <option value="General">General Suggestion</option>
+                                <option value="Vibe Calibration">Vibe Calibration / Culture Filter</option>
+                                <option value="Circuit Routing">Circuit Routing & Multi-City Tour</option>
+                                <option value="Scrapers">Scraper Source Request</option>
+                                <option value="UI / UX">UI / UX Improvement</option>
+                                <option value="Bug Report">Bug Report</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Operator / Collective Member Name</label>
+                            <input type="text" id="fb-author" class="form-control bg-secondary text-white border-dark" placeholder="e.g. Curator Alex, DJ PsyDetroit">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-info small">Feedback Message*</label>
+                            <textarea id="fb-message" class="form-control bg-secondary text-white border-dark" rows="4" required placeholder="Describe what can be tuned, enhanced, or added..."></textarea>
+                        </div>
+                        <div id="feedback-alert" class="alert d-none"></div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="fb-submit-btn" class="btn btn-info btn-sm">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Onboarding Guided Tour Modal -->
+    <div class="modal fade" id="onboardingTourModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title text-warning">🚀 Psytrance Night Outreach Agent — Interactive Walkthrough</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span id="tour-step-badge" class="badge bg-warning text-dark fs-6">Step 1 of 5</span>
+                        <div class="progress bg-secondary" style="width: 200px; height: 10px;">
+                            <div id="tour-progress" class="progress-bar bg-warning" style="width: 20%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="tour-content" class="p-3 bg-black rounded border border-secondary">
+                        <!-- Injected dynamically via script -->
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Exit Walkthrough</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="tour-prev-btn" onclick="prevTourStep()" class="btn btn-outline-info btn-sm" disabled>Previous</button>
+                        <button type="button" id="tour-next-btn" onclick="nextTourStep()" class="btn btn-warning btn-sm">Next Step</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Venue Comparison Modal -->
     <div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
@@ -1117,24 +1409,151 @@
         </div>
     </div>
 
+    <!-- Collaborative Filtering: Alternate Venue Recommendations Modal -->
+    <div class="modal fade" id="recModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-info">
+                <div class="modal-header border-info">
+                    <h5 class="modal-title" id="rec-modal-title">🎯 Algorithmic Sibling Venue Recommendations</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">
+                        Collaborative filtering identifies alternative target venues sharing acoustic profiles (sound systems, underground traits), capacity, and geographical proximity to maximize circuit continuity if an outreach path is rejected or stalled.
+                    </p>
+                    <div id="rec-results-container">
+                        <div class="text-center py-4 text-secondary">
+                            <div class="spinner-border text-info" role="status"></div>
+                            <p class="mt-2 mb-0">Calculating composite affinity metrics...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-info">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Curator Annotations & Venue Scene Intelligence Modal -->
+    <div class="modal fade" id="venueNotesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title" id="venue-notes-modal-title">📝 Curator Scene Intelligence</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">
+                        Confidential field annotations and sound specifications are automatically injected into GPT-4o pitch generation and vibe qualification prompts to ensure hyper-personalized booking context.
+                    </p>
+
+                    <div class="card bg-black border-secondary p-3 mb-3">
+                        <h6 class="text-warning mb-2">Add New Note</h6>
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" id="modal-note-author" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Author" value="Curator">
+                            </div>
+                            <div class="col-md-7">
+                                <input type="text" id="modal-note-content" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Add confidential notes (e.g. sound specs, door split, engineer)...">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-warning btn-sm w-100" onclick="submitModalVenueNote()">Add Note</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-white mb-2">Chronological Intelligence Feed</h6>
+                    <div id="modal-notes-container" style="max-height: 280px; overflow-y: auto;">
+                        <div class="text-center py-3 text-secondary">
+                            <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                            <p class="mt-2 mb-0 small">Loading notes...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tour Planning Modal -->
     <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-white border-info">
                 <div class="modal-header border-info">
-                    <h5 class="modal-title">Regional Tour Route Orchestrator</h5>
+                    <h5 class="modal-title">🚗 Regional Tour Route & Transit Orchestrator</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Algorithm & Simulation Controls -->
+                    <div class="card bg-black border-secondary p-3 mb-3">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-5">
+                                <label class="form-label small text-info fw-bold mb-1">Clustering Strategy</label>
+                                <select id="tour-cluster-method" class="form-select form-select-sm bg-dark text-white border-secondary">
+                                    <option value="dbscan" selected>DBSCAN / Radial Density (60 km)</option>
+                                    <option value="hierarchical">Hierarchical Agglomerative (Transit Corridors)</option>
+                                    <option value="kmeans">Spherical K-Means (Regional Tour Hubs)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small text-info fw-bold mb-1">Min Vibe Filter</label>
+                                <input type="number" id="tour-min-vibe" class="form-control form-control-sm bg-dark text-white border-secondary" value="6.5" step="0.1" min="1" max="10">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="planCircuit(true)">
+                                    🔄 Recalculate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transit Corridor Logistics Summary Strip -->
+                    <div id="tour-logistics-strip" class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Total Transit</div>
+                                <div id="tour-dist-val" class="fw-bold text-warning fs-6">0.0 km</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Drive Time</div>
+                                <div id="tour-time-val" class="fw-bold text-info fs-6">0.0 hrs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">Rest Days</div>
+                                <div id="tour-rest-val" class="fw-bold text-success fs-6">0 Days</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded bg-black text-center">
+                                <div class="text-secondary small">CO₂ Footprint</div>
+                                <div id="tour-co2-val" class="fw-bold text-light fs-6">0.0 kg</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <h6>Recommended Route & Booking Strategy:</h6>
                     <pre id="tour-output" class="bg-black text-info p-3 rounded" style="white-space: pre-wrap; font-size: 0.9rem;"></pre>
 
+                    <!-- Paired EPK / Media Link strip -->
+                    <div id="tour-media-container" class="mb-3 d-none">
+                        <label class="form-label small text-info fw-bold mb-1">Attached Tour EPK & Media Pack</label>
+                        <div id="tour-media-links" class="d-flex gap-2 flex-wrap"></div>
+                    </div>
+
                     <h6 class="mt-4">Cluster Pitch Proposal:</h6>
-                    <textarea id="cluster-pitch" class="form-control bg-black text-white border-secondary mb-3" rows="8"></textarea>
+                    <textarea id="cluster-pitch" class="form-control bg-black text-white border-secondary mb-3" rows="7"></textarea>
 
                     <div id="dispatch-results" class="alert d-none"></div>
                 </div>
                 <div class="modal-footer border-info">
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="exportCircuitItinerary()" data-bs-toggle="tooltip" title="Download routing manifest, drive times, and venue coordinates as JSON">📥 Export Itinerary JSON</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                     <button type="button" id="dispatch-btn" class="btn btn-info btn-sm">Dispatch Tour Pitch to Route</button>
                 </div>
@@ -1560,18 +1979,48 @@
             }
         }
 
-        function planCircuit() {
+        function planCircuit(isRecalculate = false) {
             const btn = document.getElementById('circuit-btn');
-            btn.disabled = true;
-            btn.innerText = 'Calculating Route...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Calculating Route...';
+            }
 
-            fetch('/plan_circuit')
+            const methodSelect = document.getElementById('tour-cluster-method');
+            const minVibeInput = document.getElementById('tour-min-vibe');
+            const method = methodSelect ? methodSelect.value : 'dbscan';
+            const minVibe = minVibeInput ? minVibeInput.value : '6.5';
+
+            fetch(`/plan_circuit?method=${encodeURIComponent(method)}&min_vibe=${encodeURIComponent(minVibe)}`)
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('tour-output').innerText = data.recommendation;
+                    window.currentTourCircuitData = data;
+                    document.getElementById('tour-output').innerText = data.recommendation || 'No route generated.';
                     document.getElementById('cluster-pitch').value = "Circuit routing active. See optimal route itinerary above.";
-                    const modal = new bootstrap.Modal(document.getElementById('tourModal'));
-                    modal.show();
+
+                    // Update Logistics strip
+                    if (data.logistics) {
+                        document.getElementById('tour-dist-val').innerText = `${data.logistics.total_distance_km || 0.0} km`;
+                        document.getElementById('tour-time-val').innerText = `${data.logistics.total_drive_hours || 0.0} hrs`;
+                        document.getElementById('tour-rest-val').innerText = `${data.logistics.recommended_rest_days || 0} Days`;
+                        document.getElementById('tour-co2-val').innerText = `${data.logistics.est_carbon_kg || 0.0} kg`;
+
+                        const mediaCont = document.getElementById('tour-media-container');
+                        const mediaLinks = document.getElementById('tour-media-links');
+                        if (mediaCont && mediaLinks && data.logistics.paired_media && data.logistics.paired_media.length > 0) {
+                            mediaCont.classList.remove('d-none');
+                            mediaLinks.innerHTML = data.logistics.paired_media.map(m => `
+                                <a href="${m.url}" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none py-2 px-3 d-inline-flex align-items-center gap-1">
+                                    🎵 ${m.title} ${m.tag ? `<span class="badge bg-info text-black ms-1" style="font-size:0.7rem;">${m.tag}</span>` : ''}
+                                </a>
+                            `).join('');
+                        }
+                    }
+
+                    if (!isRecalculate) {
+                        const modal = new bootstrap.Modal(document.getElementById('tourModal'));
+                        modal.show();
+                    }
 
                     if (data.route && data.route.length > 1) {
                         const latlngs = data.route.map(c => [c.center.lat, c.center.lon]);
@@ -1579,14 +2028,67 @@
                         circuitPolyline = L.polyline(latlngs, {color: '#d29922', weight: 4, dashArray: '8, 8'}).addTo(map);
                         map.fitBounds(circuitPolyline.getBounds());
                     }
-                    btn.disabled = false;
-                    btn.innerText = '🚗 Plan Midwest Circuit';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🚗 Plan Midwest Circuit';
+                    }
                 })
                 .catch(err => {
                     alert("Error calculating circuit: " + err);
-                    btn.disabled = false;
-                    btn.innerText = '🚗 Plan Midwest Circuit';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🚗 Plan Midwest Circuit';
+                    }
                 });
+        }
+
+        async function exportCircuitItinerary() {
+            const circuit = window.currentTourCircuitData;
+            const venues = (circuit && circuit.venues) ? circuit.venues : [];
+            try {
+                const res = await fetch('/export_circuit_itinerary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ venues: venues })
+                });
+                const payload = await res.json();
+                const jsonStr = JSON.stringify(payload.itinerary || payload, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'tour_circuit_itinerary.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Failed to export tour itinerary manifest: ' + err.message);
+            }
+        }
+
+        function geocodeUnlocatedVenues() {
+            const btn = document.getElementById('geocode-btn');
+            btn.disabled = true;
+            btn.innerText = '⏳ Geocoding...';
+
+            fetch('/geocode_all_unlocated', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message || 'Geocoding initiated in background');
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = '📍 Geocode Missing';
+                }, 2000);
+            })
+            .catch(err => {
+                alert('Error geocoding venues: ' + err);
+                btn.disabled = false;
+                btn.innerText = '📍 Geocode Missing';
+            });
         }
 
         // Charts & Analytics
@@ -1677,6 +2179,343 @@
                 e.target.closest('.media-item').remove();
             }
         });
+
+        // Collaborative Filtering / Recommendations Modal Handler
+        async function openRecommendationsModal(venueId, venueName) {
+            const modalEl = document.getElementById('recModal');
+            const titleEl = document.getElementById('rec-modal-title');
+            const container = document.getElementById('rec-results-container');
+
+            titleEl.innerHTML = `🎯 Sibling Alternatives for <span class="text-info">${venueName || venueId}</span>`;
+            container.innerHTML = `
+                <div class="text-center py-4 text-secondary">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p class="mt-2 mb-0">Computing trait affinity, acoustic gear compatibility, and corridor proximity...</p>
+                </div>
+            `;
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            try {
+                const res = await fetch(`/recommend_venues/${venueId}?limit=6`);
+                const data = await res.json();
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    container.innerHTML = `
+                        <div class="alert alert-dark text-white border-secondary mb-0">
+                            <strong>No high-affinity alternative venues found.</strong><br>
+                            Ensure other venues are cataloged or adjust minimum match score thresholds.
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<div class="row g-3">';
+                data.recommendations.forEach(r => {
+                    const matchPercent = Math.round(r.match_score * 100);
+                    const scoreClass = matchPercent >= 70 ? 'bg-success' : (matchPercent >= 45 ? 'bg-info text-dark' : 'bg-secondary');
+                    const traits = (r.shared_traits || []).map(t => `<span class="badge border border-info text-info me-1">${t}</span>`).join('');
+                    html += `
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary h-100 p-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0 text-white fw-bold">${r.name}</h6>
+                                    <div>
+                                        <span class="badge ${scoreClass}">${matchPercent}% Match</span>
+                                        ${r.distance_km !== null ? `<span class="badge bg-dark border border-secondary text-secondary ms-1">${r.distance_km} km</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="small text-secondary mb-2">${r.reasoning}</div>
+                                ${traits ? `<div class="mb-3">${traits}</div>` : ''}
+                                <div class="mt-auto d-flex flex-column gap-2">
+                                    <div class="d-flex gap-2">
+                                        <a href="/venue/${r.venue_id}" target="_blank" class="btn btn-outline-info btn-sm flex-grow-1">
+                                            View Venue Dossier
+                                        </a>
+                                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="draftContingencyPitch('${venueId}', '${r.venue_id}', '${r.name}')">
+                                            ✉️ Draft Pitch
+                                        </button>
+                                    </div>
+                                    <div id="pitch-box-${r.venue_id}" class="d-none mt-2 p-2 bg-black border border-warning rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-warning fw-bold">Contingency Pitch Preview</span>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0" onclick="document.getElementById('pitch-box-${r.venue_id}').classList.add('d-none')">✕</button>
+                                        </div>
+                                        <input type="text" id="subj-${r.venue_id}" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" readonly>
+                                        <textarea id="body-${r.venue_id}" class="form-control form-control-sm bg-dark text-white border-secondary" rows="4" readonly></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        Failed to calculate venue recommendations: ${err.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Draft Contingency Pitch for Sibling Alternative
+        async function draftContingencyPitch(targetId, altId, altName) {
+            const pitchBox = document.getElementById(`pitch-box-${altId}`);
+            const subjInput = document.getElementById(`subj-${altId}`);
+            const bodyArea = document.getElementById(`body-${altId}`);
+
+            if (pitchBox) pitchBox.classList.remove('d-none');
+            if (subjInput) subjInput.value = 'Generating contextual contingency pitch...';
+            if (bodyArea) bodyArea.value = 'Analyzing venue acoustic alignment and collective EPK details...';
+
+            try {
+                const res = await fetch(`/api/recommendations/pitch/${targetId}/${altId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (subjInput) subjInput.value = data.subject || `Psytrance Night Residency - ${altName}`;
+                    if (bodyArea) bodyArea.value = data.pitch || '';
+                } else {
+                    if (subjInput) subjInput.value = 'Error generating pitch';
+                    if (bodyArea) bodyArea.value = data.message || 'Unable to draft pitch.';
+                }
+            } catch (err) {
+                if (subjInput) subjInput.value = 'Network error';
+                if (bodyArea) bodyArea.value = err.message;
+            }
+        }
+
+        // Curator Scene Intelligence & Venue Notes Modal Handler
+        let currentModalVenueId = null;
+
+        async function openVenueNotesModal(venueId, venueName) {
+            currentModalVenueId = venueId;
+            const modalEl = document.getElementById('venueNotesModal');
+            const titleEl = document.getElementById('venue-notes-modal-title');
+            const container = document.getElementById('modal-notes-container');
+            const noteInput = document.getElementById('modal-note-content');
+
+            if (noteInput) noteInput.value = '';
+            titleEl.innerHTML = `📝 Scene Intelligence for <span class="text-warning">${venueName || venueId}</span>`;
+            container.innerHTML = `
+                <div class="text-center py-3 text-secondary">
+                    <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                    <p class="mt-2 mb-0 small">Loading notes...</p>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            await loadVenueNotes(venueId);
+        }
+
+        async function loadVenueNotes(venueId) {
+            const container = document.getElementById('modal-notes-container');
+            try {
+                const res = await fetch(`/venue/${venueId}/notes`);
+                const data = await res.json();
+                const notes = data.notes || [];
+
+                if (notes.length === 0) {
+                    container.innerHTML = `
+                        <div class="alert alert-dark border-secondary text-secondary small text-center mb-0">
+                            No confidential curator notes recorded yet for this venue. Add one above!
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <ul class="list-group list-group-flush border-secondary">
+                        ${notes.map(n => `
+                            <li class="list-group-item bg-dark text-white border-secondary px-2 py-2 mb-1 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-warning small">${n.author || 'Curator'}</strong>
+                                    <small class="text-secondary" style="font-size: 0.7rem;">${n.created_at}</small>
+                                </div>
+                                <div class="small text-white-50">${n.note}</div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="alert alert-danger small mb-0">
+                        Failed to fetch notes: ${err.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function submitModalVenueNote() {
+            if (!currentModalVenueId) return;
+            const author = document.getElementById('modal-note-author').value || 'Curator';
+            const noteInput = document.getElementById('modal-note-content');
+            const note = noteInput ? noteInput.value.trim() : '';
+
+            if (!note) {
+                alert('Please enter note text.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/venue/${currentModalVenueId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ note, author })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    noteInput.value = '';
+                    await loadVenueNotes(currentModalVenueId);
+                } else {
+                    alert('Failed to save note: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error saving note: ' + err.message);
+            }
+        }
+
+        // Feedback Submission
+        async function submitFeedbackForm(e) {
+            e.preventDefault();
+            const category = document.getElementById('fb-category').value;
+            const author = document.getElementById('fb-author').value;
+            const message = document.getElementById('fb-message').value;
+            const btn = document.getElementById('fb-submit-btn');
+            const alertEl = document.getElementById('feedback-alert');
+
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+            alertEl.className = 'alert d-none';
+
+            try {
+                const res = await fetch('/submit_feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, author, message })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alertEl.className = 'alert alert-success mt-3';
+                    alertEl.innerText = data.message;
+                    document.getElementById('fb-message').value = '';
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                        if (modal) modal.hide();
+                        alertEl.className = 'alert d-none';
+                        btn.disabled = false;
+                        btn.innerText = 'Submit Feedback';
+                    }, 1800);
+                } else {
+                    alertEl.className = 'alert alert-danger mt-3';
+                    alertEl.innerText = data.message || 'Submission failed';
+                    btn.disabled = false;
+                    btn.innerText = 'Submit Feedback';
+                }
+            } catch (err) {
+                alertEl.className = 'alert alert-danger mt-3';
+                alertEl.innerText = 'Network error submitting feedback: ' + err.message;
+                btn.disabled = false;
+                btn.innerText = 'Submit Feedback';
+            }
+        }
+
+        // Feedback Triage Status Update
+        async function updateFeedbackStatus(feedbackId, newStatus) {
+            try {
+                const res = await fetch(`/update_feedback_status/${feedbackId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Reload page or refresh system tab
+                    window.location.href = '/?tab=system';
+                } else {
+                    alert('Failed to update feedback status: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error updating feedback status: ' + err.message);
+            }
+        }
+
+        // Interactive Onboarding Tour
+        const tourSteps = [
+            {
+                title: "📋 Outreach Pipeline & Queues",
+                content: "Review AI-qualified venues and custom pitches generated under the 'Selector, Not Promoter' philosophy. Approve outreach for automated SMTP email or clipboard IG/FB DM dispatch."
+            },
+            {
+                title: "🗺️ Geographic Map & Tour Routing",
+                content: "Analyze venue clustering corridors across Detroit, Midwest hubs, and Toronto. Click 'Plan Midwest Circuit' to compute optimal driving circuits, cluster radii, and customs/ATA Carnet guidance."
+            },
+            {
+                title: "📊 Analytics & A/B Pitch Testing",
+                content: "Track conversion rates, email opens (via invisible 1x1 pixels), and link clicks in real-time. Evaluate statistical significance (chi-square) across dynamic pitch variants."
+            },
+            {
+                title: "⚙️ Collective Settings & Profiles",
+                content: "Configure target genres, acoustic sound system keywords (Funktion-One, Void, Danley), collective artist biographies, EPKs, and IMAP credentials."
+            },
+            {
+                title: "🖥️ System Health & Autonomous Scrapers",
+                content: "Monitor autonomous scraper modules (Google Maps, Resident Advisor, Eventbrite, Meetup), trigger dual-direction git syncs, and review community feedback."
+            }
+        ];
+
+        let currentTourStep = 0;
+
+        function startOnboardingTour() {
+            currentTourStep = 0;
+            renderTourStep();
+            const modal = new bootstrap.Modal(document.getElementById('onboardingTourModal'));
+            modal.show();
+        }
+
+        function renderTourStep() {
+            const step = tourSteps[currentTourStep];
+            document.getElementById('tour-step-badge').innerText = `Step ${currentTourStep + 1} of ${tourSteps.length}`;
+            const percent = ((currentTourStep + 1) / tourSteps.length) * 100;
+            document.getElementById('tour-progress').style.width = `${percent}%`;
+
+            document.getElementById('tour-content').innerHTML = `
+                <h5 class="text-warning mb-2">${step.title}</h5>
+                <p class="text-light mb-0 fs-6" style="line-height: 1.6;">${step.content}</p>
+            `;
+
+            document.getElementById('tour-prev-btn').disabled = (currentTourStep === 0);
+            const nextBtn = document.getElementById('tour-next-btn');
+            if (currentTourStep === tourSteps.length - 1) {
+                nextBtn.innerText = 'Finish Walkthrough 🎉';
+                nextBtn.className = 'btn btn-success btn-sm';
+            } else {
+                nextBtn.innerText = 'Next Step ➔';
+                nextBtn.className = 'btn btn-warning btn-sm';
+            }
+        }
+
+        function nextTourStep() {
+            if (currentTourStep < tourSteps.length - 1) {
+                currentTourStep++;
+                renderTourStep();
+            } else {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('onboardingTourModal'));
+                if (modal) modal.hide();
+            }
+        }
+
+        function prevTourStep() {
+            if (currentTourStep > 0) {
+                currentTourStep--;
+                renderTourStep();
+            }
+        }
     </script>
 </body>
 </html>

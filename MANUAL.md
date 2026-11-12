@@ -135,7 +135,7 @@ The dashboard consolidates all subsystems into a single-page interface with prom
 - **Instagram DM**: If a venue has an IG handle but no email, click "Copy Pitch for DM" to clipboard the pitch text.
 - **Reply Negotiation**: When a venue replies, the AI analyzes sentiment and drafts a response. You can edit the draft and send it from the History view.
 - **Tour Planning & Midwest-Toronto Circuit**: Under Circuit Map, view optimized touring itineraries that anchor in Detroit and link Midwest hubs (Ferndale, Ann Arbor, Grand Rapids, Chicago, Cleveland, Columbus) and Toronto with cross-border guidance (Ambassador Bridge / Detroit-Windsor Tunnel crossings, ATA Carnet gear declarations, and USD/CAD currency guidance).
-- **Venue Notes & Scene Intelligence**: On any venue detail page, record private curator notes and intelligence regarding sound engineer preferences, sound specs, and door policies.
+- **Venue Notes & Scene Intelligence**: On any venue detail page, record private curator notes and intelligence regarding sound engineer preferences, sound specs, and door policies. These notes are automatically injected into AI prompts when generating or regenerating residency pitches.
 - **Activity Digests**: In the Analytics tab, click **"Email Pipeline Digest"** to preview and dispatch rolling metrics across 24h, 7d, or 30d periods.
 
 ---
@@ -286,3 +286,107 @@ from src.digest_generator import DigestGenerator
 generator = DigestGenerator()
 result = generator.dispatch_digest(recipient_email="booking@psycollective.org", days=7)
 ```
+
+## Geographic Clustering & Transit Corridor Optimization
+
+Analyze touring density and transit times in the **Geographic Map & Circuit Optimizer** tab:
+- **DBSCAN Clustering**: Identifies regional venue density groups within configurable distance thresholds (`eps` in kilometers) and minimum venue counts.
+- **Dynamic Cluster Span**: Calculates exact bounding-box radial spans (`cluster_radius_km`) and estimated highway transit drive times (`est_intercity_drive_hrs` at 80 km/h) for routing logistics.
+- **Corridor Filter Badges**: Click any cluster corridor card to instantly filter the venues table and map view to that regional touring market.
+
+## Collaborative Filtering & Sibling Venue Recommendations
+
+When a venue rejects an outreach inquiry, is unavailable on a key tour date, or you want to expand circuit coverage:
+- **Lead Queue Action**: Click **"Alternate Venues"** on any pipeline card to launch the algorithmic recommendation modal.
+- **Affinity Scoring**: Calculates composite compatibility based on shared acoustic equipment (Funktion-One, Void, Danley), subgenre tags, capacity, and geographical proximity (with Haversine distance decay).
+- **Venue Dossier Integration**: The venue detail view automatically displays live sibling alternatives with one-click navigation to their respective dossiers.
+- **API Access**: Query programmatic recommendations directly via `GET /recommend_venues/<venue_id>?limit=5&min_score=0.2`.
+
+## Meetup Community & Event Scraper
+
+Discover underground electronic music gatherings and community-driven event spaces from Meetup:
+- **Dynamic Query Discovery**: Scrapes public Meetup event search queries for targeted cities and musical genres.
+- **Schema & Fallback Extraction**: Extracts venue names, physical addresses, and community event descriptions using schema.org `MusicEvent` JSON-LD structures and HTML card fallbacks.
+- **Status Monitoring**: Operational alongside other scrapers under the **Scraper Sources** tab in the Unified Command Center (`meetup.py`).
+
+## Eventbrite Nightlife Discovery Scraper
+
+Scout electronic music and underground dance events from Eventbrite:
+- **Dynamic Query Scraping**: Integrated into the automated scouting loop alongside Google Maps and Resident Advisor.
+- **Structured Schema & Fallback**: Extracts venue names, physical addresses, and event contexts via schema.org JSON-LD scripts and HTML event card components.
+- **Status Monitoring**: Monitored in real-time under the **Scraper Sources** tab in the Unified Command Center (`eventbrite.py`).
+
+## Email Engagement & Open/Click Tracking
+
+Track outreach engagement empirically to assess venue interest:
+- **1x1 Pixel Open Tracking**: Injects an invisible GIF (`/track/open/<lead_id>.gif`) into multipart HTML emails that registers an `OPEN` event upon preview.
+- **Link Click Redirection**: Replaces promotional links (Soundcloud mixes, EPK documents) with tracked redirects (`/track/click/<lead_id>?url=...`) recording `CLICK` events and destination URLs.
+- **KPI Monitoring**: Real-time open rate (%) and click-through rate (%) aggregated globally under the **Analytics & A/B Testing** tab.
+- **Lead Dossier Timeline**: Each venue's detail page maintains an audit history of email opens, link clicks, timestamps, and client user-agents.
+
+## High-Precision Address Geocoding & Reverse Parsing
+
+Ensure accurate geographic circuit routing and venue cluster mapping:
+- **Progressive Fallback**: Multi-stage geocoding evaluates specific queries (`Venue + Street Address + City` -> `Street Address + City` -> `Venue + City`) before falling back to AI coordinate approximation.
+- **Reverse Address Details**: Automatically extracts street addresses, postal codes, and urban neighborhood/suburb classifications directly from raw Nominatim payloads.
+- **Geocode Missing Action**: Click **"📍 Geocode Missing"** on the Geographic Map tab to batch-resolve coordinates for unlocated venues asynchronously in the background.
+- **Precision Indicators**: Displays GPS Located vs. Unlocated status badges on venue dossiers with an on-demand "Geocode" trigger.
+
+## Operator Onboarding Walkthrough & Collective Feedback
+
+Ensure rapid onboarding for community curators and seamless feedback collection:
+- **Interactive Onboarding Tour**: Click **"🚀 Tour"** in the top navbar to launch a guided, multi-step walkthrough explaining the Outreach Queues, Geographic Map & Circuit Routing, Artist Profiles, Scraper Sources, and System Operations.
+- **In-App Feedback Modal**: Click **"💬 Feedback"** in the top navbar to submit bugs, feature ideas, music/vibe adjustments, or general operational notes. Submissions are saved to the persistent SQLite database.
+- **Feedback Audit Table & Triage Workflow**: Curators and system administrators can review feedback entries, sender names, categories, and timestamps under the **System Health & Sync Protocol** tab. Items can be actively triaged through `Pending`, `In Review`, and `Resolved` states using inline action buttons.
+
+## Visual Aesthetic Vibe Scoring & Vision Qualification
+
+Leverage multimodal GPT-4o-vision intelligence to evaluate physical venue spaces:
+- **Automated Pipeline Scoring**: During discovery, scrapers capture venue interior photography and stage setups. The AI engine evaluates lighting rigs, concrete textures, warehouse architecture, and dancefloor layout to assign a 1-10 visual vibe score.
+- **Visual Vibe Badge**: Venue dossiers prominently showcase the venue's visual aesthetic score (e.g., `9 / 10 Aesthetic Alignment`) with a descriptive breakdown of architectural signals.
+- **On-Demand Vision Analysis**: Click **"🎨 Analyze Imagery"** on any venue detail page to trigger immediate GPT-4o-vision re-analysis of the venue's current photography without having to reset discovery cycles.
+
+## Sibling Contingency Pitching & Acoustic Rig Weighting
+
+Quickly pivot when a target venue is booked, unresponsive, or declines:
+- **Acoustic Profiling**: The collaborative filtering recommendation engine actively scores venues based on underground audio architecture (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) to ensure comparable sound reproduction quality.
+- **Instant Contingency Pitches**: Within the "Alternate Venues" recommendation modal, click **"Draft Pitch"** next to any suggested sibling venue. The system will automatically draft a tailored turnkey proposal referencing regional tour momentum and shared sound aesthetic.
+- **Inline Preview**: Inspect and review the generated subject line and pitch body directly in the modal before copying or dispatching.
+
+## Outreach Timing Matrix & Response Velocity Analytics
+
+Optimize outreach delivery according to when club promoters and talent buyers actually engage:
+- **7x24 Matrix**: The system maps every outreach dispatch and inbound response into an hourly grid across Sunday through Saturday.
+- **Optimal Window Detection**: Highlights the peak conversion window (e.g. `Tuesday at 2:00 PM`) based on empirical response density.
+- **Visual Heatmap Grid**: Accessible on the **Analytics & A/B Engine** tab with dynamic color coding, density legends, and hover tooltips showing hourly dispatch and response breakdowns.
+- **REST API**: Programmatically inspect timing data via `GET /api/analytics/activity_heatmap`.
+
+## Tour Circuit Itinerary Manifest & Lead JSON Exports
+
+Easily share booking pipelines and tour routings with artist agencies and tour managers:
+- **Lead Dossier JSON**: Click **"Export JSON"** next to "Export CSV" on the Outreach Conversion Funnel card to download complete venue dossiers including acoustic rig specifications, GPS coordinates, contact emails, social handles, and warmth scores.
+- **Tour Routing Manifest**: Inside the **Regional Tour Route & Transit Orchestrator** (`#tourModal`), click **"📥 Export Itinerary JSON"** to download sequential waypoint stops, transit distances, drive hours, rest days, carbon footprint estimates, and paired media assets formatted for tour management tools.
+- **API Endpoints**: Query `GET /export_leads_json` or post stops to `POST /export_circuit_itinerary`.
+
+## Unified Venue Notes & Curator Scene Intelligence
+
+Log and review field notes directly within pipeline workflows:
+- **In-Situ Access**: Click the **"📝 Notes"** button on any queue card across Pending Review, Inbox, or Booked views.
+- **Interactive Scene Intelligence Modal**: Enter confidential notes (sound rig updates, door policies, promoter relationship insights) with an author tag.
+- **Real-Time Chronological Feed**: Submissions immediately appear in the venue's live intelligence timeline without refreshing the page.
+- **AI Integration**: Logged notes are automatically synthesized by GPT-4o during pitch drafting and vibe re-evaluations to ensure pitches reflect insider scene awareness.
+
+## Spherical K-Means Regional Tour Clustering & Media Matching (v1.2.0)
+
+Partition regional touring markets into balanced, dense tour hubs with tailored media packs:
+- **Clustering Strategy Options**: Choose between `DBSCAN Proximity Clusters`, `Hierarchical Corridor Linkage`, and `Spherical K-Means (Regional Tour Hubs)` in the Tour Modal (`#tourModal`).
+- **Spherical Geometry & Centroids**: Utilizes spherical Haversine distances and Lloyd's iterative partitioning to locate balanced regional tour hubs with geographic centroids and boundary radii.
+- **Media Pack Category Badging**: Automatically pairs tour stops with media assets defined in `config.json` (EPKs, sound mixes, video clips) displaying category badges (`Core Press`, `Live Audio`, `forest`, `ambient`).
+- **Transit Logistics Calculation**: Recalculates total driving distance (km), travel hours (85 km/h), rest day requirements, and estimated vehicle carbon footprint (0.17 kg CO2/km) dynamically.
+
+## Facebook Events Discovery Scraper (v1.2.1)
+
+Discover underground electronic music gatherings and nightlife venues from public Facebook Events:
+- **Dynamic Query Discovery**: Scrapes public Facebook Event search listings for target cities and music subgenres (`psytrance`, `techno`, etc.).
+- **Structured Schema & Fallback**: Extracts venue names, physical addresses, and event descriptions from schema.org JSON-LD scripts and HTML card elements with proxy rotation.
+- **Status Monitoring**: Operational alongside other scrapers under the **Scraper Sources** tab in the Unified Command Center (`facebook_events.py`).

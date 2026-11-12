@@ -27,7 +27,37 @@
                     <p><strong>Neighborhood:</strong> {{ venue.neighborhood or 'N/A' }}</p>
                     <p><strong>Source:</strong> <small class="text-white-50">{{ venue.source or 'Manual' }}</small></p>
                     <p><strong>Rating:</strong> {{ venue.google_rating or 'N/A' }} ⭐</p>
-                    <p><strong>Location:</strong> {{ venue.latitude or '?' }}, {{ venue.longitude or '?' }}</p>
+                    <p><strong>Location:</strong>
+                        {% if venue.latitude and venue.longitude %}
+                            <span class="badge bg-success">GPS Located</span> <small class="text-white-50">({{ venue.latitude|round(4) }}, {{ venue.longitude|round(4) }})</small>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Unlocated</span>
+                            <button onclick="geocodeCurrentVenue('{{ venue.id }}')" id="detail-geocode-btn" class="btn btn-xs btn-outline-info ms-2 py-0 px-1" style="font-size: 0.75rem;">Geocode</button>
+                        {% endif %}
+                    </p>
+                    <hr class="border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>Visual Vibe:</strong>
+                        <button onclick="analyzeCurrentVenueVisuals('{{ venue.id }}')" id="detail-visual-btn" class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size: 0.75rem;" title="Run GPT-4o-vision aesthetic analysis on venue imagery" data-bs-toggle="tooltip">
+                            🎨 Analyze Imagery
+                        </button>
+                    </div>
+                    <p class="mb-2">
+                        {% if venue.visual_vibe_score %}
+                            <span class="badge {% if venue.visual_vibe_score >= 7 %}bg-success{% elif venue.visual_vibe_score >= 5 %}bg-info text-dark{% else %}bg-secondary{% endif %} fs-6">
+                                {{ venue.visual_vibe_score }} / 10
+                            </span>
+                            <small class="text-white-50 ms-1">Aesthetic Alignment</small>
+                        {% else %}
+                            <span class="badge bg-secondary">Unvetted Imagery</span>
+                        {% endif %}
+                    </p>
+                    {% if venue.visual_description %}
+                    <div class="p-2 rounded bg-dark border border-secondary small text-white-50 mb-3">
+                        <strong class="text-info d-block mb-1">Aesthetic Breakdown:</strong>
+                        {{ venue.visual_description }}
+                    </div>
+                    {% endif %}
                     <hr class="border-secondary">
                     <p><strong>Venue Warmth:</strong></p>
                     <div class="progress bg-dark" style="height: 25px;">
@@ -64,6 +94,27 @@
                         {% for key, val in venue.traits_dict.items() %}
                         <span class="badge border border-info text-info">{{ key.replace('_', ' ').capitalize() }}: {{ val }}</span>
                         {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collaborative Filtering: Recommended Alternatives -->
+            <div class="card text-bg-dark border-info shadow mb-4">
+                <div class="card-header bg-dark border-info d-flex justify-content-between align-items-center">
+                    <span class="text-info fw-bold">🎯 Collaborative Filtering: Sibling Venue Recommendations</span>
+                    <button class="btn btn-outline-info btn-sm" onclick="fetchVenueDetailRecommendations('{{ venue.id }}')">
+                        Refresh Recommendations
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary small mb-3">
+                        Algorithmic alternatives matching acoustic specs (Funktion-One, Void), capacity, and regional proximity.
+                    </p>
+                    <div id="detail-rec-container">
+                        <div class="text-center py-3 text-secondary">
+                            <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                            <span class="ms-2">Loading algorithmic alternatives...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -120,6 +171,29 @@
                     <p><strong>Pitch Used:</strong></p>
                     <pre class="bg-dark text-white p-3 rounded small" style="white-space: pre-wrap;">{{ lead.generated_pitch }}</pre>
 
+                    <!-- Email Engagement Timeline -->
+                    {% if lead.tracking_events %}
+                    <h6 class="mt-4">📡 Email Engagement Events ({{ lead.tracking_events|length }}):</h6>
+                    <div class="list-group list-group-flush border-secondary mb-3">
+                        {% for ev in lead.tracking_events %}
+                        <div class="list-group-item bg-dark text-white border-secondary px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if ev.event_type == 'OPEN' %}
+                                    <span class="badge bg-info text-dark">👁️ Email Opened</span>
+                                    {% else %}
+                                    <span class="badge bg-success">🔗 Link Clicked</span>
+                                    <span class="text-info small ms-2">{{ ev.target_url }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-secondary">{{ ev.created_at }}</small>
+                            </div>
+                            <div class="text-white-50 small mt-1">IP: {{ ev.ip_address or 'N/A' }} | Agent: {{ ev.user_agent or 'Unknown' }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     {% if lead.replies %}
                     <h6 class="mt-4">Replies:</h6>
                     {% for reply in lead.replies %}
@@ -137,5 +211,106 @@
             {% endfor %}
         </div>
     </div>
+    <script>
+        async function fetchVenueDetailRecommendations(venueId) {
+            const container = document.getElementById('detail-rec-container');
+            container.innerHTML = '<div class="text-center py-3 text-secondary"><div class="spinner-border spinner-border-sm text-info"></div><span class="ms-2">Analyzing acoustic & proximity affinity...</span></div>';
+            try {
+                const res = await fetch(`/recommend_venues/${venueId}?limit=4`);
+                const data = await res.json();
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    container.innerHTML = '<p class="text-secondary small mb-0">No matching sibling venues found meeting threshold.</p>';
+                    return;
+                }
+                let html = '<div class="list-group list-group-flush border-secondary">';
+                data.recommendations.forEach(r => {
+                    const matchPercent = Math.round(r.match_score * 100);
+                    const scoreBadge = matchPercent >= 70 ? 'bg-success' : (matchPercent >= 45 ? 'bg-info text-dark' : 'bg-secondary');
+                    const traits = (r.shared_traits || []).map(t => `<span class="badge border border-info text-info me-1">${t}</span>`).join('');
+                    html += `
+                        <div class="list-group-item bg-dark text-white border-secondary px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="/venue/${r.venue_id}" class="text-info fw-bold text-decoration-none">${r.name}</a>
+                                    <span class="text-secondary small ms-1">(${r.city || 'Midwest'})</span>
+                                </div>
+                                <div>
+                                    <span class="badge ${scoreBadge}">${matchPercent}% Match</span>
+                                    ${r.distance_km !== null ? `<span class="badge bg-dark border border-secondary text-secondary ms-1">${r.distance_km} km</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="small text-secondary mt-1">${r.reasoning}</div>
+                            ${traits ? `<div class="mt-1">${traits}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `<p class="text-danger small mb-0">Failed to load recommendations: ${err.message}</p>`;
+            }
+        }
+        async function analyzeCurrentVenueVisuals(venueId) {
+            const btn = document.getElementById('detail-visual-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Analyzing...';
+            }
+            try {
+                const res = await fetch(`/analyze_venue_visuals/${venueId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Visual analysis failed');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '🎨 Analyze Imagery';
+                    }
+                }
+            } catch (err) {
+                alert('Visual analysis request failed: ' + err.message);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🎨 Analyze Imagery';
+                }
+            }
+        }
+
+        async function geocodeCurrentVenue(venueId) {
+            const btn = document.getElementById('detail-geocode-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Locating...';
+            }
+            try {
+                const res = await fetch(`/geocode_venue/${venueId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Geocoding failed');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = 'Geocode';
+                    }
+                }
+            } catch (err) {
+                alert('Geocoding request failed: ' + err.message);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Geocode';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchVenueDetailRecommendations('{{ venue.id }}');
+        });
+    </script>
 </body>
 </html>

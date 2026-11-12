@@ -1,8 +1,32 @@
-# HANDOFF - v1.1.77
+# HANDOFF - v1.2.1
 
 ## Session Summary
 
-This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INTELLIGENT MERGE**. All branches reconciled, documentation synchronized, version bumped to v1.1.77.
+This session advanced the platform through Milestones v1.2.0 and v1.2.1:
+1. **Facebook Events Discovery Scraper (v1.2.1)**: Built `FacebookEventsWebScraper` in `src/scrapers/facebook_events.py` inheriting from `BaseScraper` to scrape public electronic and psytrance music events from Facebook search listings.
+2. **Dynamic Discovery & Scraper Status (v1.2.1)**: Integrated with `load_scrapers()` in `main.py` and visualized as operational in `#tab-sources` of the unified command center.
+3. **Spherical K-Means Regional Tour Clustering (v1.2.0)**: Built `AnalyticsEngine.get_venue_clusters(method='kmeans')` with Haversine distance metric and iterative Lloyd's centroid updates, grouping qualifying circuit venues into balanced regional tour hubs with geographic centroids and boundary radii.
+4. **Contextual Media Matching & Category Badging (v1.2.0)**: Enhanced `TourPlanner.compute_circuit_logistics()` to dynamically pair media pack assets defined in `config.json` with tour circuits, assigning styled category tags (`Core Press`, `Live Audio`, `forest`, `ambient`, etc.).
+5. **Tour Orchestrator UI Enhancements (v1.2.0)**: Updated `#tourModal` in `src/dashboard/templates/index.html` with clustering algorithm selector (`DBSCAN Proximity Clusters`, `Hierarchical Corridor Linkage`, `Spherical K-Means (Regional Tour Hubs)`) and media library badges.
+6. **Unified Venue Notes & Curator Scene Intelligence Modal (v1.1.99)**: Integrated `#venueNotesModal` directly in `src/dashboard/templates/index.html` allowing curators and tour operators to log sound rig details, curfew limitations, and promoter relationship notes without leaving pipeline queue views.
+5. **Venue Touring Dossier JSON & Itinerary Export (v1.1.98)**: Added `export_leads_json()` and `export_circuit_itinerary_json()` in `src/analytics.py`, and enriched `compute_circuit_logistics()` in `src/tour_planner.py` to calculate drive hours, rest days, carbon emissions, and paired media for tour stops.
+2. **Tour Manifest REST Endpoints & UI Actions (v1.1.98)**: Added `GET /export_leads_json` and `POST /export_circuit_itinerary` endpoints in `src/dashboard/app.py`. Added "Export JSON" button on the Conversion Funnel card and "Export Itinerary JSON" client-side download in `#tourModal`.
+3. **Outreach Timing Matrix & Response Velocity Analytics (v1.1.97)**: Built `AnalyticsEngine.get_activity_heatmap()` in `src/analytics.py` aggregating outreach dispatches and inbound venue replies across a 7x24 temporal grid (Day of Week vs Hour of Day) to calculate engagement intensity and identify the highest-converting promoter outreach windows.
+4. **Timing Matrix REST API & Dashboard Integration (v1.1.97)**: Exposed `GET /api/analytics/activity_heatmap` in `src/dashboard/app.py` and embedded a responsive 7x24 heatmap grid in the Analytics & A/B Engine tab of `src/dashboard/templates/index.html`, complete with density color-coding, tooltips showing hourly breakdowns, and an optimal dispatch window indicator.
+5. **Collaborative Filtering Midwest Scene Acoustic Weighting (v1.1.96)**: Enhanced `RecommendationEngine` in `src/recommendation_engine.py` with audio architecture scoring prioritizing underground psytrance and techno acoustic setups (Funktion-One, Void Acoustics, Danley Sound Labs, d&b audiotechnik, PK Sound) alongside capacity matching, spatial proximity (Haversine distance decay), and historical booking outcomes.
+6. **Contingency Alternative Pitch Generator (v1.1.96)**: Added `generate_contingency_pitch(target_venue_id, alt_venue_id, ai_engine, artist_id)` generating turnkey regional residency and touring proposals targeting sibling alternative venues when an original lead stalls or rejects.
+
+This session advanced the platform across multiple key milestones:
+1. **Single-Page Command Center Consolidation (v1.1.78)**: Reorganized all 10 fragmented dashboard views into a unified single-page layout (`src/dashboard/templates/index.html`) with interactive Bootstrap tabs, sticky action bars, full-page modals, and complete backward-compatibility routes.
+2. **Interactive System Tray Icon & Process Management (v1.1.79)**: Implemented `src/systray.py` using `pystray` with graceful headless CLI fallback, allowing service inspection and server shutdown.
+3. **Side-by-Side Venue Matrix Comparison (v1.1.80)**: Added multi-lead checkbox selection and modal comparative matrix (`/compare_venues`).
+4. **Pipeline Activity Digest Engine (v1.1.81)**: Implemented `DigestGenerator` (`src/digest_generator.py`) supporting 24h, 7d, and 30d HTML/text digests with dashboard preview and SMTP delivery.
+5. **Detroit Underground Vibe Calibration & Midwest-Toronto Circuit Optimization (v1.1.82)**: Calibrated AI vibe scoring prompts with strict 6.5 threshold and acoustic sound system evaluation; anchored tour routing to Detroit with Midwest regional stops and cross-border Toronto routing logistics.
+6. **Venue Curator Intelligence & Field Notes (v1.1.83 - v1.1.84)**: Added `venue_notes` SQLite table, interactive curator notes UI, REST endpoints, and dynamic injection into AI pitch and vibe re-evaluation.
+7. **DBSCAN Dynamic Density & Transit Clustering Metrics (v1.1.85)**: Added bounding-box cluster radius (`cluster_radius_km`) and estimated drive time (`est_intercity_drive_hrs`) calculation in `AnalyticsEngine.get_venue_clusters()`, with interactive corridor badges and filters on the Geographic Map tab.
+8. **Collaborative Filtering & Alternate Venue Recommendation Engine (v1.1.86)**: Implemented `RecommendationEngine` in `src/recommendation_engine.py`, exposed `/recommend_venues/<venue_id>` endpoint, and wired interactive sibling venue recommendation modals into lead queues and venue dossier views.
+9. **Eventbrite & Nightlife Aggregator Discovery (v1.1.87)**: Implemented `EventbriteWebScraper` in `src/scrapers/eventbrite.py` supporting schema.org JSON-LD and HTML card parsing, dynamically integrated into `main.py` query scrapers, and verified in the Unified Command Center Scraper Sources tab.
+10. **Email Engagement & Pixel Tracking Infrastructure (v1.1.88)**: Implemented 1x1 transparent tracking pixels (`/track/open/<lead_id>.gif`) and link tracking redirects (`/track/click/<lead_id>`), wired into `Mailer.send_email()`, logged into SQLite `email_tracking_events`, and surfaced via KPI cards on the Analytics tab and lead cards.
 
 ### STEP 1: Upstream Tracking
 
@@ -82,10 +106,80 @@ This session executed the **EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INT
 - **Venue Detail UI**: Added "Curator Annotations & Scene Intelligence" form and chronological timeline to `src/dashboard/templates/venue_detail.html`.
 - **Validation**: Added unit and integration tests in `tests/test_venue_notes.py` (2/2 passing) and visually verified UI via Playwright (`venue_notes_view.png`).
 
+### Session v1.1.84 — Curator Intelligence in AI Prompt Engine
+
+- **AI Prompt Ingestion**: Updated `AIEngine.generate_pitch()` and `AIEngine.vibe_check()` (`src/ai_engine.py`) to accept curator field annotations and inject them into prompt context, tailoring pitches with sound engineer preferences, sound specs, and door policies.
+- **Pipeline Call-Site Propagation**: Wired `db.get_venue_notes(venue_id)` into `main.py` (`qualify_and_pitch`) and `src/dashboard/app.py` (`/bulk_action`, `/requalify`, `/regenerate`).
+- **Validation**: Added unit tests in `tests/test_notes_in_pitch.py` (2/2 passing).
+
 ## Current State
 
-- **Version**: 1.1.83
+- **Version**: 1.2.1
 - **Branches**: `main` and active feature branches synchronized
-- **Unified Dashboard**: Live at `http://localhost:5000` with unified single-page architecture, bulk operations, venue matrix comparison, digest previews, and venue annotations
+- **Unified Dashboard**: Live at `http://localhost:5000` with single-page command center, Facebook Events discovery scraper, spherical K-Means regional tour clustering, media library pack links with category badges, unified venue notes & scene intelligence timeline modal (`#venueNotesModal`), venue touring dossier JSON & itinerary manifest export, outreach timing matrix & response velocity 7x24 heatmap, collaborative filtering contingency pitch generator, acoustic rig weighting, tour transit corridor analytics, hierarchical agglomerative clustering, visual aesthetic vibe scoring, operator feedback triage & resolution lifecycle, interactive onboarding tour (`#onboardingTourModal`), in-app feedback modal (`#feedbackModal`), bulk operations, venue matrix comparison, collaborative filtering recommendations, Eventbrite & Meetup scraping, email engagement tracking (pixel + clicks), and high-precision address geocoding
 - **Companion Launcher**: `./tray.sh`
-- **Remaining Open Items**: Additional scrapers (Facebook Events, Eventbrite, Meetup), email open/click tracking
+- **Remaining Open Items**: Video analysis in venue qualification, shared collective multi-user auth
+
+### Session v1.1.95 — Tour Routing & Transit Corridor Analytics
+
+- **Hierarchical Corridor Clustering**: Enhanced `AnalyticsEngine.get_venue_clusters()` with single-linkage hierarchical agglomerative clustering (`method='hierarchical'`) to group venue corridors along highway transit routes alongside default radial DBSCAN.
+- **Circuit Transit Logistics & Footprint Computation**: Built `compute_circuit_logistics()` in `TourPlanner` calculating total driving distance (km), highway drive time (85 km/h), recommended rest day distribution, carbon footprint (0.17 kg CO2/km), and matching collective media packs.
+- **Interactive Tour Modal UI**: Enhanced `#tourModal` with clustering algorithm selector, live transit logistics metric strip (Transit km, Drive Time, Rest Days, CO2 Footprint), paired EPK/Mix media tags, and recalculation triggers.
+- **API Simulation Endpoints**: Added `POST /api/tour/simulate_circuit` and enriched `GET /plan_circuit`.
+- **Validation**: Added `tests/test_tour_routing_enhanced.py` (4/4 passing) and verified frontend rendering via Playwright (`/home/jules/verification/tour_circuit_transit_modal.png`).
+
+### Session v1.1.94 — Command Center Automated Test Suite & Map Visual Verification
+
+- **Command Center Automated Test Suite Expansion**: Expanded `tests/test_unified_dashboard.py` to 9 comprehensive tests covering all interactive modals (`#onboardingTourModal`, `#feedbackModal`, `#compareModal`, `#digestModal`, `#recModal`, `#addVenueModal`), feedback triage badge and button states, geocoding triggers (`geocodeUnlocatedVenues`), and email engagement metrics (`Email Engagement & Interaction Metrics`).
+- **Visual Stability & Map Tab Verification**: Verified Leaflet map container (`#map`), marker controls, filter controls, and consolidated Command Center layout stability via Playwright visual verification (`scripts/verify_map_tab.py`), capturing visual screenshot at `/home/jules/verification/command_center_map_tab.png`.
+- **Master Test Suite Passing**: Verified 141 passed tests, 4 skipped across the entire test suite.
+
+### Session v1.1.99 — Unified Venue Notes & Curator Scene Intelligence Modal
+
+- **Unified Intelligence Modal**: Integrated `#venueNotesModal` directly in `src/dashboard/templates/index.html` allowing curators and tour operators to log sound rig details, curfew limitations, and promoter relationship notes without leaving pipeline queue views.
+- **Queue Action Trigger Buttons**: Added `📝 Notes` quick-action buttons across pending lead cards, approved queue, and historical views.
+- **Client-Side Note Management**: Implemented `openVenueNotesModal()`, `loadVenueNotes()`, and `submitModalVenueNote()` handling instantaneous AJAX note posting and feed updates.
+- **Endpoint Dual Support**: Confirmed `POST /venue/<venue_id>/notes` and `GET /venue/<venue_id>/notes` handle both JSON and standard form submissions cleanly.
+- **Testing & Visual Verification**: Created `tests/test_dashboard_venue_notes.py` (3/3 passing), verified master test suite (161 passing, 4 skipped), and captured Playwright screenshot at `/home/jules/verification/venue_notes_modal_ui.png`.
+
+### Session v1.1.98 — Venue Touring Dossier JSON & Itinerary Export
+
+- **Lead Dossier Export**: Added `AnalyticsEngine.export_leads_json()` outputting venue metadata, acoustic traits, coordinates, vibe scores, and contacts.
+- **Circuit Itinerary Export**: Added `AnalyticsEngine.export_circuit_itinerary_json()` generating sequential waypoint stops and route logistics. Enhanced `compute_circuit_logistics()` to support individual venue coordinates alongside cluster objects.
+- **Unified Action Triggers**: Added "Export JSON" button on the conversion funnel card and "Export Itinerary JSON" inside `#tourModal`.
+- **Testing & Verification**: Created `tests/test_itinerary_export.py` (4/4 passing) and verified with Playwright (`export_buttons_ui.png`).
+
+### Session v1.1.97 — Outreach Timing Matrix & Response Velocity Analytics
+
+- **Temporal Engagement Profiling**: Added `AnalyticsEngine.get_activity_heatmap()` computing a 7x24 matrix of dispatches and replies across Day-of-Week and Hour-of-Day.
+- **Heatmap REST API & Interactive UI**: Added `GET /api/analytics/activity_heatmap` and interactive 7x24 matrix table on the Analytics tab with density shading and tooltips.
+- **Testing & Verification**: Created `tests/test_analytics_heatmap.py` (4/4 passing) and verified with Playwright (`activity_heatmap_matrix.png`).
+
+### Session v1.1.96 — Collaborative Filtering Midwest Acoustic Weighting & Contingency Pitching
+
+- **Acoustic Rig Weighting**: Enhanced `RecommendationEngine` with audio rig scoring (Funktion-One, Void, Danley, d&b, PK Sound).
+- **Contingency Pitch Generation**: Implemented `generate_contingency_pitch()` and `POST /api/recommendations/pitch/<target>/<alt>` generating fallback regional proposals.
+- **Testing & Verification**: Created `tests/test_recommendation_contingency.py` (4/4 passing) and verified with Playwright.
+
+### Session v1.1.93 — Operator Feedback Triage & Resolution Workflow
+
+- **Feedback Status Migration**: Added `status TEXT DEFAULT 'PENDING'` (`PENDING`, `IN_REVIEW`, `RESOLVED`) column to `operator_feedback` table with automatic SQLite migration in `DatabaseManager`.
+- **Feedback Triage API**: Implemented `POST /update_feedback_status/<feedback_id>` in `src/dashboard/app.py` and updated `GET /api/feedback?status=...` to support status filtering.
+- **Unified Command Center Triage Actions**: Added status indicator badges (`Resolved`, `In Review`, `Pending`) and inline triage buttons (`Review`, `Resolve`, `Re-open`) on the Operator Feedback table under the System Health tab.
+- **Validation**: Expanded `tests/test_feedback_and_onboarding.py` (5/5 passing) and verified frontend visual rendering via Playwright (`feedback_triage_ui.png`).
+
+### Session v1.1.92 — Visual Aesthetic Vibe Scoring & GPT-4o-Vision Integration
+
+- **Visual Vibe Score Persistence**: Extended SQLite `venues` table with `visual_vibe_score INTEGER` and added dynamic column migrations in `src/db_manager.py`.
+- **Pipeline Vision Propagation**: Updated `qualify_and_pitch()` in `main.py` and `DatabaseManager.update_venue_visuals()` to extract aesthetic score from `AIEngine.analyze_visual_vibe()` and persist to the database.
+- **On-Demand Visual Re-Analysis API**: Added `POST /analyze_venue_visuals/<venue_id>` endpoint in `src/dashboard/app.py` enabling curators to trigger GPT-4o-vision aesthetic re-evaluations on demand for existing venues with imagery.
+- **Venue Dossier Aesthetic UI**: Added "Visual Vibe" badge (1-10 aesthetic alignment), expandable visual aesthetic breakdown section, and interactive "🎨 Analyze Imagery" button with tooltip guidance in `src/dashboard/templates/venue_detail.html`.
+- **Validation**: Added unit and integration tests in `tests/test_visual_vibe_qualification.py` (4/4 passing) and verified visual rendering via Playwright (`venue_visual_vibe_ui.png`, `venue_visual_vibe_full.png`).
+
+### Session v1.1.91 — User Onboarding Tour & In-App Feedback Mechanism
+
+- **Operator Feedback Persistence**: Added `operator_feedback` table in SQLite schema (`database/schema.sql`) and `DatabaseManager` methods (`record_operator_feedback`, `get_operator_feedback`).
+- **In-App Feedback Modal & API**: Added `POST /submit_feedback` and `GET /api/feedback` endpoints in `src/dashboard/app.py` with an interactive collective member modal in `src/dashboard/templates/index.html`.
+- **Interactive Multi-Step Guided Tour**: Added 5-step onboarding walkthrough modal in `src/dashboard/templates/index.html` guiding new operators through pipeline queues, circuit routing, artist dossiers, scraper modules, and system controls with dynamic progress tracking.
+- **System Health Feedback History**: Embedded submitted operator suggestions and bugs into the System Health tab of the Unified Command Center.
+- **Validation**: Added unit and integration tests in `tests/test_feedback_and_onboarding.py` (4/4 passing) and visually verified UI via Playwright (`feedback_modal_ui.png`, `onboarding_tour_ui.png`).
